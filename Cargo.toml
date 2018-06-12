@@ -1,0 +1,6 @@
+[package]
+name = "rock_raiders"
+version = "0.1.0"
+authors = ["KuSpa <wil.friedemann@gmail.com>"]
+
+[dependencies]
