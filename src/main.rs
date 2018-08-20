@@ -1,27 +1,18 @@
 extern crate amethyst;
 
-use amethyst::Result;
 use amethyst::prelude::*;
-use amethyst::renderer::{DisplayConfig, DrawFlat, Event, KeyboardInput,
-                         Pipeline, PosTex, RenderBundle, Stage, 
-                         VirtualKeyCode, WindowEvent};
+use amethyst::input::{is_close_requested, is_key_down}; 
+use amethyst::renderer::{DisplayConfig, DrawFlat, Event, Pipeline, PosNormTex,
+                         RenderBundle, Stage, VirtualKeyCode};
 
-struct RockRaider; 
-impl<'a, 'b> State<GameData<'a, 'b>> for RockRaider {
+struct Example;
+
+impl<'a, 'b> State<GameData<'a, 'b>> for Example {
     fn handle_event(&mut self, _: StateData<GameData>, event: Event) -> Trans<GameData<'a, 'b>> {
-        match event {
-            Event::WindowEvent { event, .. } => match event {
-                WindowEvent::KeyboardInput {
-                    input:
-                        KeyboardInput {
-                            virtual_keycode: Some(VirtualKeyCode::Escape),
-                            ..
-                        },
-                    ..
-                } => Trans::Quit,
-                _ => Trans::None,
-            },
-            _ => Trans::None,
+        if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+            Trans::Quit
+        } else {
+            Trans::None
         }
     }
 
@@ -31,25 +22,25 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaider {
     }
 }
 
-fn run() -> Result<()> {
-    let path = "./resources/display_config.ron";
+fn main() -> Result<(), amethyst::Error> {
+    amethyst::start_logger(Default::default());
 
+    let path = format!(
+        "{}/resources/display_config.ron",
+        env!("CARGO_MANIFEST_DIR")
+    );
     let config = DisplayConfig::load(&path);
+
     let pipe = Pipeline::build().with_stage(
         Stage::with_backbuffer()
-            .clear_target([0.0, 0.0, 0.0, 1.0], 1.0)
-            .with_pass(DrawFlat::<PosTex>::new()),
+            .clear_target([0.00196, 0.23726, 0.21765, 1.0], 1.0)
+            .with_pass(DrawFlat::<PosNormTex>::new()),
     );
 
-    let game_data = GameDataBuilder::default().with_bundle(RenderBundle::new(pipe, Some(config)))?;
-    let mut game = Application::new("./", RockRaider, game_data)?;
+    let game_data = GameDataBuilder::default()
+        .with_bundle(RenderBundle::new(pipe, Some(config)))?;
+    let mut game = Application::build("./", Example)?
+        .build(game_data)?;
     game.run();
     Ok(())
-}
-
-fn main() {
-    if let Err(e) = run() {
-        println!("Error occurred during game execution: {}", e);
-        ::std::process::exit(1);
-    }
 }
