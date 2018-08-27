@@ -52,14 +52,14 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
 
 /// Initialise the camera.
 fn initialise_camera(world: &mut World) {
-    //                               I assume:  >     ^  towards you
-    let initial_camera_position = Point3::new(0.0, 1.0, 0.0);
+    //                               I assume:  >   ^  towards you
+    let initial_camera_position = Point3::new(-30.0, -30.0, -75.0);
     let initial_point = Point3::new(0.0, 0.0, 0.0);
-    let up = Vector3::new(0.0, 0.0, 1.0);
+    let up = Vector3::new(0.0, 1.0, 0.0);
 
     world
         .create_entity()
-        .with(Camera::from(Projection::perspective(1.0, Deg(90.0))))
+        .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
         .with(GlobalTransform(Matrix4::look_at(
             initial_camera_position, //eye
             initial_point,           //center
@@ -77,8 +77,8 @@ fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
     let sprite = Sprite {
         left: 0.0,
         right: 100.0,
-        top: 0.0,
-        bottom: 100.0,
+        top: 100.0,
+        bottom: 0.0,
     };
 
     // Create a left plank entity.
