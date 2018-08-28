@@ -70,14 +70,6 @@ fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
 
     ground_transform.translation = Vector3::new(0.0, 0.0, 0.0);
 
-    // Build the sprite for the paddles.
-    let sprite = Sprite {
-        left: 0.0,
-        right: 100.0,
-        top: 100.0,
-        bottom: 0.0,
-    };
-
     // Create a left plank entity.
     let entity = world
         .create_entity()
