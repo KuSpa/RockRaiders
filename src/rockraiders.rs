@@ -1,11 +1,11 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Matrix4, Point3, Vector3};
-use amethyst::core::transform::{GlobalTransform, Transform};
+use amethyst::core::transform::GlobalTransform;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
     Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
-    Shape, Sprite, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode,
+    Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode,
 };
 
 pub struct RockRaiders;
@@ -49,7 +49,6 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
 
 /// Initialise the camera.
 fn initialise_camera(world: &mut World) {
-    //                               I assume:  >   ^  towards you
     let initial_camera_position = Point3::new(0.0, 0.0, -15.0);
     let initial_point = Point3::new(0.0, 0.0, 0.0);
     let up = Vector3::new(0.0, 1.0, 0.0);
@@ -58,25 +57,17 @@ fn initialise_camera(world: &mut World) {
         .create_entity()
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
         .with(GlobalTransform(Matrix4::look_at(
-            initial_camera_position, //eye
-            initial_point,           //center
-            up,                      //up-vector
+            initial_camera_position,
+            initial_point,
+            up,
         ))).build();
 }
 
 /// Initialises one paddle on the left, and one paddle on the right.
 fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
-    let mut ground_transform = Transform::default();
-
-    ground_transform.translation = Vector3::new(0.0, 0.0, 0.0);
-
-    // Create a left plank entity.
     let entity = world
         .create_entity()
-        //.with_sprite(&sprite, spritesheet.clone(), SPRITESHEET_SIZE)
-        //.expect("Failed to add sprite render on ground")
         .with(GlobalTransform::default())
-        .with(ground_transform)
         .build();
 
     let cube_mesh: MeshData = Shape::generate::<Vec<PosTex>>(&Shape::Cube, None);

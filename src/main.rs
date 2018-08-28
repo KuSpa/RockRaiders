@@ -1,8 +1,10 @@
 extern crate amethyst;
 
 mod rockraiders;
+mod systems;
 
 use amethyst::core::transform::TransformBundle;
+use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawFlat, PosTex};
 
@@ -17,8 +19,15 @@ fn main() -> amethyst::Result<()> {
     // of the git repository. It only is a different location to load the assets from.
     let assets_dir = format!("{}/", env!("CARGO_MANIFEST_DIR"));
 
+    let input = InputBundle::<String, String>::new();
+
     let game_data = GameDataBuilder::default()
-        .with_bundle(TransformBundle::new())?
+        .with_bundle(input)?
+        .with(
+            systems::CameraMovementSystem,
+            "camera_movement_system",
+            &["input_system"],
+        ).with_bundle(TransformBundle::new())?
         .with_basic_renderer(path, DrawFlat::<PosTex>::new(), false)?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
     game.run();
