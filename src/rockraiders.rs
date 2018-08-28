@@ -1,15 +1,12 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Matrix4, Point3, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
-use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Event, PngFormat, Projection, Sprite, Texture, TextureHandle, VirtualKeyCode,
-    WithSpriteRender,
+    Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
+    Shape, Sprite, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode,
 };
-
-const SPRITESHEET_SIZE: (f32, f32) = (100.0, 100.0);
 
 pub struct RockRaiders;
 
@@ -53,7 +50,7 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
 /// Initialise the camera.
 fn initialise_camera(world: &mut World) {
     //                               I assume:  >   ^  towards you
-    let initial_camera_position = Point3::new(-30.0, -30.0, -75.0);
+    let initial_camera_position = Point3::new(0.0, 0.0, -15.0);
     let initial_point = Point3::new(0.0, 0.0, 0.0);
     let up = Vector3::new(0.0, 1.0, 0.0);
 
@@ -82,11 +79,37 @@ fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
     };
 
     // Create a left plank entity.
-    world
+    let entity = world
         .create_entity()
-        .with_sprite(&sprite, spritesheet.clone(), SPRITESHEET_SIZE)
-        .expect("Failed to add sprite render on ground")
+        //.with_sprite(&sprite, spritesheet.clone(), SPRITESHEET_SIZE)
+        //.expect("Failed to add sprite render on ground")
         .with(GlobalTransform::default())
         .with(ground_transform)
         .build();
+
+    let cube_mesh: MeshData = Shape::generate::<Vec<PosTex>>(&Shape::Cube, None);
+
+    let mesh = {
+        let loader = world.read_resource::<Loader>();
+        let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
+        loader.load_from_data(cube_mesh, (), &mesh_storage)
+    };
+
+    let material = {
+        let default = world.read_resource::<MaterialDefaults>();
+        Material {
+            albedo: spritesheet,
+            ..default.0.clone()
+        }
+    };
+
+    let mut renderer = world.system_data::<SpriteRenderData>();
+    renderer
+        .meshes
+        .insert(entity, mesh)
+        .expect("cannot insert mesh");
+    renderer
+        .materials
+        .insert(entity, material)
+        .expect("cannot insert material");
 }
