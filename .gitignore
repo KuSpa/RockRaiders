@@ -24,3 +24,5 @@ Cargo.lock
 
 # End of https://www.gitignore.io/api/rust,visualstudiocode
 
+.vscode/launch.json
+.vscode/settings.json
