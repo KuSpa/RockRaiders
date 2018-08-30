@@ -1,6 +1,6 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Matrix4, Point3, Vector3};
-use amethyst::core::transform::GlobalTransform;
+use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
@@ -56,6 +56,7 @@ fn initialise_camera(world: &mut World) {
     world
         .create_entity()
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
+        .with(Transform::default())
         .with(GlobalTransform(Matrix4::look_at(
             initial_camera_position,
             initial_point,
