@@ -5,7 +5,7 @@ use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
     Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
-    Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode,
+    Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
 };
 
 pub struct RockRaiders;
@@ -13,8 +13,8 @@ pub struct RockRaiders;
 impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
     fn on_start(&mut self, data: StateData<GameData>) {
         let world = data.world;
+        initialise_cursor(world);
 
-        // Load the spritesheet necessary to render the graphics.
         let spritesheet = {
             let loader = world.read_resource::<Loader>();
             let texture_storage = world.read_resource::<AssetStorage<Texture>>();
@@ -26,8 +26,6 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
                 &texture_storage,
             )
         };
-
-        //world.register::<Paddle>();
 
         initialise_ground(world, spritesheet);
         initialise_camera(world);
@@ -64,7 +62,6 @@ fn initialise_camera(world: &mut World) {
         ))).build();
 }
 
-/// Initialises one paddle on the left, and one paddle on the right.
 fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
     let entity = world
         .create_entity()
@@ -96,4 +93,13 @@ fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
         .materials
         .insert(entity, material)
         .expect("cannot insert material");
+}
+
+fn initialise_cursor(world: &mut World) {
+    use amethyst::renderer::mouse::grab_cursor;
+
+    //TODO - custom cursor icon xD
+
+    let mut msg = world.write_resource::<WindowMessages>();
+    grab_cursor(&mut msg);
 }
