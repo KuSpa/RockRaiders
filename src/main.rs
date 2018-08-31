@@ -1,4 +1,6 @@
 extern crate amethyst;
+#[macro_use]
+extern crate log;
 
 mod rockraiders;
 mod systems;
@@ -7,10 +9,15 @@ use amethyst::core::transform::TransformBundle;
 use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawFlat, PosTex};
+use amethyst::{LogLevelFilter, LoggerConfig};
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    let logger_config = LoggerConfig {
+        use_colors: true,
+        level_filter: LogLevelFilter::Info,
+    };
 
+    amethyst::start_logger(logger_config);
     use rockraiders::RockRaiders;
 
     let path = format!("{}/resources/display.ron", env!("CARGO_MANIFEST_DIR"));
