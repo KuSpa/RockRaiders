@@ -38,12 +38,14 @@ impl<'a> System<'a> for CameraMovementSystem {
                 z += 1.0;
             }
         }
+        //todo do local and blub
 
         let dir = Vector3::new(x, 0.0, z);
         info!("{:?}", dir);
         if !dir.is_zero() {
             for (transform, _) in (&mut transforms, &cam).join() {
-                transform.move_along_local(dir, time.delta_seconds() * ((x.abs() + z.abs()) / 2.0));
+                transform
+                    .move_along_global(dir, time.delta_seconds() * ((x.abs() + z.abs()) / 2.0));
             }
         }
     }

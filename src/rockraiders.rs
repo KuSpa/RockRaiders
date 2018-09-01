@@ -27,8 +27,9 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
             )
         };
 
-        initialise_ground(world, spritesheet);
+        initialise_ground(world, spritesheet.clone());
         initialise_camera(world);
+        initialise_object(world, spritesheet)
     }
 
     fn handle_event(&mut self, _: StateData<GameData>, event: Event) -> Trans<GameData<'a, 'b>> {
@@ -47,22 +48,67 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
 
 /// Initialise the camera.
 fn initialise_camera(world: &mut World) {
-    let initial_camera_position = Point3::new(0.0, 0.0, -15.0);
-    let initial_point = Point3::new(0.0, 0.0, 0.0);
-    let up = Vector3::new(0.0, 1.0, 0.0);
+    let mut mat = Transform::default();
+    mat.move_global(Vector3::new(-2.0, 5.0, 2.0));
+    mat.yaw_global(Deg(-45.0));
+    mat.pitch_local(Deg(-45.0));
+
+    //TODO better
+    //mat.rotate_global(Vector3::new(-1.0, 0.0, -1.0), Deg(45.0));
 
     world
         .create_entity()
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
-        .with(Transform::default())
-        .with(GlobalTransform(Matrix4::look_at(
-            initial_camera_position,
-            initial_point,
-            up,
-        ))).build();
+        .with(mat)
+        .with(GlobalTransform::default())
+        .build();
 }
 
-fn initialise_ground(world: &mut World, spritesheet: TextureHandle) {
+fn initialise_ground(world: &mut World, texture: TextureHandle) {
+    let spritesheet = {
+        let loader = world.read_resource::<Loader>();
+        let texture_storage = world.read_resource::<AssetStorage<Texture>>();
+        loader.load(
+            "groundy.png",
+            PngFormat,
+            Default::default(),
+            (),
+            &texture_storage,
+        )
+    };
+
+    let entity = world
+        .create_entity()
+        .with(GlobalTransform(Matrix4::from_scale(5.0)))
+        .build();
+
+    let ground_mesh = gen_rectangle_mesh();
+
+    let mesh = {
+        let loader = world.read_resource::<Loader>();
+        let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
+        loader.load_from_data(ground_mesh.into(), (), &mesh_storage)
+    };
+
+    let material = {
+        let default = world.read_resource::<MaterialDefaults>();
+        Material {
+            albedo: spritesheet,
+            ..default.0.clone()
+        }
+    };
+    let mut renderer = world.system_data::<SpriteRenderData>();
+    renderer
+        .meshes
+        .insert(entity, mesh)
+        .expect("cannot insert mesh");
+    renderer
+        .materials
+        .insert(entity, material)
+        .expect("cannot insert material");
+}
+
+fn initialise_object(world: &mut World, spritesheet: TextureHandle) {
     let entity = world
         .create_entity()
         .with(GlobalTransform::default())
@@ -102,4 +148,33 @@ fn initialise_cursor(world: &mut World) {
 
     let mut msg = world.write_resource::<WindowMessages>();
     grab_cursor(&mut msg);
+}
+
+fn gen_rectangle_mesh() -> Vec<PosTex> {
+    vec![
+        PosTex {
+            position: [0., 0., 0.],
+            tex_coord: [0., 0.],
+        },
+        PosTex {
+            position: [1., 0., 0.],
+            tex_coord: [1., 0.],
+        },
+        PosTex {
+            position: [1., 1., 0.],
+            tex_coord: [1., 1.],
+        },
+        PosTex {
+            position: [1., 1., 0.],
+            tex_coord: [1., 1.],
+        },
+        PosTex {
+            position: [0., 1., 0.],
+            tex_coord: [0., 1.],
+        },
+        PosTex {
+            position: [0., 0., 0.],
+            tex_coord: [0., 0.],
+        },
+    ]
 }
