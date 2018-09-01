@@ -161,15 +161,15 @@ fn gen_rectangle_mesh() -> Vec<PosTex> {
             tex_coord: [1., 0.],
         },
         PosTex {
-            position: [1., 1., 0.],
+            position: [1., 0., -1.],
             tex_coord: [1., 1.],
         },
         PosTex {
-            position: [1., 1., 0.],
+            position: [1., 0., -1.],
             tex_coord: [1., 1.],
         },
         PosTex {
-            position: [0., 1., 0.],
+            position: [0., 0., -1.],
             tex_coord: [0., 1.],
         },
         PosTex {

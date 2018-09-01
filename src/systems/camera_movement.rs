@@ -4,7 +4,7 @@ use amethyst::core::transform::Transform;
 use amethyst::input::InputHandler;
 
 use amethyst::core::cgmath::prelude::Zero;
-use amethyst::core::cgmath::Vector3;
+use amethyst::core::cgmath::{Deg, Matrix4, SquareMatrix, Vector3, Vector4};
 use amethyst::renderer::{Camera, ScreenDimensions};
 
 pub struct CameraMovementSystem;
@@ -38,14 +38,17 @@ impl<'a> System<'a> for CameraMovementSystem {
                 z += 1.0;
             }
         }
-        //todo do local and blub
 
-        let dir = Vector3::new(x, 0.0, z);
-        info!("{:?}", dir);
+        let mut dir = Vector4::new(x, 0.0, z, 0.0);
         if !dir.is_zero() {
             for (transform, _) in (&mut transforms, &cam).join() {
-                transform
-                    .move_along_global(dir, time.delta_seconds() * ((x.abs() + z.abs()) / 2.0));
+                dir = (transform.matrix() * dir);
+                let move_dir = Vector3::new(dir.x, 0.0, dir.z);
+
+                transform.move_along_global(
+                    move_dir,
+                    time.delta_seconds() * ((x.abs() + z.abs()) / 2.0),
+                );
             }
         }
     }
