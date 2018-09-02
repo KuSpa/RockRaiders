@@ -53,9 +53,6 @@ fn initialise_camera(world: &mut World) {
     mat.yaw_global(Deg(-45.0));
     mat.pitch_local(Deg(-45.0));
 
-    //TODO better
-    //mat.rotate_global(Vector3::new(-1.0, 0.0, -1.0), Deg(45.0));
-
     world
         .create_entity()
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
