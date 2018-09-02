@@ -1,6 +1,7 @@
 extern crate amethyst;
 #[macro_use]
 extern crate log;
+extern crate serde;
 
 mod entities;
 mod rockraiders;

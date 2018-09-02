@@ -6,3 +6,4 @@ authors = []
 [dependencies]
 amethyst = "0.8.0"
 log = "0.4.4"
+serde = "1.0.76"
