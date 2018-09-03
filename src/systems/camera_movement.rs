@@ -4,7 +4,7 @@ use amethyst::core::transform::Transform;
 use amethyst::input::InputHandler;
 
 use amethyst::core::cgmath::prelude::Zero;
-use amethyst::core::cgmath::{Deg, Matrix4, SquareMatrix, Vector3, Vector4};
+use amethyst::core::cgmath::{Vector3, Vector4};
 use amethyst::renderer::{Camera, ScreenDimensions};
 
 pub struct CameraMovementSystem;
