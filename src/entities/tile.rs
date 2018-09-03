@@ -24,26 +24,24 @@
 //}
 
 use amethyst::config::Config;
-
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
-use serde::{Deserialize, Serialize};
 use std::path::Path;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 enum Tile {
     Wall {
         is_breakable: bool,
         contains_ore: u8,
     },
     Ground,
-    None,
+    //...
 }
 
 impl Component for Tile {
     type Storage = DenseVecStorage<Tile>;
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Grid {
     grid: Vec<Vec<Tile>>,
 }

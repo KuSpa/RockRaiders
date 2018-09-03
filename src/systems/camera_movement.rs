@@ -42,7 +42,7 @@ impl<'a> System<'a> for CameraMovementSystem {
         let mut dir = Vector4::new(x, 0.0, z, 0.0);
         if !dir.is_zero() {
             for (transform, _) in (&mut transforms, &cam).join() {
-                dir = (transform.matrix() * dir);
+                dir = transform.matrix() * dir;
                 let move_dir = Vector3::new(dir.x, 0.0, dir.z);
 
                 transform.move_along_global(
