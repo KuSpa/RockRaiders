@@ -23,8 +23,39 @@
 //    }
 //}
 
-trait Tile {}
+use amethyst::config::Config;
 
-pub struct Ground {}
+use amethyst::ecs::prelude::{Component, DenseVecStorage};
+use serde::{Deserialize, Serialize};
+use std::path::Path;
 
-impl Tile for Ground {}
+#[derive(Deserialize, Serialize)]
+enum Tile {
+    Wall {
+        is_breakable: bool,
+        contains_ore: u8,
+    },
+    Ground,
+    None,
+}
+
+impl Component for Tile {
+    type Storage = DenseVecStorage<Tile>;
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Grid {
+    grid: Vec<Vec<Tile>>,
+}
+
+impl Grid {
+    //already impls load(path) through trait impl
+}
+
+impl Default for Grid {
+    fn default() -> Grid {
+        Grid {
+            grid: vec![Vec::new()],
+        }
+    }
+}
