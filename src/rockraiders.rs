@@ -13,7 +13,7 @@ pub struct RockRaiders;
 impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
     fn on_start(&mut self, data: StateData<GameData>) {
         let world = data.world;
-        initialise_cursor(world);
+        initialize_cursor(world);
 
         let spritesheet = {
             let loader = world.read_resource::<Loader>();
@@ -27,9 +27,9 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
             )
         };
 
-        initialise_ground(world, spritesheet.clone());
-        initialise_camera(world);
-        initialise_object(world, spritesheet)
+        initialize_ground(world, spritesheet.clone());
+        initialize_camera(world);
+        initialize_object(world, spritesheet)
     }
 
     fn handle_event(&mut self, _: StateData<GameData>, event: Event) -> Trans<GameData<'a, 'b>> {
@@ -46,8 +46,8 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
     }
 }
 
-/// Initialise the camera.
-fn initialise_camera(world: &mut World) {
+/// initialize the camera.
+fn initialize_camera(world: &mut World) {
     let mut mat = Transform::default();
     mat.move_global(Vector3::new(-2.0, 5.0, 2.0));
     mat.yaw_global(Deg(-45.0));
@@ -61,7 +61,7 @@ fn initialise_camera(world: &mut World) {
         .build();
 }
 
-fn initialise_ground(world: &mut World, texture: TextureHandle) {
+fn initialize_ground(world: &mut World, texture: TextureHandle) {
     let spritesheet = {
         let loader = world.read_resource::<Loader>();
         let texture_storage = world.read_resource::<AssetStorage<Texture>>();
@@ -105,7 +105,7 @@ fn initialise_ground(world: &mut World, texture: TextureHandle) {
         .expect("cannot insert material");
 }
 
-fn initialise_object(world: &mut World, spritesheet: TextureHandle) {
+fn initialize_object(world: &mut World, spritesheet: TextureHandle) {
     let entity = world
         .create_entity()
         .with(GlobalTransform::default())
@@ -138,7 +138,7 @@ fn initialise_object(world: &mut World, spritesheet: TextureHandle) {
         .expect("cannot insert material");
 }
 
-fn initialise_cursor(world: &mut World) {
+fn initialize_cursor(world: &mut World) {
     use amethyst::renderer::mouse::grab_cursor;
 
     //TODO - custom cursor icon xD
