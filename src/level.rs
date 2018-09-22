@@ -18,7 +18,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
         let world = data.world;
         initialize_camera(world);
         println!("asdf");
-        //initialize_grid(world);
+        initialize_grid(world);
     }
 
     fn handle_event(
@@ -50,7 +50,7 @@ fn initialize_grid(world: &mut World) {
         "{}/assets/levels/1.ron",
         env!("CARGO_MANIFEST_DIR")
     )));
-    println!("{:?}", level_grid)
+    println!("{:?}", level_grid);
 }
 
 /// initialize the camera.
