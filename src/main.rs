@@ -2,8 +2,12 @@ extern crate amethyst;
 #[macro_use]
 extern crate log;
 extern crate serde;
+#[macro_use]
+extern crate serde_derive;
 
 mod entities;
+mod game_data;
+mod level;
 mod rockraiders;
 mod systems;
 
@@ -20,6 +24,8 @@ fn main() -> amethyst::Result<()> {
     };
 
     amethyst::start_logger(logger_config);
+
+    use game_data::{CustomGameData, CustomGameDataBuilder};
     use rockraiders::RockRaiders;
 
     let path = format!("{}/resources/display.ron", env!("CARGO_MANIFEST_DIR"));
@@ -30,15 +36,11 @@ fn main() -> amethyst::Result<()> {
 
     let input = InputBundle::<String, String>::new();
 
-    let game_data = GameDataBuilder::default()
-        .with_bundle(input)?
-        .with(
-            systems::CameraMovementSystem,
-            "camera_movement_system",
-            &["input_system"],
-        )
-        .with_bundle(TransformBundle::new())?
-        .with_basic_renderer(path, DrawFlat::<PosTex>::new(), false)?;
+    let game_data = CustomGameDataBuilder::default()
+        .with_core_bundle(input)?
+        .with_core_bundle(TransformBundle::new())?
+        .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
+        .with_basic_renderer(path, DrawFlat::<PosTex>::new())?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
     game.run();
     Ok(())

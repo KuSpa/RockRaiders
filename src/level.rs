@@ -28,6 +28,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     ) -> Trans<CustomGameData<'a, 'b>> {
         if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
             Trans::Quit
+        } else if is_key_down(&event, VirtualKeyCode::Tab) {
+            Trans::Pop
         } else {
             Trans::None
         }

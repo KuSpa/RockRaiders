@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::cgmath::{Deg, Matrix4, Point3, Vector3};
+use amethyst::core::cgmath::{Deg, Matrix4, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
@@ -7,11 +7,14 @@ use amethyst::renderer::{
     Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
     Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
 };
+use game_data::CustomGameData;
+
+use level::Level;
 
 pub struct RockRaiders;
 
-impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
-    fn on_start(&mut self, data: StateData<GameData>) {
+impl<'a, 'b> State<CustomGameData<'a, 'b>> for RockRaiders {
+    fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
         initialize_cursor(world);
 
@@ -32,16 +35,22 @@ impl<'a, 'b> State<GameData<'a, 'b>> for RockRaiders {
         initialize_object(world, spritesheet)
     }
 
-    fn handle_event(&mut self, _: StateData<GameData>, event: Event) -> Trans<GameData<'a, 'b>> {
+    fn handle_event(
+        &mut self,
+        _: StateData<CustomGameData>,
+        event: Event,
+    ) -> Trans<CustomGameData<'a, 'b>> {
         if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
             Trans::Quit
+        } else if is_key_down(&event, VirtualKeyCode::Tab) {
+            Trans::Push(Box::new(Level))
         } else {
             Trans::None
         }
     }
 
-    fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>> {
-        data.data.update(&data.world);
+    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>> {
+        data.data.update(&data.world, false);
         Trans::None
     }
 }
