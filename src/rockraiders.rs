@@ -73,11 +73,10 @@ fn initialize_camera(world: &mut World) {
 
 ///
 
-struct MyResource<'a> {
-    pub entity: &'a Entity,
+struct MyResource {
+    pub entity: Entity,
 }
 
-///
 ///
 
 fn initialize_ground(world: &mut World, texture: TextureHandle) {
@@ -128,6 +127,7 @@ fn initialize_ground(world: &mut World, texture: TextureHandle) {
     let my = MyResource { entity: entity };
 
     resources.insert(my);
+    world.add_resource(my);
 }
 
 fn initialize_object(world: &mut World, spritesheet: TextureHandle) {
