@@ -17,8 +17,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
         initialize_camera(world);
-        println!("asdf");
-        initialize_grid(world);
+        let grid_config = load_grid(world);
+        initialize_level_grid(world, grid_config);
     }
 
     fn handle_event(
@@ -43,18 +43,25 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     }
 }
 
-fn initialize_grid(world: &mut World) {
-    //dont use config load, use loader load -> already added to an assetstorage,
-    let loader = world.read_resource::<Loader>();
+fn load_grid(world: &mut World) -> Grid {
     let level_grid = Grid::load(Path::new(&format!(
         "{}/assets/levels/1.ron",
         env!("CARGO_MANIFEST_DIR")
     )));
-    println!("{:?}", level_grid);
+    debug!("{:?}", level_grid);
+
+    level_grid
+}
+
+fn initialize_level_grid(world: &mut World, grid_config: Grid) {
+
+
+
 }
 
 /// initialize the camera.
 fn initialize_camera(world: &mut World) {
+    //todo remove all other camera entities
     let mut mat = Transform::default();
     mat.move_global(Vector3::new(0., 3.0, 0.0));
     mat.yaw_global(Deg(-45.0));

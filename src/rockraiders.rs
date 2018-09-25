@@ -112,22 +112,24 @@ fn initialize_ground(world: &mut World, texture: TextureHandle) {
             ..default.0.clone()
         }
     };
-    let mut renderer = world.system_data::<SpriteRenderData>();
-    renderer
-        .meshes
-        .insert(entity, mesh)
-        .expect("cannot insert mesh");
-    renderer
-        .materials
-        .insert(entity, material)
-        .expect("cannot insert material");
+    {
+        let mut renderer = world.system_data::<SpriteRenderData>();
+        renderer
+            .meshes
+            .insert(entity, mesh)
+            .expect("cannot insert mesh");
+        renderer
+            .materials
+            .insert(entity, material)
+            .expect("cannot insert material");
+    }
 
     let mut resources = Resources::new();
 
     let my = MyResource { entity: entity };
 
     resources.insert(my);
-    world.add_resource(my);
+    world.add_resource(resources);
 }
 
 fn initialize_object(world: &mut World, spritesheet: TextureHandle) {
