@@ -1,6 +1,7 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Matrix4, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
+use amethyst::ecs::{prelude::Entity, Resources};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
@@ -70,6 +71,15 @@ fn initialize_camera(world: &mut World) {
         .build();
 }
 
+///
+
+struct MyResource<'a> {
+    pub entity: &'a Entity,
+}
+
+///
+///
+
 fn initialize_ground(world: &mut World, texture: TextureHandle) {
     let spritesheet = {
         let loader = world.read_resource::<Loader>();
@@ -112,6 +122,12 @@ fn initialize_ground(world: &mut World, texture: TextureHandle) {
         .materials
         .insert(entity, material)
         .expect("cannot insert material");
+
+    let mut resources = Resources::new();
+
+    let my = MyResource { entity: entity };
+
+    resources.insert(my);
 }
 
 fn initialize_object(world: &mut World, spritesheet: TextureHandle) {

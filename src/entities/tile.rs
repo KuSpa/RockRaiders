@@ -33,6 +33,8 @@ enum Tile {
         is_breakable: bool,
         contains_ore: u8,
     },
+    // it may be smart to add a NullObject pattern (SWA FTW) for some cases like `is_breakable`
+    // in order to reduce many double if clauses...
     Ground,
     //...
 }
