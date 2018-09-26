@@ -27,6 +27,8 @@ use amethyst::config::Config;
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use std::path::Path;
 use amethyst::prelude::*;
+use amethyst::core::cgmath::Vector3;
+use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 use serde::ser::{Serialize, SerializeStruct, Serializer, Error};
 
@@ -36,10 +38,10 @@ pub enum Tile {
         is_breakable: bool,
         contains_ore: u8,
     },
+    Ground,
     // it may be smart to add a NullObject pattern (SWA FTW) for some cases like `is_breakable`
     // in order to reduce many double if clauses...
-    Ground,
-    //...
+    None
 }
 
 impl Component for Tile {
@@ -78,6 +80,8 @@ impl LevelGrid {
         let mut x: i32 = -1;
         let mut y: i32 = -1;
 
+        // at the moment, we add the transform here, because its less code to do it with the builder, than to acces the storage and insert it manually ;)
+        // TODO refactor - add to next loop
         let level_grid = tile_grid.iter_mut().map(
             |tile_vec| {
                 x += 1;
@@ -91,12 +95,18 @@ impl LevelGrid {
     }
 
     //TODO
+
+    fn add_mesh(&self, tile: &Tile, x: i32, y: i32) {}
 }
 
 
 fn entity_from_tile(tile: &Tile, x: i32, y: i32, world: &mut World) -> Entity {
+    let transform = Transform::default().set_position(Vector3(x, 0, -y));
     world
         .create_entity()
+        .with(tile)
+        .with(GlobalTransform::default())
+        .with(transform)
         .build()
 }
 
