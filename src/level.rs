@@ -7,6 +7,7 @@ use amethyst::renderer::{
     Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
     Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
 };
+
 use entities::tile::Grid;
 use game_data::CustomGameData;
 use std::path::Path;
