@@ -75,8 +75,8 @@ impl LevelGrid {
     pub fn from_grid(grid: Grid, world: &mut World) -> LevelGrid {
         let mut tile_grid = grid.clone_grid();
 
-        let mut x = -1;
-        let mut y = -1;
+        let mut x: i32 = -1;
+        let mut y: i32 = -1;
 
         let level_grid = tile_grid.iter_mut().map(
             |tile_vec| {
@@ -94,7 +94,7 @@ impl LevelGrid {
 }
 
 
-fn entity_from_tile(tile: &Tile, x: usize, y: usize, world: &mut World) -> Entity {
+fn entity_from_tile(tile: &Tile, x: i32, y: i32, world: &mut World) -> Entity {
     world
         .create_entity()
         .build()
