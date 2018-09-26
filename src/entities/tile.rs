@@ -66,6 +66,7 @@ impl Default for Grid {
     }
 }
 
+
 pub struct LevelGrid {
     grid: Vec<Vec<Entity>>,
 }
