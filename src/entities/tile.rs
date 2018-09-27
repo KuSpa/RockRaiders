@@ -26,11 +26,13 @@
 use amethyst::config::Config;
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use std::path::Path;
+use amethyst::assets::AssetStorage;
 use amethyst::prelude::*;
 use amethyst::core::cgmath::Vector3;
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 use serde::ser::{Serialize, SerializeStruct, Serializer, Error};
+use amethyst::renderer::{Mesh, Texture};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Tile {
@@ -82,7 +84,7 @@ impl LevelGrid {
 
         // at the moment, we add the transform here, because its less code to do it with the builder, than to acces the storage and insert it manually ;)
         // TODO refactor - add to next loop
-        let level_grid = tile_grid.iter_mut().map(
+        let level_grid: Vec<Vec<Entity>> = tile_grid.iter_mut().map(
             |tile_vec| {
                 x += 1;
                 tile_vec.iter_mut().map(
@@ -91,12 +93,42 @@ impl LevelGrid {
                         entity_from_tile(*tile, x, y, world)
                     }).collect()
             }).collect();
+
         LevelGrid { grid: level_grid }
+    }
+
+    fn at(&self, x: usize, y: usize) -> Entity {
+        self.grid[x][y]
+    }
+
+    pub fn add_meshes(&mut self, world: &mut World) {
+        for x in 0..self.grid.len() {
+            for y in 0..self.grid[x].len() {
+                self.add_mesh_at(x, y, world);
+            }
+        }
     }
 
     //TODO
 
-    fn add_mesh(&self, tile: &Tile, x: i32, y: i32) {}
+    pub fn add_mesh_at(&mut self, x: usize, y: usize, world: &mut World) -> Result<(), String> {
+        let entity = self.at(x, y);
+        //let component = ();
+        //if world.write_storage::<AssetStorage<Mesh>>().insert(entity, component).is_err() {
+        //    warn!(
+        //    "Adding a mesh to {:?} failed unexpected",
+        //        entity
+        //    );
+        //};
+        //if world.write_storage::<AssetStorage<Texture>>().insert(entity, component).is_err() {
+        //    warn!(
+        //        "Adding a texture to {:?} failed unexpected",
+        //        entity
+        //    );
+        //};
+
+        Err("NOOB".to_string())
+    }
 }
 
 

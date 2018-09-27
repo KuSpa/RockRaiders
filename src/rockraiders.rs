@@ -71,13 +71,6 @@ fn initialize_camera(world: &mut World) {
         .build();
 }
 
-///
-
-struct MyResource {
-    pub entity: Entity,
-}
-
-///
 
 fn initialize_ground(world: &mut World, texture: TextureHandle) {
     let spritesheet = {

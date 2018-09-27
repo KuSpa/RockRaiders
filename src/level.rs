@@ -3,12 +3,13 @@ use amethyst::core::cgmath::{Deg, Matrix4, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
+use amethyst::ecs::Resources;
 use amethyst::renderer::{
     Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
     Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
 };
 
-use entities::tile::Grid;
+use entities::tile::*;
 use game_data::CustomGameData;
 use std::path::Path;
 
@@ -17,6 +18,9 @@ pub struct Level;
 impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
+
+        load_assets(world);
+
         initialize_camera(world);
         let grid_config = load_grid(world);
         initialize_level_grid(world, grid_config);
@@ -54,10 +58,31 @@ fn load_grid(world: &mut World) -> Grid {
     level_grid
 }
 
+fn load_assets(world: &mut World) {
+    let loader = world.read_resource::<Loader>();
+    let texture_storage = world.read_resource::<AssetStorage<Texture>>();
+    let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
+    load_meshes(loader, mesh_storage);
+}
+
+fn load_meshes(loader: Loader, mesh_storage: Fetch<AssetStorage<Mesh>>) {
+    let meshes = ["Wall", "Ground"];
+
+    for mesh in meshes {
+        loader.load(
+            format!("meshes/{}", mesh),
+            ObjFormat,
+            Default::default(),
+            (), // we may wanna add a progress here
+            &mesh_storage,
+        );
+    }
+}
+
 fn initialize_level_grid(world: &mut World, grid_config: Grid) {
-
-
-
+    let mut level_grid = LevelGrid::from_grid(grid_config, world);
+    level_grid.add_meshes(world);
+    world.add_resource(level_grid);
 }
 
 /// initialize the camera.
