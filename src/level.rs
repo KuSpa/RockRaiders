@@ -5,7 +5,7 @@ use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::ecs::Resources;
 use amethyst::renderer::{
-    Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosTex, Projection,
+    Camera, Event, Material, MaterialDefaults, Mesh, MeshData, ObjFormat, PosTex, Projection,
     Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
 };
 
@@ -18,6 +18,7 @@ pub struct Level;
 impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
+        world.register::<Tile>();
 
         load_assets(world);
 
@@ -62,15 +63,15 @@ fn load_assets(world: &mut World) {
     let loader = world.read_resource::<Loader>();
     let texture_storage = world.read_resource::<AssetStorage<Texture>>();
     let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
-    load_meshes(loader, mesh_storage);
+    load_meshes(&loader, &mesh_storage);
 }
 
-fn load_meshes(loader: Loader, mesh_storage: Fetch<AssetStorage<Mesh>>) {
-    let meshes = ["Wall", "Ground"];
+fn load_meshes(loader: &Loader, mesh_storage: &AssetStorage<Mesh>) {
+    let meshes = ["wall", "ground"];
 
-    for mesh in meshes {
+    for mesh in meshes.iter() {
         loader.load(
-            format!("meshes/{}", mesh),
+            format!("meshes/{}.obj", mesh),
             ObjFormat,
             Default::default(),
             (), // we may wanna add a progress here

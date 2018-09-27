@@ -117,12 +117,7 @@ fn initialize_ground(world: &mut World, texture: TextureHandle) {
             .expect("cannot insert material");
     }
 
-    let mut resources = Resources::new();
 
-    let my = MyResource { entity: entity };
-
-    resources.insert(my);
-    world.add_resource(resources);
 }
 
 fn initialize_object(world: &mut World, spritesheet: TextureHandle) {

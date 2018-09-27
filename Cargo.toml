@@ -4,7 +4,7 @@ version = "0.1.0"
 authors = []
 
 [dependencies]
-amethyst = "0.8.0"
+amethyst = { version = "0.8.0", features = ["nightly"] }
 log = "0.4.4"
 serde = "1.0.76"
 serde_derive = "1.0.76"

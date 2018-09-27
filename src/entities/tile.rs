@@ -127,7 +127,7 @@ impl LevelGrid {
         //    );
         //};
 
-        Err("NOOB".to_string())
+        Ok(())
     }
 }
 
