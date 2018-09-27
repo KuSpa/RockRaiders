@@ -88,7 +88,7 @@ impl LevelGrid {
                 tile_vec.iter_mut().map(
                     |tile| {
                         y += 1;
-                        entity_from_tile(&tile, x, y, world)
+                        entity_from_tile(*tile, x, y, world)
                     }).collect()
             }).collect();
         LevelGrid { grid: level_grid }
@@ -100,8 +100,9 @@ impl LevelGrid {
 }
 
 
-fn entity_from_tile(tile: &Tile, x: i32, y: i32, world: &mut World) -> Entity {
-    let transform = Transform::default().set_position(Vector3(x, 0, -y));
+fn entity_from_tile(tile: Tile, x: i32, y: i32, world: &mut World) -> Entity {
+    let mut transform = Transform::default();
+    transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -y as f32 });
     world
         .create_entity()
         .with(tile)
