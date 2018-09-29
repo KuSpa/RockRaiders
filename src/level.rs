@@ -72,7 +72,8 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
 
                 let entity = level_grid.at(x, y);
                 // always returns (0,0) so far
-                let (wall_type, wall_direction) = level_grid.determine_sprite_for(x, y);
+
+                let (wall_type, wall_direction) = level_grid.determine_sprite_for(x, y, world);
                 match wall_type {
                     0 => {
                         let material = world.read_resource::<MaterialDefaults>().0.clone();

@@ -29,6 +29,7 @@ use amethyst::core::cgmath::Vector3;
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 
+//TODO impl From<Entity> Trait - less code in LevelGrid
 #[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall {
@@ -97,15 +98,34 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for(&self, x:usize, y:usize) ->(i32, i32) {
+    pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (i32, i32) {
+        let grid = self.generate_tile_grid_copy(world);
+
+
         // TODO add brain here
         (0,0)
 //     /(  )\
 //       L L
     }
 
-    pub fn at(&self, x: usize, y: usize) -> Entity {
-        self.grid[x][y]
+
+    // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
+    fn generate_tile_grid_copy(&self, world: &World) -> TileGrid {
+        let mut grid = self.grid.clone();
+        TileGrid {
+            grid: grid.iter_mut().map(
+                |vec|
+                    vec.iter_mut().map(
+                        |entity|
+                            (*world.read_storage::<Tile>().get(*entity).unwrap()).clone()
+                    ).collect()
+            ).collect()
+        }
+    }
+
+
+    pub fn get(&self, x: usize, y: usize) -> Entity {
+        *self.grid.get(x).unwrap().get(y).unwrap()
     }
 }
 
