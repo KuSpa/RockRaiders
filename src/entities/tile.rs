@@ -25,20 +25,19 @@
 
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::prelude::*;
+use std::collections::HashMap;
 use amethyst::core::cgmath::Vector3;
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
-#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall {
         is_breakable: bool,
         contains_ore: u8,
     },
     Ground,
-    // it may be smart to add a NullObject pattern (SWA FTW) for some cases like `is_breakable`
-    // in order to reduce many double if clauses...
     None
 }
 
@@ -51,9 +50,39 @@ pub struct Grid {
     grid: Vec<Vec<Tile>>,
 }
 
+
 impl Grid {
     pub fn clone_grid(&self) -> Vec<Vec<Tile>> {
         self.grid.clone()
+    }
+
+
+    pub fn determine_sprite_for(&self, x: usize, y: usize, dictionary: HashMap<[[Tile; 3]; 3], (String, i32)>) -> (String, i32) {
+        let mut key = [[Tile::None; 3]; 3];
+        for delta_x in 0..3 {
+            for delta_y in 0..3 {
+                key[delta_x][delta_y] = self.get((x + delta_x) as i32  - 1, (y + delta_y ) as i32 - 1);
+            }
+        };
+
+        (*dictionary.get(&key).expect(&format!("unkown Tile pattern: {:?}", key))).clone()
+    }
+
+
+    fn get(&self, x: i32, y: i32) -> Tile {
+        if x < 0 || y < 0 {
+            return Tile::None;
+        }
+
+        let x = x as usize;
+        let y = y as usize;
+
+        if x > self.grid.len()
+            {
+                return Tile::None;
+            }
+
+        *self.grid[x].get(y as usize).unwrap_or(&Tile::None)
     }
 }
 
@@ -98,14 +127,13 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (i32, i32) {
+    pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (String, i32) {
+        // TODO create ron file
+        // deserialize
+        let dict = HashMap::<[[Tile; 3]; 3], (String, i32)>::new();
         let grid = self.generate_tile_grid_copy(world);
+        grid.determine_sprite_for(x, y, dict)
 
-
-        // TODO add brain here
-        (0,0)
-//     /(  )\
-//       L L
     }
 
 
