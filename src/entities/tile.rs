@@ -27,7 +27,6 @@ use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::prelude::*;
 use std::collections::HashMap;
 use amethyst::core::cgmath::Vector3;
-use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
@@ -61,7 +60,7 @@ impl Grid {
         let mut key = [[Tile::None; 3]; 3];
         for delta_x in 0..3 {
             for delta_y in 0..3 {
-                key[delta_x][delta_y] = self.get((x + delta_x) as i32  - 1, (y + delta_y ) as i32 - 1);
+                key[delta_x][delta_y] = self.get((x + delta_x) as i32 - 1, (y + delta_y) as i32 - 1);
             }
         };
 
@@ -104,19 +103,14 @@ impl LevelGrid {
     pub fn from_grid(grid: Grid, world: &mut World) -> LevelGrid {
         let mut tile_grid = grid.clone_grid();
 
-        let mut x: i32 = -1;
-        let mut y: i32 = -1;
-
-        // at the moment, we add the transform here, because its less code to do it with the builder, than to acces the storage and insert it manually ;)
-        // TODO refactor - add to next loop
         let level_grid: Vec<Vec<Entity>> = tile_grid.iter_mut().map(
             |tile_vec| {
-                x += 1;
-                y = -1;
                 tile_vec.iter_mut().map(
                     |tile| {
-                        y += 1;
-                        entity_from_tile(*tile, x, y, world)
+                        world
+                            .create_entity()
+                            .with(*tile)
+                            .build()
                     }).collect()
             }).collect();
 
@@ -133,7 +127,6 @@ impl LevelGrid {
         let dict = HashMap::<[[Tile; 3]; 3], (String, i32)>::new();
         let grid = self.generate_tile_grid_copy(world);
         grid.determine_sprite_for(x, y, dict)
-
     }
 
 
@@ -155,18 +148,6 @@ impl LevelGrid {
     pub fn get(&self, x: usize, y: usize) -> Entity {
         *self.grid.get(x).unwrap().get(y).unwrap()
     }
-}
-
-
-fn entity_from_tile(tile: Tile, x: i32, y: i32, world: &mut World) -> Entity {
-    let mut transform = Transform::default();
-    transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -y as f32 });
-    world
-        .create_entity()
-        .with(tile)
-        .with(GlobalTransform::default())
-        .with(transform)
-        .build()
 }
 
 //impl Serialize for LevelGrid {

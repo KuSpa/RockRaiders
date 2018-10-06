@@ -63,7 +63,7 @@ fn load_grid() -> Grid {
 
 
 fn initialize_level_grid(world: &mut World, grid_config: Grid) {
-    let mut level_grid = LevelGrid::from_grid(grid_config, world);
+    let level_grid = LevelGrid::from_grid(grid_config, world);
     {
         let mut asset_manager = world.write_resource::<AssetManager<Mesh>>();
         let loader = world.read_resource::<Loader>();
@@ -71,8 +71,13 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
             for y in 0..level_grid.grid()[x].len() {
 
                 let entity = level_grid.get(x, y);
-                // always returns (0,0) so far
+                let mut transform = Transform::default();
+                transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -(y as f32) });
 
+                world.write_storage::<Transform>().insert(entity, transform).unwrap();
+                world.write_storage::<GlobalTransform>().insert(entity, GlobalTransform::default()).unwrap();
+
+                // always returns (0,0) so far
                 let (wall_type, wall_direction) = level_grid.determine_sprite_for(x, y, world);
                 //TODO use wall type
                 match 0 {
