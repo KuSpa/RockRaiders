@@ -70,7 +70,7 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
         for x in 0..level_grid.grid().len() {
             for y in 0..level_grid.grid()[x].len() {
 
-                let entity = level_grid.at(x, y);
+                let entity = level_grid.get(x, y);
                 // always returns (0,0) so far
 
                 let (wall_type, wall_direction) = level_grid.determine_sprite_for(x, y, world);

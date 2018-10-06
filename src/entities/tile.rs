@@ -110,9 +110,9 @@ impl LevelGrid {
 
 
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy(&self, world: &World) -> TileGrid {
+    fn generate_tile_grid_copy(&self, world: &World) -> Grid {
         let mut grid = self.grid.clone();
-        TileGrid {
+        Grid {
             grid: grid.iter_mut().map(
                 |vec|
                     vec.iter_mut().map(
