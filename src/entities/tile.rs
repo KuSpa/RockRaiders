@@ -26,18 +26,37 @@
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::prelude::*;
 use std::collections::HashMap;
-use amethyst::core::cgmath::Vector3;
 use amethyst::ecs::prelude::Entity;
+use util;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall {
         is_breakable: bool,
         contains_ore: u8,
     },
     Ground,
+
+    // Convenience Tiles, Should never see be seen in actual grids... only exist for comparison
+    Any,
+    //TODO refactor replace None with Wall
     None
+}
+
+
+//In order to use generic Tiles like the AnyTile, we need to change the equality function of the Tile enum, so that is actually matches every Tile
+impl PartialEq for Tile {
+    fn eq(&self, other: &Self) -> bool {
+        match (other, self) {
+            (Tile::Wall { .. }, Tile::Wall { .. }) => true,
+            (Tile::Ground, Tile::Ground) => true,
+            (Tile::None, Tile::None) => true,
+            (Tile::Any, _) => true,
+            (_, Tile::Any) => true,
+            _ => false
+        }
+    }
 }
 
 impl Component for Tile {
@@ -56,7 +75,7 @@ impl Grid {
     }
 
 
-    pub fn determine_sprite_for(&self, x: usize, y: usize, dictionary: HashMap<[[Tile; 3]; 3], (String, i32)>) -> (String, i32) {
+    pub fn determine_sprite_for(&self, x: usize, y: usize, dictionary: HashMap<[[Tile; 3]; 3], String>) -> (String, i32) {
         let mut key = [[Tile::None; 3]; 3];
         for delta_x in 0..3 {
             for delta_y in 0..3 {
@@ -64,7 +83,13 @@ impl Grid {
             }
         };
 
-        (*dictionary.get(&key).expect(&format!("unkown Tile pattern: {:?}", key))).clone()
+        for rotation in 0..4 {
+            if let Some(result) = dictionary.get(&key) {
+                return (result.clone(), 90 * rotation);
+            }
+            key = util::rotate_3x3(&key);
+        }
+        panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
 
@@ -124,7 +149,7 @@ impl LevelGrid {
     pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (String, i32) {
         // TODO create ron file
         // deserialize
-        let dict = HashMap::<[[Tile; 3]; 3], (String, i32)>::new();
+        let dict = HashMap::<[[Tile; 3]; 3], String>::new();
         let grid = self.generate_tile_grid_copy(world);
         grid.determine_sprite_for(x, y, dict)
     }

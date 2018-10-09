@@ -64,12 +64,12 @@ fn load_grid() -> Grid {
 
 fn initialize_level_grid(world: &mut World, grid_config: Grid) {
     let level_grid = LevelGrid::from_grid(grid_config, world);
+
     {
         let mut asset_manager = world.write_resource::<AssetManager<Mesh>>();
         let loader = world.read_resource::<Loader>();
         for x in 0..level_grid.grid().len() {
             for y in 0..level_grid.grid()[x].len() {
-
                 let entity = level_grid.get(x, y);
                 let mut transform = Transform::default();
                 transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -(y as f32) });
@@ -77,23 +77,21 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 world.write_storage::<Transform>().insert(entity, transform).unwrap();
                 world.write_storage::<GlobalTransform>().insert(entity, GlobalTransform::default()).unwrap();
 
-                // always returns (0,0) so far
-                let (wall_type, wall_direction) = level_grid.determine_sprite_for(x, y, world);
-                //TODO use wall type
-                match 0 {
-                    0 => {
-                        let material = world.read_resource::<MaterialDefaults>().0.clone();
+                let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
 
-                        let mesh = {
-                            let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-                            asset_manager.load("meshes/wall.obj", ObjFormat, Default::default(), &mut mesh_storage, &loader).unwrap()
-                        };
-                        world.system_data::<SpriteRenderData>().meshes.insert(entity, mesh).unwrap();
-                        world.system_data::<SpriteRenderData>().materials.insert(entity, material).unwrap();
-                    }
-                    //...
-                    _ => {}
-                }
+                let mesh_path = format!("meshes/{}", wall_type);
+                let texture_path = format!("textures/{}", wall_type);
+
+                // TODO refactor - use texture path and load the real texture ;)
+                let material = world.read_resource::<MaterialDefaults>().0.clone();
+
+                let mesh = {
+                    let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
+                    asset_manager.load(&mesh_path, ObjFormat, Default::default(), &mut mesh_storage, &loader).unwrap()
+                };
+
+                world.system_data::<SpriteRenderData>().meshes.insert(entity, mesh).unwrap();
+                world.system_data::<SpriteRenderData>().materials.insert(entity, material).unwrap();
             }
         }
     }

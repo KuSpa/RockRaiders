@@ -11,6 +11,7 @@ mod game_data;
 mod level;
 mod rockraiders;
 mod systems;
+mod util;
 
 use amethyst::core::transform::TransformBundle;
 use amethyst::input::InputBundle;
