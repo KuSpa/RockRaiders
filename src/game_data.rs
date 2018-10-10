@@ -32,7 +32,7 @@ impl<'a, 'b> CustomGameDataBuilder<'a, 'b> {
         }
     }
 
-    //edited funtion without UI
+    // edited funtion without UI
     // nescessary cause, basic renderer is used so far...
     // will be obsolet with 0.9 probably
     pub fn with_basic_renderer<A, P>(self, path: A, pass: P) -> Result<Self>

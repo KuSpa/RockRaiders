@@ -33,19 +33,19 @@ use util;
 #[derive(Clone, Copy, Eq, Hash, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall {
-        is_breakable: bool,
-        contains_ore: u8,
+        breaks: bool,
+        ore: u8,
     },
     Ground,
 
     // Convenience Tiles, Should never see be seen in actual grids... only exist for comparison
     Any,
     //TODO refactor replace None with Wall
-    None
+    None,
 }
 
 
-//In order to use generic Tiles like the AnyTile, we need to change the equality function of the Tile enum, so that is actually matches every Tile
+//In order to use generic Tiles like the AnyTile, we need to change the equality function of the Tile enum, so that it actually matches every Tile
 impl PartialEq for Tile {
     fn eq(&self, other: &Self) -> bool {
         match (other, self) {
@@ -92,7 +92,7 @@ impl Grid {
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
-
+    // TODO adapt x,y to let (0,0) on the "bottom left" of the array
     fn get(&self, x: i32, y: i32) -> Tile {
         if x < 0 || y < 0 {
             return Tile::None;

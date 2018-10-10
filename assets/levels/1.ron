@@ -5,9 +5,9 @@ grid: [
         Wall(is_breakable:true, contains_ore:0),
         Wall(is_breakable:true, contains_ore:0),
     ],[
-        Wall(is_breakable:true, contains_ore:0), 
+        Ground,
         Ground, 
-        Wall(is_breakable:true, contains_ore:0),
+        Ground,
     ],[
         Wall(is_breakable:true, contains_ore:0),
         Wall(is_breakable:true, contains_ore:0),

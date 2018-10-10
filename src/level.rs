@@ -7,6 +7,8 @@ use amethyst::renderer::{Camera, MaterialDefaults, Event, Mesh, ObjFormat, Proje
 
 use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
+
+use std::collections::HashMap;
 use game_data::CustomGameData;
 use std::path::Path;
 
@@ -18,11 +20,16 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
 
         let world = data.world;
         world.register::<Tile>();
+
+
         //TODO Add for all Types
         world.register::<AssetManager<Mesh>>();
 
         let am = AssetManager::<Mesh>::default();
         world.add_resource(am);
+
+        let tile_pattern_config = load_tile_pattern_config();
+        world.add_resource(load_tile_pattern_config());
 
         initialize_camera(world);
         let grid_config = load_grid();
@@ -49,6 +56,16 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
         data.data.update(&data.world, true);
         Trans::None
     }
+}
+
+fn load_tile_pattern_config() -> HashMap<[[Tile; 3]; 3], String> {
+    let result = HashMap::<[[Tile; 3]; 3], String>::load(Path::new(&format!(
+        "{}/resources/tile_config.ron",
+        env!("CARGO_MANIFEST_DIR")
+    )));
+    debug!("{:?}", result);
+
+    result
 }
 
 fn load_grid() -> Grid {
