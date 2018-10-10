@@ -28,9 +28,11 @@ use amethyst::prelude::*;
 use std::collections::HashMap;
 use amethyst::ecs::prelude::Entity;
 use util;
+use std::hash::Hash;
+use std::hash::Hasher;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
-#[derive(Clone, Copy, Eq, Hash, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall {
         breaks: bool,
@@ -40,8 +42,6 @@ pub enum Tile {
 
     // Convenience Tiles, Should never see be seen in actual grids... only exist for comparison
     Any,
-    //TODO refactor replace None with Wall
-    None,
 }
 
 
@@ -51,11 +51,24 @@ impl PartialEq for Tile {
         match (other, self) {
             (Tile::Wall { .. }, Tile::Wall { .. }) => true,
             (Tile::Ground, Tile::Ground) => true,
-            (Tile::None, Tile::None) => true,
             (Tile::Any, _) => true,
             (_, Tile::Any) => true,
             _ => false
         }
+    }
+}
+
+// TODO refactor (larger scale... because of the AnyTile) could work with a split Dictionary, where every neighbor is compared alone...
+// so far, there is no need for that, because
+impl Hash for Tile {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // No need to do anything, when it comes to hashing every object is the same
+    }
+}
+
+impl Default for Tile {
+    fn default() -> Self {
+        Tile::Wall { breaks: false, ore: 0 }
     }
 }
 
@@ -74,9 +87,9 @@ impl Grid {
         self.grid.clone()
     }
 
-
-    pub fn determine_sprite_for(&self, x: usize, y: usize, dictionary: HashMap<[[Tile; 3]; 3], String>) -> (String, i32) {
-        let mut key = [[Tile::None; 3]; 3];
+    pub fn determine_sprite_for(&self, x: usize, y: usize, dictionary: &HashMap<[[Tile; 3]; 3], String>) -> (String, i32) {
+        let mut key = [[Tile::default(); 3]; 3];
+        warn!("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         for delta_x in 0..3 {
             for delta_y in 0..3 {
                 key[delta_x][delta_y] = self.get((x + delta_x) as i32 - 1, (y + delta_y) as i32 - 1);
@@ -85,8 +98,10 @@ impl Grid {
 
         for rotation in 0..4 {
             if let Some(result) = dictionary.get(&key) {
+                warn!("{:?}", result);
                 return (result.clone(), 90 * rotation);
-            }
+            };
+            warn!("{:?}", rotation);
             key = util::rotate_3x3(&key);
         }
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
@@ -95,18 +110,18 @@ impl Grid {
     // TODO adapt x,y to let (0,0) on the "bottom left" of the array
     fn get(&self, x: i32, y: i32) -> Tile {
         if x < 0 || y < 0 {
-            return Tile::None;
+            return Tile::default();
         }
 
         let x = x as usize;
         let y = y as usize;
 
-        if x > self.grid.len()
+        if x >= self.grid.len()
             {
-                return Tile::None;
+                return Tile::default();
             }
 
-        *self.grid[x].get(y as usize).unwrap_or(&Tile::None)
+        *self.grid[x].get(y as usize).unwrap_or(&Tile::default())
     }
 }
 
@@ -149,9 +164,10 @@ impl LevelGrid {
     pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (String, i32) {
         // TODO create ron file
         // deserialize
-        let dict = HashMap::<[[Tile; 3]; 3], String>::new();
+        let dict = world.read_resource::<HashMap<[[Tile; 3]; 3], String>>();
+
         let grid = self.generate_tile_grid_copy(world);
-        grid.determine_sprite_for(x, y, dict)
+        grid.determine_sprite_for(x, y, &dict)
     }
 
 

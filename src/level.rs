@@ -29,7 +29,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
         world.add_resource(am);
 
         let tile_pattern_config = load_tile_pattern_config();
-        world.add_resource(load_tile_pattern_config());
+        warn!("{:?}", tile_pattern_config);
+        world.add_resource(tile_pattern_config);
 
         initialize_camera(world);
         let grid_config = load_grid();
@@ -94,6 +95,7 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 world.write_storage::<Transform>().insert(entity, transform).unwrap();
                 world.write_storage::<GlobalTransform>().insert(entity, GlobalTransform::default()).unwrap();
 
+
                 let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
 
                 let mesh_path = format!("meshes/{}", wall_type);
@@ -130,4 +132,5 @@ fn initialize_camera(world: &mut World) {
         .with(mat)
         .with(GlobalTransform::default())
         .build();
+
 }
