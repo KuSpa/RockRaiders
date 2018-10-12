@@ -5,7 +5,7 @@ grid: [
         Wall(breaks:false, ore:0),
         Wall(breaks:false, ore:0),
     ],[
-        Ground,
+        Wall(breaks:false, ore:0),
         Ground, 
         Ground,
     ],[

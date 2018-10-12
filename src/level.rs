@@ -65,8 +65,8 @@ fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
         "{}/resources/tile_config.ron",
         env!("CARGO_MANIFEST_DIR")
     )));
-    debug!("{:?}", result);
 
+    debug!("Loaded TilePattern successfully");
     result
 }
 
@@ -75,8 +75,8 @@ fn load_grid() -> Grid {
         "{}/assets/levels/1.ron",
         env!("CARGO_MANIFEST_DIR")
     )));
-    debug!("{:?}", level_grid);
 
+    debug!("Loaded Grid successfully");
     level_grid
 }
 
@@ -88,7 +88,10 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
         let loader = world.read_resource::<Loader>();
         for x in 0..level_grid.grid().len() {
             for y in 0..level_grid.grid()[x].len() {
+                let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
+
                 let entity = level_grid.get(x, y);
+
                 let mut transform = Transform::default();
                 transform.set_position(Vector3 {
                     x: x as f32,
@@ -96,17 +99,8 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                     z: -(y as f32),
                 });
 
-                world
-                    .write_storage::<Transform>()
-                    .insert(entity, transform)
-                    .unwrap();
-                world
-                    .write_storage::<GlobalTransform>()
-                    .insert(entity, GlobalTransform::default())
-                    .unwrap();
-
-                let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
                 //add rotation to local transform
+                transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
 
                 let mesh_path = format!("meshes/{}", wall_type);
                 let texture_path = format!("textures/{}", wall_type);
@@ -135,6 +129,14 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                     .system_data::<SpriteRenderData>()
                     .materials
                     .insert(entity, material)
+                    .unwrap();
+                world
+                    .write_storage::<Transform>()
+                    .insert(entity, transform)
+                    .unwrap();
+                world
+                    .write_storage::<GlobalTransform>()
+                    .insert(entity, GlobalTransform::default())
                     .unwrap();
             }
         }

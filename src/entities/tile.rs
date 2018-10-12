@@ -83,7 +83,6 @@ impl Grid {
         dictionary: &Vec<([[Tile; 3]; 3], String)>,
     ) -> (String, i32) {
         let mut key = [[Tile::default(); 3]; 3];
-        warn!("<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
         for delta_x in 0..3 {
             for delta_y in 0..3 {
                 key[delta_x][delta_y] =
@@ -93,10 +92,9 @@ impl Grid {
 
         for rotation in 0..4 {
             if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                warn!("{:?}", result);
-                return (result.clone(), 90 * rotation);
+                debug!("{:?} was found", result);
+                return (result.clone(), 90 * (rotation + 1));
             };
-            warn!("{:?}", rotation);
             key = util::rotate_3x3(&key);
         }
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
