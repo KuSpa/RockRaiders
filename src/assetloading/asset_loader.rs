@@ -40,35 +40,16 @@ where
         options: F::Options,
         storage: &'a mut AssetStorage<T>,
         loader: &Loader,
-    ) -> Option<Handle<T>>
+    ) -> Handle<T>
     where
         F: Format<T> + 'static,
     {
         if let Some(h) = self.get_asset_handle(path) {
-            return Some(h);
+            return h;
         }
-        if let Some(h) = self.load::<F>(path, format, options, storage, loader) {
-            return Some(h);
-        }
-        None
-    }
-
-    pub fn load<F>(
-        &mut self,
-        path: &str,
-        format: F,
-        options: F::Options,
-        storage: &mut AssetStorage<T>,
-        loader: &Loader,
-    ) -> Option<Handle<T>>
-    where
-        T: Asset,
-        F: Format<T> + 'static,
-    {
         let handle: Handle<T> = loader.load(path, format, options, (), storage);
         self.assets.insert(String::from(path), handle.clone());
-        //TODO check for valid handle and return None in case
-        return Some(handle);
+        handle
     }
 
     /// Only removes the internal Handle<T>. To truly unload the asset, you need to drop all handles that you have to it.
