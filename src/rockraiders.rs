@@ -18,21 +18,21 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for RockRaiders {
         let world = data.world;
         initialize_cursor(world);
 
-        let spritesheet = {
-            let loader = world.read_resource::<Loader>();
-            let texture_storage = world.read_resource::<AssetStorage<Texture>>();
-            loader.load(
-                "ground.png",
-                PngFormat,
-                Default::default(),
-                (),
-                &texture_storage,
-            )
-        };
+        //let spritesheet = {
+        //    let loader = world.read_resource::<Loader>();
+        //    let texture_storage = world.read_resource::<AssetStorage<Texture>>();
+        //    loader.load(
+        //        "ground.png",
+        //        PngFormat,
+        //        Default::default(),
+        //        (),
+        //        &texture_storage,
+        //    )
+        //};
 
         //initialize_ground(world, spritesheet.clone());
         initialize_camera(world);
-        initialize_object(world, spritesheet)
+        //initialize_object(world, spritesheet)
     }
 
     fn handle_event(
@@ -69,7 +69,6 @@ fn initialize_camera(world: &mut World) {
         .with(GlobalTransform::default())
         .build();
 }
-
 
 fn initialize_ground(world: &mut World, texture: TextureHandle) {
     let spritesheet = {

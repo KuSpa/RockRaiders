@@ -3,13 +3,15 @@ use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{Camera, MaterialDefaults, Event, Mesh, ObjFormat, Projection, SpriteRenderData, VirtualKeyCode};
+use amethyst::renderer::{
+    Camera, Event, MaterialDefaults, Mesh, ObjFormat, Projection, SpriteRenderData, VirtualKeyCode,
+};
 
 use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
 
-use std::collections::HashMap;
 use game_data::CustomGameData;
+use std::collections::HashMap;
 use std::path::Path;
 
 pub struct Level;
@@ -20,7 +22,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
 
         let world = data.world;
         world.register::<Tile>();
-
 
         //TODO Add for all Types
         world.register::<AssetManager<Mesh>>();
@@ -59,8 +60,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     }
 }
 
-fn load_tile_pattern_config() -> HashMap<[[Tile; 3]; 3], String> {
-    let result = HashMap::<[[Tile; 3]; 3], String>::load(Path::new(&format!(
+fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
+    let result = Vec::<([[Tile; 3]; 3], String)>::load(Path::new(&format!(
         "{}/resources/tile_config.ron",
         env!("CARGO_MANIFEST_DIR")
     )));
@@ -79,7 +80,6 @@ fn load_grid() -> Grid {
     level_grid
 }
 
-
 fn initialize_level_grid(world: &mut World, grid_config: Grid) {
     let level_grid = LevelGrid::from_grid(grid_config, world);
 
@@ -90,13 +90,23 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
             for y in 0..level_grid.grid()[x].len() {
                 let entity = level_grid.get(x, y);
                 let mut transform = Transform::default();
-                transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -(y as f32) });
+                transform.set_position(Vector3 {
+                    x: x as f32,
+                    y: 0.0,
+                    z: -(y as f32),
+                });
 
-                world.write_storage::<Transform>().insert(entity, transform).unwrap();
-                world.write_storage::<GlobalTransform>().insert(entity, GlobalTransform::default()).unwrap();
-
+                world
+                    .write_storage::<Transform>()
+                    .insert(entity, transform)
+                    .unwrap();
+                world
+                    .write_storage::<GlobalTransform>()
+                    .insert(entity, GlobalTransform::default())
+                    .unwrap();
 
                 let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
+                //add rotation to local transform
 
                 let mesh_path = format!("meshes/{}", wall_type);
                 let texture_path = format!("textures/{}", wall_type);
@@ -106,11 +116,26 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
 
                 let mesh = {
                     let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-                    asset_manager.load(&mesh_path, ObjFormat, Default::default(), &mut mesh_storage, &loader).unwrap()
+                    asset_manager
+                        .load(
+                            &mesh_path,
+                            ObjFormat,
+                            Default::default(),
+                            &mut mesh_storage,
+                            &loader,
+                        ).unwrap()
                 };
 
-                world.system_data::<SpriteRenderData>().meshes.insert(entity, mesh).unwrap();
-                world.system_data::<SpriteRenderData>().materials.insert(entity, material).unwrap();
+                world
+                    .system_data::<SpriteRenderData>()
+                    .meshes
+                    .insert(entity, mesh)
+                    .unwrap();
+                world
+                    .system_data::<SpriteRenderData>()
+                    .materials
+                    .insert(entity, material)
+                    .unwrap();
             }
         }
     }
@@ -132,5 +157,4 @@ fn initialize_camera(world: &mut World) {
         .with(mat)
         .with(GlobalTransform::default())
         .build();
-
 }

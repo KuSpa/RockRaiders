@@ -1,97 +1,136 @@
-{
+[
     (
-        (Any,Any,Any),
-        (Any,Ground,Any),
-        (Any,Any,Any),
-    ): "ground.obj",
+        (
+            (Any,Any,Any),
+            (Any,Ground,Any),
+            (Any,Any,Any),
+        ),            
+        "ground.obj",
+    ),
 
     (
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "2.obj",
+        (
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ),
+        "2.obj",
+    ),
 
     (
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "3.obj",
+        (
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ), 
+        "3.obj",
+    ),
 
     (
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "4.obj",
+        (
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ), 
+        "4.obj",
+    ),
 
     (
-        (Ground,Wall(breaks:false, ore:0),Ground),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "5.obj",
+        (
+            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ), 
+        "5.obj",
+    ),
 
     (
-        (Ground,Wall(breaks:false, ore:0),Ground),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Ground,Wall(breaks:false, ore:0),Ground),
-    ): "6.obj",
+        (
+            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground,Wall(breaks:false, ore:0),Ground),
+        ), 
+        "6.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "7.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ), 
+        "wall.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-    ): "8.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+        ), 
+        "8.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-    ): "9.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+        ), 
+        "9.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Ground,Wall(breaks:false, ore:0),Ground),
-    ): "10.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground,Wall(breaks:false, ore:0),Ground),
+        ), 
+        "10.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-        (Any,Ground,Any),
-    ): "11.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Any,Ground,Any),
+        ), 
+        "11.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Any),
-    ): "12.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Any),
+        ), 
+    "12.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-        (Ground,Wall(breaks:false, ore:0),Any),
-    ): "13.obj",
+        (
+            (Any,Ground,Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Ground,Wall(breaks:false, ore:0),Any),
+        ), 
+        "13.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Ground,Wall(breaks:false, ore:0),Ground),
-        (Any,Wall(breaks:false, ore:0),Any),
-    ): "14.obj",
+        (
+            (Any,Ground,Any),
+            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Any,Wall(breaks:false, ore:0),Any),
+        ), 
+        "14.obj",
+    ),
 
     (
-        (Any,Ground,Any),
-        (Ground,Wall(breaks:false, ore:0),Ground),
-        (Any,Ground,Any),
-    ): "15.obj",
-
-    (
-        (Any,Any,Any),
-        (Any,Any,Any),
-        (Any,Any,Any),
-    ): "debug.obj",
-}
+        (
+            (Any,Ground,Any),
+            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Any,Ground,Any),
+        ), 
+        "15.obj",
+    ),
+]
