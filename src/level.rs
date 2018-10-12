@@ -11,7 +11,6 @@ use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
 
 use game_data::CustomGameData;
-use std::collections::HashMap;
 use std::path::Path;
 
 pub struct Level;
@@ -103,7 +102,6 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
 
                 let mesh_path = format!("meshes/{}", wall_type);
-                let texture_path = format!("textures/{}", wall_type);
 
                 // TODO refactor - use texture path and load the real texture ;)
                 let material = world.read_resource::<MaterialDefaults>().0.clone();

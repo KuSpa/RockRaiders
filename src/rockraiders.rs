@@ -1,11 +1,9 @@
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::cgmath::{Deg, Matrix4, Vector3};
+use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Event, Material, MaterialDefaults, Mesh, MeshData, PngFormat, PosNormTex, Projection,
-    Shape, SpriteRenderData, Texture, TextureHandle, VirtualKeyCode, WindowMessages,
+    Camera, Event, Projection, VirtualKeyCode, WindowMessages,
 };
 use game_data::CustomGameData;
 
@@ -30,9 +28,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for RockRaiders {
         //    )
         //};
 
-        //initialize_ground(world, spritesheet.clone());
         initialize_camera(world);
-        //initialize_object(world, spritesheet)
     }
 
     fn handle_event(
@@ -70,85 +66,6 @@ fn initialize_camera(world: &mut World) {
         .build();
 }
 
-fn initialize_ground(world: &mut World, texture: TextureHandle) {
-    let spritesheet = {
-        let loader = world.read_resource::<Loader>();
-        let texture_storage = world.read_resource::<AssetStorage<Texture>>();
-        loader.load(
-            "groundy.png",
-            PngFormat,
-            Default::default(),
-            (),
-            &texture_storage,
-        )
-    };
-
-    let entity = world
-        .create_entity()
-        .with(GlobalTransform(Matrix4::from_scale(5.0)))
-        .build();
-
-    let ground_mesh = gen_rectangle_mesh();
-
-    let mesh = {
-        let loader = world.read_resource::<Loader>();
-        let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
-        loader.load_from_data(ground_mesh.into(), (), &mesh_storage)
-    };
-
-    let material = {
-        let default = world.read_resource::<MaterialDefaults>();
-        Material {
-            albedo: spritesheet,
-            ..default.0.clone()
-        }
-    };
-    {
-        let mut renderer = world.system_data::<SpriteRenderData>();
-        renderer
-            .meshes
-            .insert(entity, mesh)
-            .expect("cannot insert mesh");
-        renderer
-            .materials
-            .insert(entity, material)
-            .expect("cannot insert material");
-    }
-}
-
-fn initialize_object(world: &mut World, spritesheet: TextureHandle) {
-    let entity = world
-        .create_entity()
-        .with(GlobalTransform::default())
-        .build();
-
-    let cube_mesh: MeshData = Shape::generate::<Vec<PosNormTex>>(&Shape::Cube, None);
-
-    let mesh = {
-        let loader = world.read_resource::<Loader>();
-        let mesh_storage = world.read_resource::<AssetStorage<Mesh>>();
-        loader.load_from_data(cube_mesh, (), &mesh_storage)
-    };
-
-    let material = {
-        let default = world.read_resource::<MaterialDefaults>();
-        Material {
-            albedo: spritesheet,
-            ..default.0.clone()
-        }
-    };
-
-    let mut renderer = world.system_data::<SpriteRenderData>();
-    renderer
-        .meshes
-        .insert(entity, mesh)
-        .expect("cannot insert mesh");
-    renderer
-        .materials
-        .insert(entity, material)
-        .expect("cannot insert material");
-}
-
 fn initialize_cursor(world: &mut World) {
     use amethyst::renderer::mouse::grab_cursor;
 
@@ -156,39 +73,4 @@ fn initialize_cursor(world: &mut World) {
 
     let mut msg = world.write_resource::<WindowMessages>();
     grab_cursor(&mut msg);
-}
-
-fn gen_rectangle_mesh() -> Vec<PosNormTex> {
-    vec![
-        PosNormTex {
-            position: [0., 0., 0.],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0., 0.],
-        },
-        PosNormTex {
-            position: [0.5, 0., 0.],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0.5, 0.],
-        },
-        PosNormTex {
-            position: [0.5, 0., -0.5],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0.5, 0.5],
-        },
-        PosNormTex {
-            position: [0.5, 0., -0.5],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0.5, 0.5],
-        },
-        PosNormTex {
-            position: [0., 0., -0.5],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0., 0.5],
-        },
-        PosNormTex {
-            position: [0., 0., 0.],
-            normal: [0., 0.5, 0.],
-            tex_coord: [0., 0.],
-        },
-    ]
 }

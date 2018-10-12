@@ -26,8 +26,6 @@
 use amethyst::ecs::prelude::Entity;
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::prelude::*;
-use std::hash::Hash;
-use std::hash::Hasher;
 use util;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
