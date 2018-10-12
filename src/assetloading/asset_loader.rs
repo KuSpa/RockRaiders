@@ -51,12 +51,6 @@ where
         self.assets.insert(String::from(path), handle.clone());
         handle
     }
-
-    /// Only removes the internal Handle<T>. To truly unload the asset, you need to drop all handles that you have to it.
-    pub fn unload(&mut self, path: &str) {
-        self.assets.remove(path);
-    }
-    //----------------------------------------------------------------------
 }
 
 impl<T> Component for AssetManager<T>
