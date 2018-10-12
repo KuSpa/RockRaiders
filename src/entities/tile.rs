@@ -150,8 +150,6 @@ impl LevelGrid {
     }
 
     pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (String, i32) {
-        // TODO create ron file
-        // deserialize
         let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
 
         let grid = self.generate_tile_grid_copy(world);
