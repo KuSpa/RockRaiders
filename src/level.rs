@@ -111,7 +111,7 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 let mesh = {
                     let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
                     asset_manager
-                        .load(
+                        .get_asset_handle_or_load(
                             &mesh_path,
                             ObjFormat,
                             Default::default(),

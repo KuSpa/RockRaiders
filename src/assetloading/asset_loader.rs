@@ -11,7 +11,8 @@ pub struct AssetManager<T> {
 }
 
 impl<T> Default for AssetManager<T>
-where T:Asset
+where
+    T: Asset,
 {
     fn default() -> Self {
         Self::new()
@@ -19,7 +20,8 @@ where T:Asset
 }
 
 impl<T> AssetManager<T>
-where T:Asset
+where
+    T: Asset,
 {
     pub fn new() -> Self {
         AssetManager {
@@ -27,49 +29,46 @@ where T:Asset
         }
     }
 
-    pub fn get_asset_handle(&self, path: &str) -> Option<Handle<T>>
-    {
+    pub fn get_asset_handle(&self, path: &str) -> Option<Handle<T>> {
         self.assets.get(path).cloned()
     }
 
-    pub fn get_asset<'a>(&self, path: &str, storage: &'a AssetStorage<T>) -> Option<&'a T>
-        where
-            T: Asset,
+    pub fn get_asset_handle_or_load<'a, F>(
+        &mut self,
+        path: &str,
+        format: F,
+        options: F::Options,
+        storage: &'a mut AssetStorage<T>,
+        loader: &Loader,
+    ) -> Option<Handle<T>>
+    where
+        F: Format<T> + 'static,
     {
         if let Some(h) = self.get_asset_handle(path) {
-            storage.get(&h)
-        } else {
-            None
-        }
-    }
-
-    pub fn get_asset_handle_or_load<'a, F>(&mut self, path: &str, format: F, options: F::Options, storage: &'a mut AssetStorage<T>, loader: &Loader) -> Option< Handle<T>>
-        where
-            F: Format<T> + 'static,
-    {
-        if let Some(h) = self.get_asset_handle(path) {
-            return Some(h)
+            return Some(h);
         }
         if let Some(h) = self.load::<F>(path, format, options, storage, loader) {
-            return Some(h)
+            return Some(h);
         }
         None
     }
 
-    pub fn load<F>(&mut self, path: &str, format: F, options: F::Options, storage: &mut AssetStorage<T>, loader: &Loader) -> Option<Handle<T>>
-        where
-            T: Asset,
-            F: Format<T> + 'static,
+    pub fn load<F>(
+        &mut self,
+        path: &str,
+        format: F,
+        options: F::Options,
+        storage: &mut AssetStorage<T>,
+        loader: &Loader,
+    ) -> Option<Handle<T>>
+    where
+        T: Asset,
+        F: Format<T> + 'static,
     {
-        if let Some(handle) = self.get_asset_handle(path) {
-            return Some(handle);
-        } else {
-            let handle: Handle<T> = loader.load(path, format, options, (), storage);
-            self.assets.insert(String::from(path), handle.clone());
-            return Some(handle);
-        }
-
-        //TODO check if the asset exists...
+        let handle: Handle<T> = loader.load(path, format, options, (), storage);
+        self.assets.insert(String::from(path), handle.clone());
+        //TODO check for valid handle and return None in case
+        return Some(handle);
     }
 
     /// Only removes the internal Handle<T>. To truly unload the asset, you need to drop all handles that you have to it.
@@ -80,8 +79,8 @@ where T:Asset
 }
 
 impl<T> Component for AssetManager<T>
-    where
-        T: Asset,
+where
+    T: Asset,
 {
     type Storage = VecStorage<Self>;
 }
