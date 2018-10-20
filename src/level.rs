@@ -4,7 +4,8 @@ use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Event, MaterialDefaults, Mesh, ObjFormat, Projection, SpriteRenderData, VirtualKeyCode,
+    Camera, Event, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, Projection,
+    SpriteRenderData, Texture, VirtualKeyCode,
 };
 
 use assetloading::asset_loader::AssetManager;
@@ -22,10 +23,13 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
         let world = data.world;
         world.register::<Tile>();
 
-        //TODO Add for all Types
+        //TODO Add for all Types !!!!
         world.register::<AssetManager<Mesh>>();
+        world.register::<AssetManager<Texture>>();
 
         let am = AssetManager::<Mesh>::default();
+        world.add_resource(am);
+        let am = AssetManager::<Texture>::default();
         world.add_resource(am);
 
         let tile_pattern_config = load_tile_pattern_config();
@@ -83,7 +87,9 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
     let level_grid = LevelGrid::from_grid(grid_config, world);
 
     {
-        let mut asset_manager = world.write_resource::<AssetManager<Mesh>>();
+        //TODO refactor necessary!
+        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
+        let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
         let loader = world.read_resource::<Loader>();
         for x in 0..level_grid.grid().len() {
             for y in 0..level_grid.grid()[x].len() {
@@ -101,15 +107,28 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 //add rotation to local transform
                 transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
 
-                let mesh_path = format!("meshes/{}", wall_type);
-                // let texture_path = format!("textures/{}", wall_type);
+                let mesh_path = format!("meshes/{}.obj", wall_type);
+                let texture_path = format!("textures/{}.png", wall_type);
 
                 // TODO refactor - use texture path and load the real texture ;)
-                let material = world.read_resource::<MaterialDefaults>().0.clone();
+                let material = {
+                    let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
+                    let handle = texture_manager.get_asset_handle_or_load(
+                        &texture_path,
+                        PngFormat,
+                        Default::default(),
+                        &mut texture_storage,
+                        &loader,
+                    );
+                    Material {
+                        albedo: handle,
+                        ..world.read_resource::<MaterialDefaults>().0.clone()
+                    }
+                };
 
                 let mesh = {
                     let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-                    asset_manager.get_asset_handle_or_load(
+                    mesh_manager.get_asset_handle_or_load(
                         &mesh_path,
                         ObjFormat,
                         Default::default(),
