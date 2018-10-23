@@ -4,8 +4,8 @@ use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Event, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, Projection,
-    SpriteRenderData, Texture, VirtualKeyCode,
+    Camera, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, Projection,
+    Texture, VirtualKeyCode, TextureMetadata,
 };
 
 use assetloading::asset_loader::AssetManager;
@@ -16,7 +16,8 @@ use std::path::Path;
 
 pub struct Level;
 
-impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
+impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
+
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         debug!("Entering Level state");
 
@@ -44,20 +45,21 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for Level {
     fn handle_event(
         &mut self,
         _: StateData<CustomGameData>,
-        event: Event,
-    ) -> Trans<CustomGameData<'a, 'b>> {
-        if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-            debug!("Quitting");
-            Trans::Quit
-        } else if is_key_down(&event, VirtualKeyCode::Tab) {
-            debug!("Leaving Level State");
-            Trans::Pop
-        } else {
-            Trans::None
+        event: StateEvent,
+    ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
+        if let StateEvent::Window(event) = &event {
+            if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+                debug!("Quitting");
+                return Trans::Quit
+            } else if is_key_down(&event, VirtualKeyCode::Tab) {
+                debug!("Leaving Level State");
+                return Trans::Pop
+            }
         }
+        Trans::None
     }
 
-    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>> {
+    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
         data.data.update(&data.world, true);
         Trans::None
     }
@@ -114,7 +116,7 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                     let handle = texture_manager.get_asset_handle_or_load(
                         &texture_path,
                         PngFormat,
-                        Default::default(),
+                        TextureMetadata::srgb(),
                         &mut texture_storage,
                         &loader,
                     );
@@ -136,21 +138,19 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                 };
 
                 world
-                    .system_data::<SpriteRenderData>()
-                    .meshes
+                    .write_storage()
                     .insert(entity, mesh)
                     .unwrap();
                 world
-                    .system_data::<SpriteRenderData>()
-                    .materials
+                    .write_storage()
                     .insert(entity, material)
                     .unwrap();
                 world
-                    .write_storage::<Transform>()
+                    .write_storage()
                     .insert(entity, transform)
                     .unwrap();
                 world
-                    .write_storage::<GlobalTransform>()
+                    .write_storage()
                     .insert(entity, GlobalTransform::default())
                     .unwrap();
             }
