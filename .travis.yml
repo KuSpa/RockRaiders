@@ -9,5 +9,10 @@ matrix:
   fast_finish: true
 
 before_install:
-  - sudo apt install -y pkg-config libasound2-dev
+  - sudo apt install -y libasound2-dev
+
+addons:
+  apt:
+    update: true
+
 
