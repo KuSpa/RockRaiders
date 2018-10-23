@@ -17,15 +17,9 @@ use amethyst::core::transform::TransformBundle;
 use amethyst::input::InputBundle;
 use amethyst::prelude::*;
 use amethyst::renderer::{DrawFlat, PosNormTex};
-use amethyst::{LogLevelFilter, LoggerConfig};
 
 fn main() -> amethyst::Result<()> {
-    let logger_config = LoggerConfig {
-        use_colors: true,
-        level_filter: LogLevelFilter::Info,
-    };
-
-    amethyst::start_logger(logger_config);
+    amethyst::start_logger(Default::default());
 
     use game_data::CustomGameDataBuilder;
     use rockraiders::RockRaiders;

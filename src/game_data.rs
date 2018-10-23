@@ -1,4 +1,4 @@
-use amethyst::core::{SystemBundle, ThreadPool};
+use amethyst::core::{SystemBundle, ArcThreadPool};
 use amethyst::ecs::prelude::{Dispatcher, DispatcherBuilder, System, World};
 use amethyst::renderer::pipe::pass::Pass;
 use amethyst::{DataInit, Error, Result};
@@ -73,7 +73,7 @@ impl<'a, 'b> CustomGameDataBuilder<'a, 'b> {
 
 impl<'a, 'b> DataInit<CustomGameData<'a, 'b>> for CustomGameDataBuilder<'a, 'b> {
     fn build(self, world: &mut World) -> CustomGameData<'a, 'b> {
-        let pool = world.read_resource::<ThreadPool>().clone();
+        let pool = world.read_resource::<ArcThreadPool>().clone();
 
         let mut core_dispatcher = self.core.with_pool(pool.clone()).build();
         let mut level_dispatcher = self.level.with_pool(pool.clone()).build();

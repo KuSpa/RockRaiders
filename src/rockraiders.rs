@@ -3,7 +3,7 @@ use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Event, Projection, VirtualKeyCode, WindowMessages,
+    Camera, Projection, VirtualKeyCode, WindowMessages,
 };
 use game_data::CustomGameData;
 
@@ -11,7 +11,7 @@ use level::Level;
 
 pub struct RockRaiders;
 
-impl<'a, 'b> State<CustomGameData<'a, 'b>> for RockRaiders {
+impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
         initialize_cursor(world);
@@ -34,18 +34,19 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>> for RockRaiders {
     fn handle_event(
         &mut self,
         _: StateData<CustomGameData>,
-        event: Event,
-    ) -> Trans<CustomGameData<'a, 'b>> {
-        if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-            Trans::Quit
-        } else if is_key_down(&event, VirtualKeyCode::Tab) {
-            Trans::Push(Box::new(Level))
-        } else {
-            Trans::None
+        event: StateEvent,
+    ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
+        if let StateEvent::Window(event) = &event {
+            if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+                return Trans::Quit
+            } else if is_key_down(&event, VirtualKeyCode::Tab) {
+                return Trans::Push(Box::new(Level))
+            }
         }
+        Trans::None
     }
 
-    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>> {
+    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
         data.data.update(&data.world, false);
         Trans::None
     }
