@@ -16,7 +16,7 @@ mod util;
 use amethyst::core::transform::TransformBundle;
 use amethyst::input::InputBundle;
 use amethyst::prelude::*;
-use amethyst::renderer::{DrawFlat, PosNormTex};
+use amethyst::renderer::{DrawShaded, PosNormTex};
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -36,7 +36,8 @@ fn main() -> amethyst::Result<()> {
         .with_core_bundle(input)?
         .with_core_bundle(TransformBundle::new())?
         .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
-        .with_basic_renderer(path, DrawFlat::<PosNormTex>::new())?;
+        .with_running(systems::LightFollowsCameraSystem, "light_follows_cam_system", &[])
+        .with_basic_renderer(path, DrawShaded::<PosNormTex>::new())?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
     game.run();
     Ok(())

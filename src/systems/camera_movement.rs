@@ -5,9 +5,11 @@ use amethyst::input::InputHandler;
 
 use amethyst::core::cgmath::prelude::Zero;
 use amethyst::core::cgmath::{Vector3, Vector4};
-use amethyst::renderer::{Camera, ScreenDimensions};
+use amethyst::renderer::{Camera, Light, ScreenDimensions};
 
 pub struct CameraMovementSystem;
+
+pub struct LightFollowsCameraSystem;
 
 impl<'a> System<'a> for CameraMovementSystem {
     type SystemData = (
@@ -18,7 +20,7 @@ impl<'a> System<'a> for CameraMovementSystem {
         ReadExpect<'a, ScreenDimensions>,
     );
 
-    fn run(&mut self, (time, mut transforms, input, cam, screen_size): Self::SystemData) {
+    fn run(&mut self, (time, mut transforms, input, cams, screen_size): Self::SystemData) {
         let (mut x, mut z) = (0.0, 0.0);
         //TODO = 20 as magic number in .ron spec file?
         //       Offset to borders as speed? for a smoother feeling?
@@ -41,7 +43,7 @@ impl<'a> System<'a> for CameraMovementSystem {
 
         let mut dir = Vector4::new(x, 0.0, z, 0.0);
         if !dir.is_zero() {
-            for (transform, _) in (&mut transforms, &cam).join() {
+            for (transform, _) in (&mut transforms, &cams).join() {
                 dir = transform.matrix() * dir;
                 let move_dir = Vector3::new(dir.x, 0.0, dir.z);
 
@@ -50,6 +52,24 @@ impl<'a> System<'a> for CameraMovementSystem {
                     time.delta_seconds() * ((x.abs() + z.abs()) / 2.0),
                 );
             }
+        }
+    }
+}
+
+
+impl<'a> System<'a> for LightFollowsCameraSystem {
+    type SystemData = (
+        WriteStorage<'a, Transform>,
+        ReadStorage<'a, Camera>,
+        // TODO - read storage of dedicated Type ;)
+        ReadStorage<'a, Light>
+    );
+
+    fn run(&mut self, (mut transforms, cams, lights): Self::SystemData) {
+        let cam_transform = (&mut transforms, &cams).join().next().unwrap().0.clone();
+
+        for (light_transform, _) in (&mut transforms, &lights).join() {
+            light_transform.set_position(cam_transform.translation);
         }
     }
 }

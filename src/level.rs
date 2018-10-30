@@ -4,7 +4,7 @@ use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, Projection,
+    Camera, Material, MaterialDefaults, Rgba,Light, PointLight, Mesh, ObjFormat, PngFormat, Projection,
     Texture, VirtualKeyCode, TextureMetadata,
 };
 
@@ -17,12 +17,12 @@ use std::path::Path;
 pub struct Level;
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
-
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         debug!("Entering Level state");
 
         let world = data.world;
         world.register::<Tile>();
+        world.register::<Light>();
 
         //TODO refactor AssetLoader if this gets out of hand
         world.register::<AssetManager<Mesh>>();
@@ -38,6 +38,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.add_resource(tile_pattern_config);
 
         initialize_camera(world);
+        initialize_light(world);
         let grid_config = load_grid();
         initialize_level_grid(world, grid_config);
     }
@@ -50,10 +51,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         if let StateEvent::Window(event) = &event {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 debug!("Quitting");
-                return Trans::Quit
+                return Trans::Quit;
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 debug!("Leaving Level State");
-                return Trans::Pop
+                return Trans::Pop;
             }
         }
         Trans::None
@@ -173,5 +174,14 @@ fn initialize_camera(world: &mut World) {
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
         .with(mat)
         .with(GlobalTransform::default())
+        .build();
+}
+
+fn initialize_light(world: &mut World) {
+    let light = PointLight { color: Rgba::white(), intensity: 100., radius: 1., smoothness: 0.5 };
+    world.create_entity()
+        .with(Light::from(light))
+        .with(GlobalTransform::default())
+        .with(Transform::default())
         .build();
 }
