@@ -23,7 +23,7 @@
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
-        "3",
+        "single_edge",
     ),
 
     (
