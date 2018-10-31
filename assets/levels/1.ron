@@ -2,16 +2,7 @@ Grid(
 grid: [
     [
         Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
     ],[
         Ground,
-        Ground,
-        Wall(breaks:false, ore:0),
-
-    ],[
-        Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
     ]
 ])
