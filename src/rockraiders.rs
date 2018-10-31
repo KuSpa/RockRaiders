@@ -14,7 +14,7 @@ pub struct RockRaiders;
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
-        initialize_cursor(world);
+        //initialize_cursor(world);
 
         //let spritesheet = {
         //    let loader = world.read_resource::<Loader>();

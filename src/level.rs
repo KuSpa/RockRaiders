@@ -1,8 +1,9 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
-use amethyst::core::transform::{GlobalTransform, Transform};
+use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
+use amethyst::ecs::Entity;
 use amethyst::renderer::{
     Camera, Material, MaterialDefaults, Rgba,Light, PointLight, Mesh, ObjFormat, PngFormat, Projection,
     Texture, VirtualKeyCode, TextureMetadata,
@@ -37,8 +38,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         warn!("{:?}", tile_pattern_config);
         world.add_resource(tile_pattern_config);
 
-        initialize_camera(world);
-        initialize_light(world);
+        let cam = initialize_camera(world);
+        initialize_light(world, cam);
         let grid_config = load_grid();
         initialize_level_grid(world, grid_config);
     }
@@ -162,7 +163,7 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
 }
 
 /// initialize the camera.
-fn initialize_camera(world: &mut World) {
+fn initialize_camera(world: &mut World) -> Entity {
     //Todo remove all other camera entities
     let mut mat = Transform::default();
     mat.move_global(Vector3::new(0., 3.0, 0.0));
@@ -174,14 +175,15 @@ fn initialize_camera(world: &mut World) {
         .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
         .with(mat)
         .with(GlobalTransform::default())
-        .build();
+        .build()
 }
 
-fn initialize_light(world: &mut World) {
-    let light = PointLight { color: Rgba::white(), intensity: 100., radius: 1., smoothness: 0.5 };
+fn initialize_light(world: &mut World, parent: Entity) {
+    let light = PointLight { color: Rgba::white(), intensity: 50., radius: 1., smoothness: 0.5 };
     world.create_entity()
         .with(Light::from(light))
         .with(GlobalTransform::default())
         .with(Transform::default())
+        .with(Parent{entity:parent})
         .build();
 }
