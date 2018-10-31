@@ -16,18 +16,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
         let world = data.world;
         //initialize_cursor(world);
 
-        //let spritesheet = {
-        //    let loader = world.read_resource::<Loader>();
-        //    let texture_storage = world.read_resource::<AssetStorage<Texture>>();
-        //    loader.load(
-        //        "ground.png",
-        //        PngFormat,
-        //        Default::default(),
-        //        (),
-        //        &texture_storage,
-        //    )
-        //};
-
         initialize_camera(world);
     }
 
