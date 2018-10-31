@@ -159,3 +159,4 @@ fabric.properties
 
 .vscode/launch.json
 .vscode/settings.json
+*.blend[0-9]
