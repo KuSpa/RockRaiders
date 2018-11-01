@@ -14,7 +14,7 @@
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ),
-        "2",
+        "concealed",
     ),
 
     (
@@ -104,7 +104,7 @@
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Any),
         ), 
-    "12",
+    "single_edge_270",
     ),
 
     (
