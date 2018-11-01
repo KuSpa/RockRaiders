@@ -1,12 +1,12 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
+use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::ecs::Entity;
 use amethyst::renderer::{
-    Camera, Material, MaterialDefaults, Rgba,Light, PointLight, Mesh, ObjFormat, PngFormat, Projection,
-    Texture, VirtualKeyCode, TextureMetadata,
+    Camera, Light, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, PointLight, Projection,
+    Rgba, Texture, TextureMetadata, VirtualKeyCode,
 };
 
 use assetloading::asset_loader::AssetManager;
@@ -61,7 +61,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         Trans::None
     }
 
-    fn update(&mut self, data: StateData<CustomGameData>) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
+    fn update(
+        &mut self,
+        data: StateData<CustomGameData>,
+    ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
         data.data.update(&data.world, true);
         Trans::None
     }
@@ -139,18 +142,9 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
                     )
                 };
 
-                world
-                    .write_storage()
-                    .insert(entity, mesh)
-                    .unwrap();
-                world
-                    .write_storage()
-                    .insert(entity, material)
-                    .unwrap();
-                world
-                    .write_storage()
-                    .insert(entity, transform)
-                    .unwrap();
+                world.write_storage().insert(entity, mesh).unwrap();
+                world.write_storage().insert(entity, material).unwrap();
+                world.write_storage().insert(entity, transform).unwrap();
                 world
                     .write_storage()
                     .insert(entity, GlobalTransform::default())
@@ -179,11 +173,17 @@ fn initialize_camera(world: &mut World) -> Entity {
 }
 
 fn initialize_light(world: &mut World, parent: Entity) {
-    let light = PointLight { color: Rgba::white(), intensity: 50., radius: 1., smoothness: 0.5 };
-    world.create_entity()
+    let light = PointLight {
+        color: Rgba::white(),
+        intensity: 50.,
+        radius: 1.,
+        smoothness: 0.5,
+    };
+    world
+        .create_entity()
         .with(Light::from(light))
         .with(GlobalTransform::default())
         .with(Transform::default())
-        .with(Parent{entity:parent})
+        .with(Parent { entity: parent })
         .build();
 }

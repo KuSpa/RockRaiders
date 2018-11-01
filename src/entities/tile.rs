@@ -138,7 +138,8 @@ impl LevelGrid {
                     .iter_mut()
                     .map(|tile| world.create_entity().with(*tile).build())
                     .collect()
-            }).collect();
+            })
+            .collect();
 
         LevelGrid { grid: level_grid }
     }
@@ -164,7 +165,8 @@ impl LevelGrid {
                     vec.iter_mut()
                         .map(|entity| (*world.read_storage::<Tile>().get(*entity).unwrap()).clone())
                         .collect()
-                }).collect(),
+                })
+                .collect(),
         }
     }
 

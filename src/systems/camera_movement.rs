@@ -9,7 +9,6 @@ use amethyst::renderer::{Camera, ScreenDimensions};
 
 pub struct CameraMovementSystem;
 
-
 impl<'a> System<'a> for CameraMovementSystem {
     type SystemData = (
         Read<'a, Time>,
@@ -42,7 +41,6 @@ impl<'a> System<'a> for CameraMovementSystem {
 
         let mut dir = Vector4::new(x, 0.0, z, 0.0);
         if !dir.is_zero() {
-
             for (transform, _) in (&mut transforms, &cams).join() {
                 dir = transform.matrix() * dir;
                 let move_dir = Vector3::new(dir.x, 0.0, dir.z);
