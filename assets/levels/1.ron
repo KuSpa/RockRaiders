@@ -3,7 +3,7 @@ grid: [
     [
         Ground,
         Ground,
-        Ground,
+        Wall(breaks:false, ore:0),
     ],[
         Ground,
         Wall(breaks:false, ore:0),
