@@ -158,7 +158,10 @@ fn initialize_level_grid(world: &mut World, grid_config: Grid) {
 
 /// initialize the camera.
 fn initialize_camera(world: &mut World) -> Entity {
-    //Todo remove all other camera entities
+    {
+        let mut storage = world.write_storage::<Camera>();
+        storage.clear();
+    }
     let mut mat = Transform::default();
     mat.move_global(Vector3::new(0., 3.0, 0.0));
     mat.yaw_global(Deg(-45.0));
@@ -175,8 +178,8 @@ fn initialize_camera(world: &mut World) -> Entity {
 fn initialize_light(world: &mut World, parent: Entity) {
     let light = PointLight {
         color: Rgba::white(),
-        intensity: 50.,
-        radius: 1.,
+        intensity: 25.,
+        radius: 0.1,
         smoothness: 0.5,
     };
     world
