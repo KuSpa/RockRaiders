@@ -38,6 +38,15 @@ pub enum Tile {
     Any,
 }
 
+impl Tile {
+    pub fn reveal(&mut self) {
+        match self {
+            Tile::Ground { concealed } => *concealed = false,
+            _ => error!("Error revealing a Tile that cannot be revealed"),
+        }
+    }
+}
+
 // IMPORTANT - this is only implemented for the mesh selection, DO NOT USE IN OTHER CONTEXT
 impl PartialEq for Tile {
     fn eq(&self, other: &Self) -> bool {

@@ -12,15 +12,15 @@ use amethyst::renderer::{
 use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
 use game_data::CustomGameData;
-use amethyst::shrev::EventChannel;
+use std::time::Duration;
 
-use std::collections::VecDeque;
+use std::collections::BinaryHeap;
+
 use std::path::Path;
 
 pub struct Level;
 
 impl Level {
-
     fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
         let result = Vec::<([[Tile; 3]; 3], String)>::load(Path::new(&format!(
             "{}/resources/tile_config.ron",
@@ -141,7 +141,6 @@ impl Level {
             .with(Parent { entity: parent })
             .build();
     }
-
 }
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
@@ -152,9 +151,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.register::<Tile>();
         world.register::<Light>();
 
-        world.add_resource(
-            EventChannel::<i32>::new(),
-        );
+        world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
 
         //TODO refactor AssetLoader if this gets out of hand
         world.register::<AssetManager<Mesh>>();
@@ -166,7 +163,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.add_resource(am);
 
         let tile_pattern_config = Level::load_tile_pattern_config();
-        warn!("{:?}", tile_pattern_config);
         world.add_resource(tile_pattern_config);
 
         let cam = Level::initialize_camera(world);

@@ -1,41 +1,56 @@
 use amethyst::core::specs::prelude::{Read, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::ecs::{Entity, SystemData, Resources};
+use amethyst::ecs::Entity;
 use amethyst::renderer::{MeshHandle, TextureHandle};
+use entities::tile::Tile;
+use std::collections::BinaryHeap;
 use std::time::Duration;
-use amethyst::shrev::{EventChannel, ReaderId};
 
-
-// TODO REMOVE PUB IT A HACK
-pub struct GroundRevealSystem {
-    // TODO put entities in there
-    pub reader: Option<ReaderId<i32>>
-}
+pub struct GroundRevealSystem;
 
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
-        Write<'a, EventChannel<i32>>,
+        Write<'a, BinaryHeap<(Duration, Entity)>>,
         WriteStorage<'a, MeshHandle>,
         WriteStorage<'a, TextureHandle>,
         WriteStorage<'a, Transform>,
+        WriteStorage<'a, Tile>,
     );
-
-    fn setup(&mut self, res: &mut Resources) {
-        Self::SystemData::setup(res);
-        self.reader = Some(res.fetch_mut::<EventChannel<i32>>().register_reader());
-    }
 
     fn run(
         &mut self,
-        (time, mut channel, mut meshes, mut textures, mut transforms): Self::SystemData,
+        (time, mut heap, mut meshes, mut textures, mut transforms, mut tiles): Self::SystemData,
     ) {
-        if let Some(reader) = self.reader.as_mut() {
-            // this is actually broken, the meta readers length (dict of Channel containing all reader seems to be 0) ???? Dunno
-            // to be continiued by @karyon
-            for event in channel.read(reader) {
-                //TODO
+        if let Some((reveal_time, entity)) = heap.peek().cloned() {
+            while reveal_time >= time.absolute_time() {
+                //the entity is to be revealed, so we delete it, but we already got the values by peeking
+                heap.pop();
+
+                // reveal yourself
+                tiles.get_mut(entity).unwrap().reveal();
+
+                let neightbors = vec![entity.clone()];
+                // TODO get neighbors
+
+                for neighbor in neightbors.iter() {
+                    // add conceiled to queue
+                    let tile = tiles.get_mut(*neighbor).unwrap();
+                    match tile {
+                        Tile::Ground { concealed: true } => {
+                            heap.push((Duration::from_millis(500) + reveal_time, neighbor.clone()))
+                        } // TODO refactor 500 into const maybe
+                        _ => {
+                            // TODO update meshes on remaining (including self)}
+                        }
+                    }
+                }
+
+                if let Some((reveal_time, entity)) = heap.peek().cloned() {
+                } else {
+                    return;
+                };
             }
         }
     }
