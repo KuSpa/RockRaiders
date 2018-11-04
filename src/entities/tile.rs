@@ -84,7 +84,7 @@ impl Grid {
         dictionary: &Vec<([[Tile; 3]; 3], String)>,
     ) -> (String, i32) {
         match self.get(x as i32, y as i32) {
-            Tile::Ground { concealed: true } => return ("concealed".to_string(), 0),
+            Tile::Ground { concealed: true } => return ("concealed".to_string(), 0), // If the grond itself is concealed, it stays concealed.. no need for extra logic
             _ => {
                 let mut key = [[Tile::default(); 3]; 3];
                 for delta_x in 0..3 {
@@ -106,7 +106,6 @@ impl Grid {
         }
     }
 
-    // TODO refactor use usize
     fn get(&self, x: i32, y: i32) -> Tile {
         if x < 0 || y < 0 {
             return Tile::default();
