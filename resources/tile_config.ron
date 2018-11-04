@@ -2,7 +2,7 @@
     (
         (
             (Any,Any,Any),
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Any,Any,Any),
         ),            
         "ground",
@@ -19,7 +19,7 @@
 
     (
         (
-            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
@@ -28,34 +28,34 @@
 
     (
         (
-            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
         "4",
     ),
 
     (
         (
-            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
         "5",
     ),
 
     (
         (
-            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
         ), 
         "6",
     ),
 
     (
         (
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
@@ -64,44 +64,44 @@
 
     (
         (
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
         ), 
         "8",
     ),
 
     (
         (
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Ground,Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
         ), 
         "9",
     ),
 
     (
         (
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
         ), 
         "10",
     ),
 
     (
         (
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Wall(breaks:false, ore:0)),
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
         ), 
         "11",
     ),
 
     (
         (
-            (Any,Ground,Any),
-            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
+            (Any,Ground(concealed:false),Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Any),
         ), 
     "single_edge_270",
@@ -109,17 +109,17 @@
 
     (
         (
-            (Any,Ground,Any),
-            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground),
-            (Ground,Wall(breaks:false, ore:0),Any),
+            (Any,Ground(concealed:false),Any),
+            (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Any),
         ), 
         "13",
     ),
 
     (
         (
-            (Any,Ground,Any),
-            (Ground,Wall(breaks:false, ore:0),Ground),
+            (Any,Ground(concealed:false),Any),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Any,Wall(breaks:false, ore:0),Any),
         ), 
         "14",
@@ -127,9 +127,9 @@
 
     (
         (
-            (Any,Ground,Any),
-            (Ground,Wall(breaks:false, ore:0),Ground),
-            (Any,Ground,Any),
+            (Any,Ground(concealed:false),Any),
+            (Ground(concealed:false),Wall(breaks:false, ore:0),Ground(concealed:false)),
+            (Any,Ground(concealed:false),Any),
         ), 
         "15",
     ),

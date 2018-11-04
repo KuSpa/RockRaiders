@@ -32,18 +32,20 @@ use util;
 #[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall { breaks: bool, ore: u8 },
-    Ground,
+    Ground { concealed: bool },
 
     // Convenience Tiles, Should never see be seen in actual grids... only exist for comparison
     Any,
 }
 
-//In order to use generic Tiles like the AnyTile, we need to change the equality function of the Tile enum, so that it actually matches every Tile
+// IMPORTANT - this is only implemented for the mesh selection, DO NOT USE IN OTHER CONTEXT
 impl PartialEq for Tile {
     fn eq(&self, other: &Self) -> bool {
         match (other, self) {
-            (Tile::Wall { .. }, Tile::Wall { .. }) => true,
-            (Tile::Ground, Tile::Ground) => true,
+            (Tile::Wall { .. }, Tile::Wall { .. }) => true, // a Wall is a Wall
+            (Tile::Ground { concealed: false }, Tile::Ground { concealed: false }) => true, // Ground is Ground, when it was revealed
+            (Tile::Ground { concealed: true }, Tile::Wall { .. }) => true, //concealed Ground is hidden as wall mesh
+            (Tile::Wall { .. }, Tile::Ground { concealed: true }) => true,
             (Tile::Any, _) => true,
             (_, Tile::Any) => true,
             _ => false,
@@ -74,31 +76,37 @@ impl Grid {
         self.grid.clone()
     }
 
+    /// breaks, if a concealed ground tile is directly next to a revealed ground tile... since this should never happen, we can ignore this case
     pub fn determine_sprite_for(
         &self,
         x: usize,
         y: usize,
         dictionary: &Vec<([[Tile; 3]; 3], String)>,
     ) -> (String, i32) {
-        let mut key = [[Tile::default(); 3]; 3];
-        for delta_x in 0..3 {
-            for delta_y in 0..3 {
-                key[delta_x][delta_y] =
-                    self.get((x + delta_x) as i32 - 1, (y + delta_y) as i32 - 1);
+        match self.get(x as i32, y as i32) {
+            Tile::Ground { concealed: true } => return ("concealed".to_string(), 0),
+            _ => {
+                let mut key = [[Tile::default(); 3]; 3];
+                for delta_x in 0..3 {
+                    for delta_y in 0..3 {
+                        key[delta_x][delta_y] =
+                            self.get((x + delta_x) as i32 - 1, (y + delta_y) as i32 - 1);
+                    }
+                }
+
+                for rotation in 0..4 {
+                    if let Some(result) = util::find_in_vec(&key, &dictionary) {
+                        debug!("{:?} was found", result);
+                        return (result.clone(), 90 * (rotation + 1));
+                    };
+                    key = util::rotate_3x3(&key);
+                }
+                panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
             }
         }
-
-        for rotation in 0..4 {
-            if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                debug!("{:?} was found", result);
-                return (result.clone(), 90 * (rotation + 1));
-            };
-            key = util::rotate_3x3(&key);
-        }
-        panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
-    // TODO adapt x,y to let (0,0) on the "bottom left" of the array
+    // TODO refactor use usize
     fn get(&self, x: i32, y: i32) -> Tile {
         if x < 0 || y < 0 {
             return Tile::default();
