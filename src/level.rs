@@ -1,10 +1,10 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
+use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::core::timing::Time;
 use amethyst::renderer::{
     Camera, Light, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, PointLight, Projection,
     Rgba, Texture, TextureMetadata, VirtualKeyCode,
@@ -46,16 +46,14 @@ impl Level {
         let level_grid = LevelGrid::from_grid(grid_config, world);
 
         {
-
             let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
             let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
             let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
             let loader = world.read_resource::<Loader>();
             for x in 0..level_grid.grid().len() {
                 for y in 0..level_grid.grid()[x].len() {
-
-                    let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
-                    let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y,&dict, &world.read_storage());
+                    let (wall_type, wall_rotation) =
+                        level_grid.determine_sprite_for(x, y, &dict, &world.read_storage());
 
                     let entity = level_grid.get(x as i32, y as i32).unwrap();
 
@@ -99,7 +97,10 @@ impl Level {
                     };
 
                     world.write_storage().insert(entity, mesh).unwrap();
-                    world.write_storage::<Material>().insert(entity, material).unwrap();
+                    world
+                        .write_storage::<Material>()
+                        .insert(entity, material)
+                        .unwrap();
                     world.write_storage().insert(entity, transform).unwrap();
                     world
                         .write_storage()
@@ -188,10 +189,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 debug!("Leaving Level State");
                 return Trans::Pop;
-            }else if is_key_down(&event, VirtualKeyCode::Space) {
+            } else if is_key_down(&event, VirtualKeyCode::Space) {
                 debug!("Start revealing");
-                let entity = data.world.read_resource::<LevelGrid>().get(0,0).unwrap();
-                let mut heap = data.world.write_resource::<BinaryHeap<(Duration, Entity)>>();
+                let entity = data.world.read_resource::<LevelGrid>().get(0, 0).unwrap();
+                let mut heap = data
+                    .world
+                    .write_resource::<BinaryHeap<(Duration, Entity)>>();
                 heap.push((data.world.read_resource::<Time>().absolute_time(), entity));
                 return Trans::None;
             }

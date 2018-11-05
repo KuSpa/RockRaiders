@@ -1,14 +1,18 @@
 use amethyst::core::specs::prelude::{Read, ReadExpect, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::ecs::{Entity, storage::GenericReadStorage};
-use amethyst::renderer::{TextureMetadata, MaterialDefaults,PngFormat,Material,Texture, Mesh,MeshHandle, ObjFormat, TextureHandle};
+use amethyst::ecs::Entity;
+use amethyst::renderer::{
+    Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
+};
+use entities::tile::LevelGrid;
 use entities::tile::Tile;
 use std::collections::BinaryHeap;
 use std::time::Duration;
-use entities::tile::LevelGrid;
+
+use amethyst::assets::{AssetStorage, Loader};
+use amethyst::core::cgmath::{Deg, Vector3};
 use assetloading::asset_loader::AssetManager;
-use amethyst::assets::{Loader, AssetStorage};
 
 pub struct GroundRevealSystem;
 
@@ -32,35 +36,48 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, loader, grid, dict, mut texture_manager, mut mesh_manager, mut heap, mut meshhandles,mut meshes, mut materials,mut textures, mut transforms, mut tiles, defaults): Self::SystemData,
+        (
+            time,
+            loader,
+            grid,
+            dict,
+            mut texture_manager,
+            mut mesh_manager,
+            mut heap,
+            mut meshhandles,
+            mut meshes,
+            mut materials,
+            mut textures,
+            mut transforms,
+            mut tiles,
+            defaults,
+        ): Self::SystemData,
     ) {
         if let Some((mut reveal_time, mut entity)) = heap.peek().cloned() {
-            while reveal_time >= time.absolute_time() {
-
-                warn!("entering {:?}", entity);
+            while reveal_time <= time.absolute_time() {
+                warn!("entering {:?} is big", reveal_time);
                 //the entity is to be revealed, so we delete it, but we already got the values by peeking
                 heap.pop();
-
 
                 let tran = transforms.get(entity).unwrap().clone();
                 let x = tran.translation[0] as i32;
                 let y = tran.translation[1] as i32;
 
-
                 // reveal yourself
                 tiles.get_mut(entity).unwrap().reveal();
 
-
                 let mut neighbors = vec![];
                 neighbors.extend(grid.direct_neighbors(x, y));
-
 
                 for neighbor in neighbors.clone().iter() {
                     // add conceiled to queue
                     let tile = tiles.get_mut(*neighbor).unwrap();
                     match tile {
                         Tile::Ground { concealed: true } => {
-                            heap.push((Duration::from_millis(1000) + reveal_time, neighbor.clone()));
+                            heap.push((
+                                Duration::from_millis(500) + time.absolute_time(),
+                                neighbor.clone(),
+                            ));
 
                             let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
                             neighbors.remove(pos);
@@ -72,23 +89,33 @@ impl<'a> System<'a> for GroundRevealSystem {
                 neighbors.extend(grid.diagonal_neighbors(x, y));
                 neighbors.push(entity);
 
-
                 // TODO maybe have an own system for update meshes
                 for neighbor in neighbors.drain(..) {
                     // add conceiled to queue
                     let tile = tiles.get_mut(neighbor).unwrap().clone();
                     match tile {
-                        Tile::Ground { concealed: true } => {
-                            ()
-                        }
+                        Tile::Ground { concealed: true } => (),
                         _ => {
-                            let mut transform = transforms.get_mut(entity).unwrap();
+                            let transform = transforms.get(neighbor).unwrap().clone();
                             let x = transform.translation[0] as usize;
-                            let y = transform.translation[1] as usize;
+                            let y = -transform.translation[2] as usize;
+                            warn!("{:?}", (x, y));
 
-                            let (wall_type, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
-                            //TODO
-                            // transform.set_rotation()
+                            let (wall_type, wall_rotation) =
+                                grid.determine_sprite_for(x, y, &dict, &tiles);
+                            //TODO update old transforms rotation
+                            let mut new_transform = Transform::default();
+                            new_transform.set_position(Vector3 {
+                                x: x as f32,
+                                y: 0.0,
+                                z: -(y as f32),
+                            });
+
+                            //add rotation to local transform
+                            new_transform.rotate_local(
+                                Vector3::new(0.0, 1.0, 0.0),
+                                Deg(wall_rotation as f32),
+                            );
 
                             let mesh_path = format!("meshes/{}.obj", wall_type);
                             let texture_path = format!("textures/{}.png", wall_type);
@@ -117,9 +144,9 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 )
                             };
 
-                            meshhandles.insert(neighbor, mesh);
-                            materials.insert(neighbor, material);
-                            // we got transform mutable and already changed it.
+                            meshhandles.insert(neighbor, mesh).unwrap();
+                            materials.insert(neighbor, material).unwrap();
+                            transforms.insert(neighbor, new_transform).unwrap();
                         }
                     }
                 }
