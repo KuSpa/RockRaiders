@@ -24,9 +24,11 @@
 //}
 
 use amethyst::ecs::prelude::Entity;
-use amethyst::ecs::prelude::{Component, DenseVecStorage};
+use amethyst::ecs::prelude::{Component, Storage, DenseVecStorage};
 use amethyst::prelude::*;
 use util;
+use amethyst::shred::Fetch;
+use amethyst::ecs::storage::{MaskedStorage, GenericReadStorage};
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
 #[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
@@ -163,7 +165,7 @@ impl LevelGrid {
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = vec![];
 
-        for (d_x, d_y) in [(0,1),(0,-1),(1,0),(-1,0)].iter() {
+        for (d_x, d_y) in [(0, 1), (0, -1), (1, 0), (-1, 0)].iter() {
             if let Some(entity) = self.get(x + d_x, y + d_y) {
                 result.push(entity);
             }
@@ -189,23 +191,25 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for(&self, x: usize, y: usize, world: &World) -> (String, i32) {
-        let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
-
-        let grid = self.generate_tile_grid_copy(world);
-        grid.determine_sprite_for(x, y, &dict)
+    pub fn determine_sprite_for<T: GenericReadStorage>(&self, x: usize, y: usize, dict: &Vec<([[Tile; 3]; 3], String)>, tile_storage: &T) -> (String, i32)
+        where <T as GenericReadStorage>::Component: Clone,
+              std::vec::Vec<Tile>: std::iter::FromIterator<<T as GenericReadStorage>::Component> {
+        let grid = self.generate_tile_grid_copy::<T>(tile_storage);
+        grid.determine_sprite_for(x, y, dict)
     }
 
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy(&self, world: &World) -> Grid {
+    fn generate_tile_grid_copy<T: GenericReadStorage>(&self, tile_storage: &T) -> Grid
+        where <T as GenericReadStorage>::Component: Clone,
+              std::vec::Vec<Tile>: std::iter::FromIterator<<T as GenericReadStorage>::Component> {
         let mut grid = self.grid.clone();
         Grid {
             grid: grid
                 .iter_mut()
                 .map(|vec| {
                     vec.iter_mut()
-                        .map(|entity| (*world.read_storage::<Tile>().get(*entity).unwrap()).clone())
-                        .collect()
+                        .map(|entity|
+                            (*tile_storage.get(*entity).unwrap()).clone()).collect()
                 })
                 .collect(),
         }

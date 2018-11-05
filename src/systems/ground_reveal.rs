@@ -1,7 +1,7 @@
 use amethyst::core::specs::prelude::{Read, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::ecs::Entity;
+use amethyst::ecs::{Entity, storage::GenericReadStorage};
 use amethyst::renderer::{MeshHandle, TextureHandle};
 use entities::tile::Tile;
 use std::collections::BinaryHeap;
@@ -14,6 +14,7 @@ impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
         Read<'a, LevelGrid>,
+        Read<'a, Vec<([[Tile; 3]; 3], String)>>,
         Write<'a, BinaryHeap<(Duration, Entity)>>,
         WriteStorage<'a, MeshHandle>,
         WriteStorage<'a, TextureHandle>,
@@ -23,7 +24,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, grid, mut heap, mut meshes, mut textures, mut transforms, mut tiles): Self::SystemData,
+        (time, grid, dict, mut heap, mut meshes, mut textures, mut transforms, mut tiles): Self::SystemData,
     ) {
         if let Some((reveal_time, entity)) = heap.peek().cloned() {
             while reveal_time >= time.absolute_time() {
@@ -59,16 +60,21 @@ impl<'a> System<'a> for GroundRevealSystem {
 
                 neighbors.extend(grid.diagonal_neighbors(x,y));
 
-
+                // TODO maybe have an own system for update meshes
                 for neighbor in neighbors.iter() {
                     // add conceiled to queue
-                    let tile = tiles.get_mut(*neighbor).unwrap();
+                    let tile = tiles.get_mut(*neighbor).unwrap().clone();
                     match tile {
                         Tile::Ground { concealed: true } => {
                             ()
                         }
                         _ => {
-                            //TODO update meshes
+                            let transform= transforms.get(entity).unwrap();
+                            let x = transform.translation[0] as usize;
+                            let y = transform.translation[1] as usize;
+
+                            let (name, rotation) = grid.determine_sprite_for(x,y, &dict, &tiles);
+
                         },
                     }
                 }

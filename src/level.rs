@@ -45,14 +45,16 @@ impl Level {
         let level_grid = LevelGrid::from_grid(grid_config, world);
 
         {
+
+            let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
             let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
             let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
             let loader = world.read_resource::<Loader>();
             for x in 0..level_grid.grid().len() {
                 for y in 0..level_grid.grid()[x].len() {
 
-
-                    let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
+                    let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
+                    let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y,&dict, &world.read_storage());
 
                     let entity = level_grid.get(x as i32, y as i32).unwrap();
 
