@@ -50,9 +50,11 @@ impl Level {
             let loader = world.read_resource::<Loader>();
             for x in 0..level_grid.grid().len() {
                 for y in 0..level_grid.grid()[x].len() {
+
+
                     let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, world);
 
-                    let entity = level_grid.get(x, y);
+                    let entity = level_grid.get(x as i32, y as i32).unwrap();
 
                     let mut transform = Transform::default();
                     transform.set_position(Vector3 {

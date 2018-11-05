@@ -6,12 +6,14 @@ use amethyst::renderer::{MeshHandle, TextureHandle};
 use entities::tile::Tile;
 use std::collections::BinaryHeap;
 use std::time::Duration;
+use entities::tile::LevelGrid;
 
 pub struct GroundRevealSystem;
 
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        Read<'a, LevelGrid>,
         Write<'a, BinaryHeap<(Duration, Entity)>>,
         WriteStorage<'a, MeshHandle>,
         WriteStorage<'a, TextureHandle>,
@@ -21,34 +23,57 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, mut heap, mut meshes, mut textures, mut transforms, mut tiles): Self::SystemData,
+        (time, grid, mut heap, mut meshes, mut textures, mut transforms, mut tiles): Self::SystemData,
     ) {
         if let Some((reveal_time, entity)) = heap.peek().cloned() {
             while reveal_time >= time.absolute_time() {
                 //the entity is to be revealed, so we delete it, but we already got the values by peeking
                 heap.pop();
 
+
+                let tran= transforms.get(entity).unwrap();
+                let x = tran.translation[0] as i32;
+                let y = tran.translation[1] as i32;
+
+
                 // reveal yourself
                 tiles.get_mut(entity).unwrap().reveal();
 
-                let neightbors = vec![entity.clone()];
-                // TODO get neighbors
 
-                for neighbor in neightbors.iter() {
+                let mut neighbors = vec![entity.clone()];
+                neighbors.extend(grid.direct_neighbors(x,y));
+
+
+                for neighbor in neighbors.clone().iter() {
                     // add conceiled to queue
                     let tile = tiles.get_mut(*neighbor).unwrap();
                     match tile {
                         Tile::Ground { concealed: true } => {
-                            heap.push((Duration::from_millis(500) + reveal_time, neighbor.clone()))
-                        } // TODO refactor 500 into const maybe
-                        _ => {
-                            // TODO update meshes on remaining (including self)}
+                            heap.push((Duration::from_millis(500) + reveal_time, neighbor.clone()));
+                            let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
+                            neighbors.remove(pos);
                         }
+                        _ => (),
                     }
                 }
 
-                if let Some((reveal_time, entity)) = heap.peek().cloned() {
-                } else {
+                neighbors.extend(grid.diagonal_neighbors(x,y));
+
+
+                for neighbor in neighbors.iter() {
+                    // add conceiled to queue
+                    let tile = tiles.get_mut(*neighbor).unwrap();
+                    match tile {
+                        Tile::Ground { concealed: true } => {
+                            ()
+                        }
+                        _ => {
+                            //TODO update meshes
+                        },
+                    }
+                }
+
+                if let Some((reveal_time, entity)) = heap.peek().cloned() {} else {
                     return;
                 };
             }

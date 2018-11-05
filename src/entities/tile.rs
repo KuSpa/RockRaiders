@@ -160,6 +160,31 @@ impl LevelGrid {
         LevelGrid { grid: level_grid }
     }
 
+    pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
+        let mut result = vec![];
+
+        for (d_x, d_y) in [(0,1),(0,-1),(1,0),(-1,0)].iter() {
+            if let Some(entity) = self.get(x + d_x, y + d_y) {
+                result.push(entity);
+            }
+        }
+        result
+    }
+
+    pub fn diagonal_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
+        let mut result = vec![];
+
+        for d_x in [-1, 1].iter() {
+            for d_y in [-1, 1].iter() {
+                if let Some(entity) = self.get(x + d_x, y + d_y) {
+                    result.push(entity);
+                }
+            }
+        }
+        result
+    }
+
+
     pub fn grid(&self) -> &Vec<Vec<Entity>> {
         &self.grid
     }
@@ -186,14 +211,26 @@ impl LevelGrid {
         }
     }
 
-    pub fn get(&self, x: usize, y: usize) -> Entity {
-        *self.grid.get(x).unwrap().get(y).unwrap()
+    pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
+        if x < 0 || y < 0 {
+            return None;
+        }
+
+        let x = x as usize;
+        let y = y as usize;
+
+        if x >= self.grid.len() {
+            return None;
+        }
+
+        Some(self.grid[x][y])
     }
 }
 
-//impl Serialize for LevelGrid {
-//    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error> where
-//        S: Serializer, {
-//        //TODO
-//    }
-//}
+impl Default for LevelGrid {
+    fn default() -> LevelGrid {
+        LevelGrid {
+            grid: vec![Vec::new()],
+        }
+    }
+}
