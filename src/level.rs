@@ -4,6 +4,7 @@ use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
+use amethyst::core::timing::Time;
 use amethyst::renderer::{
     Camera, Light, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, PointLight, Projection,
     Rgba, Texture, TextureMetadata, VirtualKeyCode,
@@ -98,7 +99,7 @@ impl Level {
                     };
 
                     world.write_storage().insert(entity, mesh).unwrap();
-                    world.write_storage().insert(entity, material).unwrap();
+                    world.write_storage::<Material>().insert(entity, material).unwrap();
                     world.write_storage().insert(entity, transform).unwrap();
                     world
                         .write_storage()
@@ -177,7 +178,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
 
     fn handle_event(
         &mut self,
-        _: StateData<CustomGameData>,
+        data: StateData<CustomGameData>,
         event: StateEvent,
     ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
         if let StateEvent::Window(event) = &event {
@@ -187,6 +188,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 debug!("Leaving Level State");
                 return Trans::Pop;
+            }else if is_key_down(&event, VirtualKeyCode::Space) {
+                debug!("Start revealing");
+                let entity = data.world.read_resource::<LevelGrid>().get(0,0).unwrap();
+                let mut heap = data.world.write_resource::<BinaryHeap<(Duration, Entity)>>();
+                heap.push((data.world.read_resource::<Time>().absolute_time(), entity));
+                return Trans::None;
             }
         }
         Trans::None

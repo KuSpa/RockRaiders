@@ -1,16 +1,15 @@
 Grid(
 grid: [
     [
-        Ground(concealed:false),
-        Ground(concealed:false),
-        Wall(breaks:false, ore:0),
-    ],[
-        Ground(concealed:false),
-        Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
-
+        Ground(concealed:true),
+        Ground(concealed:true),
+        Ground(concealed:true),
     ],[
         Ground(concealed:true),
+        Wall(breaks:false, ore:0),
+        Wall(breaks:false, ore:0),
+    ],[
+        Ground(concealed:false),
         Wall(breaks:false, ore:0),
         Wall(breaks:false, ore:0),
     ]

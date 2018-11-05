@@ -24,11 +24,10 @@
 //}
 
 use amethyst::ecs::prelude::Entity;
-use amethyst::ecs::prelude::{Component, Storage, DenseVecStorage};
+use amethyst::ecs::prelude::{Component,  DenseVecStorage};
 use amethyst::prelude::*;
 use util;
-use amethyst::shred::Fetch;
-use amethyst::ecs::storage::{MaskedStorage, GenericReadStorage};
+use amethyst::ecs::storage:: GenericReadStorage;
 
 //TODO impl From<Entity> Trait - less code in LevelGrid
 #[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
@@ -42,6 +41,7 @@ pub enum Tile {
 
 impl Tile {
     pub fn reveal(&mut self) {
+        warn!("tile revealed");
         match self {
             Tile::Ground { concealed } => *concealed = false,
             _ => error!("Error revealing a Tile that cannot be revealed"),
@@ -191,17 +191,13 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for<T: GenericReadStorage>(&self, x: usize, y: usize, dict: &Vec<([[Tile; 3]; 3], String)>, tile_storage: &T) -> (String, i32)
-        where <T as GenericReadStorage>::Component: Clone,
-              std::vec::Vec<Tile>: std::iter::FromIterator<<T as GenericReadStorage>::Component> {
+    pub fn determine_sprite_for<T: GenericReadStorage<Component = Tile>>(&self, x: usize, y: usize, dict: &Vec<([[Tile; 3]; 3], String)>, tile_storage: &T) -> (String, i32) {
         let grid = self.generate_tile_grid_copy::<T>(tile_storage);
         grid.determine_sprite_for(x, y, dict)
     }
 
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy<T: GenericReadStorage>(&self, tile_storage: &T) -> Grid
-        where <T as GenericReadStorage>::Component: Clone,
-              std::vec::Vec<Tile>: std::iter::FromIterator<<T as GenericReadStorage>::Component> {
+    fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(&self, tile_storage: &T) -> Grid {
         let mut grid = self.grid.clone();
         Grid {
             grid: grid
