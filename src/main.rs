@@ -43,7 +43,7 @@ fn main() -> amethyst::Result<()> {
         .with_core_bundle(TransformBundle::new())?
         .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
         .with_running(systems::TileUpdateSystem{dict}, "tile_update_system", &[])
-        //.with_running(systems::GroundRevealSystem, "ground_reveal_system", &[])
+        .with_running(systems::GroundRevealSystem, "ground_reveal_system", &[])
         .with_basic_renderer(path, DrawShaded::<PosNormTex>::new())?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
     game.run();
