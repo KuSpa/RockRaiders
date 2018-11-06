@@ -1,4 +1,3 @@
-use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
@@ -6,14 +5,15 @@ use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Light, Material, MaterialDefaults, Mesh, ObjFormat, PngFormat, PointLight, Projection,
-    Rgba, Texture, TextureMetadata, VirtualKeyCode,
+    Camera, Light, PointLight, Mesh, Texture, Projection,
+    Rgba, VirtualKeyCode,
 };
 
 use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
 use game_data::CustomGameData;
 use std::time::Duration;
+use systems::TileUpdateQueue;
 
 use std::collections::BinaryHeap;
 
@@ -44,73 +44,18 @@ impl Level {
 
     fn initialize_level_grid(world: &mut World, grid_config: Grid) {
         let level_grid = LevelGrid::from_grid(grid_config, world);
-
-        {
-            let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
-            let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
-            let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
-            let loader = world.read_resource::<Loader>();
-            for x in 0..level_grid.grid().len() {
-                for y in 0..level_grid.grid()[x].len() {
-                    let (wall_type, wall_rotation) =
-                        level_grid.determine_sprite_for(x, y, &dict, &world.read_storage());
-
-                    let entity = level_grid.get(x as i32, y as i32).unwrap();
-
-                    let mut transform = Transform::default();
-                    transform.set_position(Vector3 {
-                        x: x as f32,
-                        y: 0.0,
-                        z: -(y as f32),
-                    });
-
-                    //add rotation to local transform
-                    transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
-
-                    let mesh_path = format!("meshes/{}.obj", wall_type);
-                    let texture_path = format!("textures/{}.png", wall_type);
-
-                    let material = {
-                        let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
-                        let handle = texture_manager.get_asset_handle_or_load(
-                            &texture_path,
-                            PngFormat,
-                            TextureMetadata::srgb(),
-                            &mut texture_storage,
-                            &loader,
-                        );
-                        Material {
-                            albedo: handle,
-                            ..world.read_resource::<MaterialDefaults>().0.clone()
-                        }
-                    };
-
-                    let mesh = {
-                        let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-                        mesh_manager.get_asset_handle_or_load(
-                            &mesh_path,
-                            ObjFormat,
-                            Default::default(),
-                            &mut mesh_storage,
-                            &loader,
-                        )
-                    };
-
-                    world.write_storage().insert(entity, mesh).unwrap();
-                    world
-                        .write_storage::<Material>()
-                        .insert(entity, material)
-                        .unwrap();
-                    world.write_storage().insert(entity, transform).unwrap();
-                    world
-                        .write_storage()
-                        .insert(entity, GlobalTransform::default())
-                        .unwrap();
-                }
-            }
-        }
+        let max_x = level_grid.grid().len();
+        let max_y = level_grid.grid()[0].len();
 
         world.add_resource(level_grid);
+
+        for x in 0..max_x {
+            for y in 0..max_y {
+                // write every coordinate in the update list to update every tile's mesh ans material
+                let mut queue = world.write_resource::<TileUpdateQueue>();
+                queue.insert((x, y));
+            }
+        }
     }
 
     /// initialize the camera.

@@ -105,6 +105,10 @@ impl TileUpdateQueue {
         self.tiles.is_empty()
     }
 
+    pub fn insert(&mut self, item: (usize, usize)) {
+        self.tiles.push(item);
+    }
+
     pub fn clear(&mut self) {
         self.tiles.clear()
     }
