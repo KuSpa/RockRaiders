@@ -14,6 +14,10 @@ use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
 use assetloading::asset_loader::AssetManager;
 
+///
+/// This system handles the recursive process of revealing tiles
+/// including telling the adjacent tiles to update their meshes
+///
 pub struct GroundRevealSystem;
 
 impl<'a> System<'a> for GroundRevealSystem {
