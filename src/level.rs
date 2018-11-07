@@ -65,7 +65,7 @@ impl Level {
             storage.clear();
         }
         let mut mat = Transform::default();
-        mat.move_global(Vector3::new(0., 3.0, 0.0));
+        mat.move_global(Vector3::new(-2., 6.0, 2.0));
         mat.yaw_global(Deg(-45.0));
         mat.pitch_local(Deg(-45.0));
 
@@ -136,7 +136,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
                 return Trans::Pop;
             } else if is_key_down(&event, VirtualKeyCode::Space) {
                 debug!("Start revealing");
-                let entity = data.world.read_resource::<LevelGrid>().get(0, 0).unwrap();
+                let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
                 let mut heap = data
                     .world
                     .write_resource::<BinaryHeap<(Duration, Entity)>>();

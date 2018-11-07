@@ -39,13 +39,12 @@ impl<'a> System<'a> for GroundRevealSystem {
     ) {
         if let Some((mut reveal_time, mut entity)) = heap.peek().cloned() {
             while reveal_time <= time.absolute_time() {
-                warn!("entering {:?} is big", reveal_time);
                 //the entity is to be revealed, so we delete it, but we already got the values by peeking
                 heap.pop();
 
                 let tran = transforms.get(entity).unwrap().clone();
-                let x = tran.translation[0] as i32;
-                let y = tran.translation[1] as i32;
+                let x = tran.translation[0]  as i32;
+                let y = - tran.translation[2] as i32;
 
                 // reveal yourself
                 tiles.get_mut(entity).unwrap().reveal();
@@ -73,7 +72,6 @@ impl<'a> System<'a> for GroundRevealSystem {
                 neighbors.extend(grid.diagonal_neighbors(x, y));
                 neighbors.push(entity);
 
-                // TODO maybe have an own system for update meshes
                 for neighbor in neighbors.drain(..) {
                     // add conceiled to queue
                     let tile = tiles.get_mut(neighbor).unwrap().clone();
@@ -92,7 +90,6 @@ impl<'a> System<'a> for GroundRevealSystem {
                     reveal_time = new_reveal_time;
                     entity = new_entity;
                 } else {
-                    warn!("break");
                     return;
                 };
             }

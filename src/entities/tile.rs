@@ -41,7 +41,6 @@ pub enum Tile {
 
 impl Tile {
     pub fn reveal(&mut self) {
-        warn!("tile revealed");
         match self {
             Tile::Ground { concealed } => *concealed = false,
             _ => error!("Error revealing a Tile that cannot be revealed"),
@@ -176,11 +175,9 @@ impl LevelGrid {
     pub fn diagonal_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = vec![];
 
-        for d_x in [-1, 1].iter() {
-            for d_y in [-1, 1].iter() {
-                if let Some(entity) = self.get(x + d_x, y + d_y) {
-                    result.push(entity);
-                }
+        for (d_x, d_y) in [(1, -1), (1, 1), (-1, 1), (-1, -1)].iter() {
+            if let Some(entity) = self.get(x + d_x, y + d_y) {
+                result.push(entity);
             }
         }
         result
@@ -190,7 +187,7 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for<T: GenericReadStorage<Component = Tile>>(
+    pub fn determine_sprite_for<T: GenericReadStorage<Component=Tile>>(
         &self,
         x: usize,
         y: usize,
@@ -202,7 +199,7 @@ impl LevelGrid {
     }
 
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(
+    fn generate_tile_grid_copy<T: GenericReadStorage<Component=Tile>>(
         &self,
         tile_storage: &T,
     ) -> Grid {
@@ -231,7 +228,7 @@ impl LevelGrid {
             return None;
         }
 
-        Some(self.grid[x][y])
+        self.grid.get(x).unwrap().get(y).map(|entity| *entity)
     }
 }
 

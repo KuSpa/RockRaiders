@@ -82,8 +82,8 @@ impl<'a> System<'a> for TileUpdateSystem {
             // write into storages
             let entity = level_grid.get(x as i32, y as i32).unwrap();
             transform_storage.insert(entity, transform).unwrap();
-            mesh_handles.insert(entity, mesh).unwrap();
             mat_storage.insert(entity, material).unwrap();
+            mesh_handles.insert(entity, mesh).unwrap();
         };
 
         // all tiles have been updated, we can remove the requests from the list
