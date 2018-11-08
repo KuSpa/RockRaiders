@@ -1,53 +1,69 @@
+use amethyst::assets::{AssetStorage, Loader};
+use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::specs::prelude::{Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use amethyst::core::transform::Transform;
-use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
-use entities::tile::{Tile, LevelGrid};
-use std::vec::IntoIter;
 use assetloading::asset_loader::AssetManager;
-use amethyst::assets::{AssetStorage, Loader};
+use entities::tile::{LevelGrid, Tile};
+use std::vec::IntoIter;
 
 pub struct TileUpdateSystem;
 
 impl<'a> System<'a> for TileUpdateSystem {
-    type SystemData =
-    (Write<'a, TileUpdateQueue>,
-     Read<'a, Vec<([[Tile; 3]; 3], String)>>,
-     Read<'a, LevelGrid>,
-     ReadStorage<'a, Tile>,
-     ReadExpect<'a, Loader>,
-     WriteStorage<'a, Transform>,
-     (Write<'a, AssetManager<Mesh>>, WriteStorage<'a, MeshHandle>, Write<'a, AssetStorage<Mesh>>, ),
-     (Write<'a, AssetManager<Texture>>, WriteStorage<'a, Material>,Write<'a, AssetStorage<Texture>>, ReadExpect<'a, MaterialDefaults>, )
-    )
-    ;
+    type SystemData = (
+        Write<'a, TileUpdateQueue>,
+        Read<'a, Vec<([[Tile; 3]; 3], String)>>,
+        Read<'a, LevelGrid>,
+        ReadStorage<'a, Tile>,
+        ReadExpect<'a, Loader>,
+        WriteStorage<'a, Transform>,
+        (
+            Write<'a, AssetManager<Mesh>>,
+            WriteStorage<'a, MeshHandle>,
+            Write<'a, AssetStorage<Mesh>>,
+        ),
+        (
+            Write<'a, AssetManager<Texture>>,
+            WriteStorage<'a, Material>,
+            Write<'a, AssetStorage<Texture>>,
+            ReadExpect<'a, MaterialDefaults>,
+        ),
+    );
 
     fn run(
         &mut self,
-        (mut tiles,
+        (
+            mut tiles,
             dict,
             level_grid,
             tile_storage,
             amethyst_loader,
             mut transform_storage,
             (mut mesh_manager, mut mesh_handles, mut mesh_storage),
-            (mut tex_manager, mut mat_storage, mut tex_storage, mat_defaults)): Self::SystemData,
+            (mut tex_manager, mut mat_storage, mut tex_storage, mat_defaults),
+        ): Self::SystemData,
     ) {
-        if tiles.is_empty() { return; };
+        if tiles.is_empty() {
+            return;
+        };
 
         // TODO setup stuff
         // TODO create a grid here and pass it... unnescessary to create it multiple times in one tick
 
         for (x, y) in tiles.clone().into_iter() {
-
             // get sprite defintion
-            let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
+            let (wall_type, wall_rotation) =
+                level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
 
             let mut transform = Transform::default();
             // maybe set 00 top left instead of bottom left?
-            transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -(y as f32) });
+            transform.set_position(Vector3 {
+                x: x as f32,
+                y: 0.0,
+                z: -(y as f32),
+            });
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
 
             // load mesh
@@ -80,20 +96,19 @@ impl<'a> System<'a> for TileUpdateSystem {
             transform_storage.insert(entity, transform).unwrap();
             mat_storage.insert(entity, material).unwrap();
             mesh_handles.insert(entity, mesh).unwrap();
-        };
+        }
 
         // all tiles have been updated, we can remove the requests from the list
         tiles.clear()
     }
 }
 
-
 ///
 /// Wrapper for a Vec of Tiles that needs to be updated
 ///
 #[derive(Clone)]
 pub struct TileUpdateQueue {
-    tiles: Vec<(usize, usize)>
+    tiles: Vec<(usize, usize)>,
 }
 
 impl TileUpdateQueue {
@@ -112,7 +127,9 @@ impl TileUpdateQueue {
 
 impl Default for TileUpdateQueue {
     fn default() -> Self {
-        TileUpdateQueue { tiles: Vec::<(usize, usize)>::new() }
+        TileUpdateQueue {
+            tiles: Vec::<(usize, usize)>::new(),
+        }
     }
 }
 

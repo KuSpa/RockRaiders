@@ -187,7 +187,7 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for<T: GenericReadStorage<Component=Tile>>(
+    pub fn determine_sprite_for<T: GenericReadStorage<Component = Tile>>(
         &self,
         x: usize,
         y: usize,
@@ -199,7 +199,7 @@ impl LevelGrid {
     }
 
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy<T: GenericReadStorage<Component=Tile>>(
+    fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(
         &self,
         tile_storage: &T,
     ) -> Grid {

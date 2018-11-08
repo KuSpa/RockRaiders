@@ -9,7 +9,6 @@ use std::collections::BinaryHeap;
 use std::time::Duration;
 use systems::TileUpdateQueue;
 
-
 ///
 /// This system handles the recursive process of revealing tiles
 /// including telling the adjacent tiles to update their meshes
@@ -23,19 +22,12 @@ impl<'a> System<'a> for GroundRevealSystem {
         Write<'a, BinaryHeap<(Duration, Entity)>>,
         ReadStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
-        Write<'a, TileUpdateQueue>
+        Write<'a, TileUpdateQueue>,
     );
 
     fn run(
         &mut self,
-        (
-            time,
-            grid,
-            mut heap,
-            transforms,
-            mut tiles,
-            mut tile_update_queue
-        ): Self::SystemData,
+        (time, grid, mut heap, transforms, mut tiles, mut tile_update_queue): Self::SystemData,
     ) {
         if let Some((mut reveal_time, mut entity)) = heap.peek().cloned() {
             while reveal_time <= time.absolute_time() {
@@ -43,8 +35,8 @@ impl<'a> System<'a> for GroundRevealSystem {
                 heap.pop();
 
                 let tran = transforms.get(entity).unwrap().clone();
-                let x = tran.translation[0]  as i32;
-                let y = - tran.translation[2] as i32;
+                let x = tran.translation[0] as i32;
+                let y = -tran.translation[2] as i32;
 
                 // reveal yourself
                 tiles.get_mut(entity).unwrap().reveal();

@@ -1,13 +1,13 @@
+use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::renderer::{TextureMetadata,
-    Camera, Light, PointLight, Mesh, Texture, Projection,
-    Rgba, VirtualKeyCode, PngFormat, ObjFormat
+use amethyst::renderer::{
+    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
+    TextureMetadata, VirtualKeyCode,
 };
 
 use assetloading::asset_loader::AssetManager;
@@ -60,7 +60,13 @@ impl Level {
     }
 
     fn load_initial_assets(world: &World) {
-        let to_load = ["wall","ground", "concealed", "single_edge", "single_edge_270"];
+        let to_load = [
+            "wall",
+            "ground",
+            "concealed",
+            "single_edge",
+            "single_edge_270",
+        ];
         let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
         let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
@@ -68,11 +74,21 @@ impl Level {
         let loader = world.read_resource::<Loader>();
 
         for asset in to_load.iter() {
-            mesh_manager.get_asset_handle_or_load(asset, ObjFormat, Default::default(),&mut mesh_storage,  &loader);
-            texture_manager.get_asset_handle_or_load(asset, PngFormat, TextureMetadata::srgb(),&mut texture_storage,  &loader);
+            mesh_manager.get_asset_handle_or_load(
+                asset,
+                ObjFormat,
+                Default::default(),
+                &mut mesh_storage,
+                &loader,
+            );
+            texture_manager.get_asset_handle_or_load(
+                asset,
+                PngFormat,
+                TextureMetadata::srgb(),
+                &mut texture_storage,
+                &loader,
+            );
         }
-
-
     }
 
     /// initialize the camera.
