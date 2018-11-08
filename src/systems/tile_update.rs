@@ -9,13 +9,12 @@ use std::vec::IntoIter;
 use assetloading::asset_loader::AssetManager;
 use amethyst::assets::{AssetStorage, Loader};
 
-pub struct TileUpdateSystem {
-    pub dict: Vec<([[Tile; 3]; 3], String)>
-}
+pub struct TileUpdateSystem;
 
 impl<'a> System<'a> for TileUpdateSystem {
     type SystemData =
     (Write<'a, TileUpdateQueue>,
+     Read<'a, Vec<([[Tile; 3]; 3], String)>>,
      Read<'a, LevelGrid>,
      ReadStorage<'a, Tile>,
      ReadExpect<'a, Loader>,
@@ -28,6 +27,7 @@ impl<'a> System<'a> for TileUpdateSystem {
     fn run(
         &mut self,
         (mut tiles,
+            dict,
             level_grid,
             tile_storage,
             amethyst_loader,
@@ -38,25 +38,22 @@ impl<'a> System<'a> for TileUpdateSystem {
         if tiles.is_empty() { return; };
 
         // TODO setup stuff
-        // TODO create a grid here
+        // TODO create a grid here and pass it... unnescessary to create it multiple times in one tick
 
         for (x, y) in tiles.clone().into_iter() {
 
             // get sprite defintion
-            let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, &self.dict, &tile_storage);
+            let (wall_type, wall_rotation) = level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
 
             let mut transform = Transform::default();
             // maybe set 00 top left instead of bottom left?
             transform.set_position(Vector3 { x: x as f32, y: 0.0, z: -(y as f32) });
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
 
-            let mesh_path = format!("meshes/{}.obj", wall_type);
-            let texture_path = format!("textures/{}.png", wall_type);
-
             // load mesh
             let mesh = {
                 mesh_manager.get_asset_handle_or_load(
-                    &mesh_path,
+                    &wall_type,
                     ObjFormat,
                     Default::default(),
                     &mut mesh_storage,
@@ -67,7 +64,7 @@ impl<'a> System<'a> for TileUpdateSystem {
             // load texture/material
             let material = {
                 let handle = tex_manager.get_asset_handle_or_load(
-                    &texture_path,
+                    &wall_type,
                     PngFormat,
                     TextureMetadata::srgb(),
                     &mut tex_storage,
@@ -79,7 +76,6 @@ impl<'a> System<'a> for TileUpdateSystem {
                 }
             };
 
-            // write into storages
             let entity = level_grid.get(x as i32, y as i32).unwrap();
             transform_storage.insert(entity, transform).unwrap();
             mat_storage.insert(entity, material).unwrap();

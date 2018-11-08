@@ -4,9 +4,10 @@ use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{
+use amethyst::assets::{AssetStorage, Loader};
+use amethyst::renderer::{TextureMetadata,
     Camera, Light, PointLight, Mesh, Texture, Projection,
-    Rgba, VirtualKeyCode,
+    Rgba, VirtualKeyCode, PngFormat, ObjFormat
 };
 
 use assetloading::asset_loader::AssetManager;
@@ -56,6 +57,22 @@ impl Level {
                 queue.insert((x, y));
             }
         }
+    }
+
+    fn load_initial_assets(world: &World) {
+        let to_load = ["wall","ground", "concealed", "single_edge", "single_edge_270"];
+        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
+        let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
+        let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
+        let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
+        let loader = world.read_resource::<Loader>();
+
+        for asset in to_load.iter() {
+            mesh_manager.get_asset_handle_or_load(asset, ObjFormat, Default::default(),&mut mesh_storage,  &loader);
+            texture_manager.get_asset_handle_or_load(asset, PngFormat, TextureMetadata::srgb(),&mut texture_storage,  &loader);
+        }
+
+
     }
 
     /// initialize the camera.
@@ -108,10 +125,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
 
-        let am = AssetManager::<Mesh>::default();
-        world.add_resource(am);
-        let am = AssetManager::<Texture>::default();
-        world.add_resource(am);
+        let mesh_manager = AssetManager::<Mesh>::default();
+        let texture_manager = AssetManager::<Texture>::default();
+        world.add_resource(mesh_manager);
+        world.add_resource(texture_manager);
+
+        Level::load_initial_assets(world);
 
         let tile_pattern_config = Level::load_tile_pattern_config();
         world.add_resource(tile_pattern_config);

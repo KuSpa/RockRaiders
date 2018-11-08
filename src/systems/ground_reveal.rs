@@ -58,7 +58,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                     match tile {
                         Tile::Ground { concealed: true } => {
                             heap.push((
-                                Duration::from_millis(500) + time.absolute_time(),
+                                Duration::from_millis(200) + time.absolute_time(),
                                 neighbor.clone(),
                             ));
 
@@ -73,7 +73,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                 neighbors.push(entity);
 
                 for neighbor in neighbors.drain(..) {
-                    // add conceiled to queue
+                    // add concealed to queue
                     let tile = tiles.get_mut(neighbor).unwrap().clone();
                     match tile {
                         Tile::Ground { concealed: true } => (),
