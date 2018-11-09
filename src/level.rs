@@ -67,6 +67,10 @@ impl Level {
             "concealed",
             "single_edge",
             "single_edge_270",
+            "double_wall",
+            "ending_wall",
+            "wall_single_edge_left",
+            "wall_single_edge_right"
         ];
         let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
