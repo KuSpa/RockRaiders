@@ -5,6 +5,7 @@ use amethyst::ecs::Entity;
 
 use entities::tile::LevelGrid;
 use entities::tile::Tile;
+use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
 use systems::TileUpdateQueue;
@@ -19,7 +20,7 @@ impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
         Read<'a, LevelGrid>,
-        Write<'a, BinaryHeap<(Duration, Entity)>>,
+        Write<'a, BinaryHeap<Reverse<(Duration, Entity)>>>,
         ReadStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
         Write<'a, TileUpdateQueue>,
@@ -29,7 +30,7 @@ impl<'a> System<'a> for GroundRevealSystem {
         &mut self,
         (time, grid, mut heap, transforms, mut tiles, mut tile_update_queue): Self::SystemData,
     ) {
-        if let Some((mut reveal_time, mut entity)) = heap.peek().cloned() {
+        if let Some(Reverse((mut reveal_time, mut entity))) = heap.peek().cloned() {
             while reveal_time <= time.absolute_time() {
                 //the entity is to be revealed, so we delete it, but we already got the values by peeking
                 heap.pop();
@@ -49,10 +50,10 @@ impl<'a> System<'a> for GroundRevealSystem {
                     let tile = tiles.get_mut(*neighbor).unwrap();
                     match tile {
                         Tile::Ground { concealed: true } => {
-                            heap.push((
+                            heap.push(Reverse((
                                 Duration::from_millis(200) + time.absolute_time(),
                                 neighbor.clone(),
-                            ));
+                            )));
 
                             let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
                             neighbors.remove(pos);
@@ -78,7 +79,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                     }
                 }
 
-                if let Some((new_reveal_time, new_entity)) = (heap.peek()).cloned() {
+                if let Some(Reverse((new_reveal_time, new_entity))) = (heap.peek()).cloned() {
                     reveal_time = new_reveal_time;
                     entity = new_entity;
                 } else {

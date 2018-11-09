@@ -9,6 +9,7 @@ use amethyst::renderer::{
     Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
     TextureMetadata, VirtualKeyCode,
 };
+use std::cmp::Reverse;
 
 use assetloading::asset_loader::AssetManager;
 use entities::tile::*;
@@ -174,8 +175,11 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
                 let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
                 let mut heap = data
                     .world
-                    .write_resource::<BinaryHeap<(Duration, Entity)>>();
-                heap.push((data.world.read_resource::<Time>().absolute_time(), entity));
+                    .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
+                heap.push(Reverse((
+                    data.world.read_resource::<Time>().absolute_time(),
+                    entity,
+                )));
                 return Trans::None;
             }
         }
