@@ -111,7 +111,11 @@ impl Grid {
                     };
                     key = util::rotate_3x3(&key);
                 }
-                panic!("Cannot determine sprite for: {:?} on position {:?}", util::rotate_3x3(&key), (x,y));
+                panic!(
+                    "Cannot determine sprite for: {:?} on position {:?}",
+                    util::rotate_3x3(&key),
+                    (x, y)
+                );
             }
         }
     }

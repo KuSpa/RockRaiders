@@ -61,14 +61,17 @@ impl Level {
     }
 
     fn load_initial_assets(world: &World) {
-
         let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
         let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-        for (_, asset) in world.read_resource::<Vec<([[Tile; 3]; 3], String)>>().clone().iter() {
+        for (_, asset) in world
+            .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
+            .clone()
+            .iter()
+        {
             warn!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,

@@ -51,7 +51,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                     match tile {
                         Tile::Ground { concealed: true } => {
                             heap.push(Reverse((
-                                Duration::from_millis(50) + time.absolute_time(),
+                                Duration::from_millis(200) + time.absolute_time(),
                                 neighbor.clone(),
                             )));
 
