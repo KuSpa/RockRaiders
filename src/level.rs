@@ -44,18 +44,18 @@ impl Level {
         level_grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid_config: Grid) {
-        let level_grid = LevelGrid::from_grid(grid_config, world);
+    fn initialize_level_grid(world: &mut World, grid: Grid) {
+        let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
         let max_y = level_grid.grid()[0].len();
 
         world.add_resource(level_grid);
 
+        let mut queue = world.write_resource::<TileUpdateQueue>();
         for x in 0..max_x {
             for y in 0..max_y {
                 // write every coordinate in the update list to update every tile's mesh ans material
-                let mut queue = world.write_resource::<TileUpdateQueue>();
-                queue.insert((x, y));
+                queue.push((x as i32, y as i32));
             }
         }
     }

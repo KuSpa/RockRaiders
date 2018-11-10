@@ -30,61 +30,51 @@ impl<'a> System<'a> for GroundRevealSystem {
         &mut self,
         (time, grid, mut heap, transforms, mut tiles, mut tile_update_queue): Self::SystemData,
     ) {
-        if let Some(Reverse((mut reveal_time, mut entity))) = heap.peek().cloned() {
-            while reveal_time <= time.absolute_time() {
-                //the entity is to be revealed, so we delete it, but we already got the values by peeking
-                heap.pop();
+        while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
+            let Reverse((_, entity)) = heap.pop().unwrap();
 
-                let tran = transforms.get(entity).unwrap().clone();
-                let x = tran.translation[0] as i32;
-                let y = -tran.translation[2] as i32;
+            let tran = transforms.get(entity).unwrap().clone();
+            let x = tran.translation[0] as i32;
+            let y = -tran.translation[2] as i32;
 
-                // reveal yourself
-                tiles.get_mut(entity).unwrap().reveal();
+            // reveal yourself
+            tiles.get_mut(entity).unwrap().reveal();
 
-                let mut neighbors = vec![];
-                neighbors.extend(grid.direct_neighbors(x, y));
+            let mut neighbors = vec![];
+            neighbors.extend(grid.direct_neighbors(x, y));
 
-                for neighbor in neighbors.clone().iter() {
-                    // add conceiled to queue
-                    let tile = tiles.get_mut(*neighbor).unwrap();
-                    match tile {
-                        Tile::Ground { concealed: true } => {
-                            heap.push(Reverse((
-                                Duration::from_millis(200) + time.absolute_time(),
-                                neighbor.clone(),
-                            )));
+            for neighbor in neighbors.clone().iter() {
+                // add conceiled to queue
+                let tile = tiles.get_mut(*neighbor).unwrap();
+                match tile {
+                    Tile::Ground { concealed: true } => {
+                        heap.push(Reverse((
+                            Duration::from_millis(200) + time.absolute_time(),
+                            *neighbor,
+                        )));
 
-                            let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
-                            neighbors.remove(pos);
-                        }
-                        _ => (),
+                        let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
+                        neighbors.remove(pos);
+                    }
+                    _ => (),
+                }
+            }
+
+            neighbors.extend(grid.diagonal_neighbors(x, y));
+            neighbors.push(entity);
+
+            for neighbor in neighbors.drain(..) {
+                // add concealed to queue
+                let tile = tiles.get_mut(neighbor).unwrap().clone();
+                match tile {
+                    Tile::Ground { concealed: true } => (),
+                    _ => {
+                        let transform = transforms.get(neighbor).unwrap().clone();
+                        let x = transform.translation[0] as i32;
+                        let y = -transform.translation[2] as i32;
+                        tile_update_queue.push((x, y));
                     }
                 }
-
-                neighbors.extend(grid.diagonal_neighbors(x, y));
-                neighbors.push(entity);
-
-                for neighbor in neighbors.drain(..) {
-                    // add concealed to queue
-                    let tile = tiles.get_mut(neighbor).unwrap().clone();
-                    match tile {
-                        Tile::Ground { concealed: true } => (),
-                        _ => {
-                            let transform = transforms.get(neighbor).unwrap().clone();
-                            let x = transform.translation[0] as usize;
-                            let y = -transform.translation[2] as usize;
-                            tile_update_queue.insert((x, y));
-                        }
-                    }
-                }
-
-                if let Some(Reverse((new_reveal_time, new_entity))) = (heap.peek()).cloned() {
-                    reveal_time = new_reveal_time;
-                    entity = new_entity;
-                } else {
-                    return;
-                };
             }
         }
     }

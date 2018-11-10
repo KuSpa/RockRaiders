@@ -89,8 +89,8 @@ impl Grid {
     /// breaks, if a concealed ground tile is directly next to a revealed ground tile... since this should never happen, we can ignore this case
     pub fn determine_sprite_for(
         &self,
-        x: usize,
-        y: usize,
+        x: i32,
+        y: i32,
         dictionary: &Vec<([[Tile; 3]; 3], String)>,
     ) -> (String, i32) {
         match self.get(x as i32, y as i32) {
@@ -100,14 +100,13 @@ impl Grid {
                 for delta_x in 0..3 {
                     for delta_y in 0..3 {
                         key[delta_x][delta_y] =
-                            self.get((x + delta_x) as i32 - 1, (y + delta_y) as i32 - 1);
+                            self.get(x + delta_x as i32- 1, y + delta_y as i32 - 1);
                     }
                 }
 
-                for rotation in 0..4 {
+                for rotation in 0..3 {
                     if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                        debug!("{:?} was found", result);
-                        return (result.clone(), 90 * (rotation + 1));
+                        return (result, 90 * (rotation + 1));
                     };
                     key = util::rotate_3x3(&key);
                 }
@@ -128,14 +127,14 @@ impl Grid {
             return Tile::default();
         }
 
-        *self.grid[x].get(y as usize).unwrap_or(&Tile::default())
+        *self.grid[x].get(y).unwrap_or(&Tile::default())
     }
 }
 
 impl Default for Grid {
     fn default() -> Grid {
         Grid {
-            grid: vec![Vec::new()],
+            grid: vec![vec![]],
         }
     }
 }
@@ -162,7 +161,7 @@ impl LevelGrid {
     }
 
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
-        let mut result = vec![];
+        let mut result = Vec::with_capacity(4);
 
         for (d_x, d_y) in [(0, 1), (0, -1), (1, 0), (-1, 0)].iter() {
             if let Some(entity) = self.get(x + d_x, y + d_y) {
@@ -173,7 +172,7 @@ impl LevelGrid {
     }
 
     pub fn diagonal_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
-        let mut result = vec![];
+        let mut result = Vec::with_capacity(4);
 
         for (d_x, d_y) in [(1, -1), (1, 1), (-1, 1), (-1, -1)].iter() {
             if let Some(entity) = self.get(x + d_x, y + d_y) {
@@ -187,19 +186,8 @@ impl LevelGrid {
         &self.grid
     }
 
-    pub fn determine_sprite_for<T: GenericReadStorage<Component = Tile>>(
-        &self,
-        x: usize,
-        y: usize,
-        dict: &Vec<([[Tile; 3]; 3], String)>,
-        tile_storage: &T,
-    ) -> (String, i32) {
-        let grid = self.generate_tile_grid_copy::<T>(tile_storage);
-        grid.determine_sprite_for(x, y, dict)
-    }
-
     // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(
+    pub fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(
         &self,
         tile_storage: &T,
     ) -> Grid {
