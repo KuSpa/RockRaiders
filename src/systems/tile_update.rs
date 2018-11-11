@@ -48,15 +48,14 @@ impl<'a> System<'a> for TileUpdateSystem {
             return;
         };
 
+        //TODO remove tilegrid completely implement get tile on levelgrid
         let tile_grid = level_grid.generate_tile_grid_copy(&tile_storage);
 
-        for (x, y) in tiles.clone().into_iter() {
+        for &(x, y) in tiles.iter() {
             // get sprite definition
-            let (wall_type, wall_rotation) =
-                tile_grid.determine_sprite_for(x, y, &dict);
+            let (wall_type, wall_rotation) = tile_grid.determine_sprite_for(x, y, &dict);
 
             let mut transform = Transform::default();
-            // maybe set 00 top left instead of bottom left?
             transform.set_position(Vector3 {
                 x: x as f32,
                 y: 0.0,
@@ -120,7 +119,6 @@ impl std::ops::DerefMut for TileUpdateQueue {
         &mut self.tiles
     }
 }
-
 
 impl Default for TileUpdateQueue {
     fn default() -> Self {

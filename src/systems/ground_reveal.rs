@@ -33,12 +33,14 @@ impl<'a> System<'a> for GroundRevealSystem {
         while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
             let Reverse((_, entity)) = heap.pop().unwrap();
 
+            // reveal yourself
+            if !tiles.get_mut(entity).unwrap().reveal() {
+                break;
+            };
+
             let tran = transforms.get(entity).unwrap().clone();
             let x = tran.translation[0] as i32;
             let y = -tran.translation[2] as i32;
-
-            // reveal yourself
-            tiles.get_mut(entity).unwrap().reveal();
 
             let mut neighbors = vec![];
             neighbors.extend(grid.direct_neighbors(x, y));

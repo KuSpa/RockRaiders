@@ -23,6 +23,8 @@
 //    }
 //}
 
+const CONCEALED: &str = "concealed";
+
 use amethyst::ecs::prelude::Entity;
 use amethyst::ecs::prelude::{Component, DenseVecStorage};
 use amethyst::ecs::storage::GenericReadStorage;
@@ -40,15 +42,22 @@ pub enum Tile {
 }
 
 impl Tile {
-    pub fn reveal(&mut self) {
+    pub fn reveal(&mut self) -> bool {
         match self {
-            Tile::Ground { concealed } => *concealed = false,
-            _ => error!("Error revealing a Tile that cannot be revealed"),
-        }
+            Tile::Ground { concealed } => {
+                if *concealed {
+                    *concealed = false;
+                    return true;
+                }
+            }
+            _ => (),
+        };
+        false
     }
 }
 
 // IMPORTANT - this is only implemented for the mesh selection, DO NOT USE IN OTHER CONTEXT
+// TODO implement pattern_eq in tile
 impl PartialEq for Tile {
     fn eq(&self, other: &Self) -> bool {
         match (other, self) {
@@ -86,33 +95,30 @@ impl Grid {
         self.grid.clone()
     }
 
-    /// breaks, if a concealed ground tile is directly next to a revealed ground tile... since this should never happen, we can ignore this case
-    pub fn determine_sprite_for(
+    pub fn determine_sprite_for<'a>(
         &self,
         x: i32,
         y: i32,
-        dictionary: &Vec<([[Tile; 3]; 3], String)>,
-    ) -> (String, i32) {
-        match self.get(x as i32, y as i32) {
-            Tile::Ground { concealed: true } => return ("concealed".to_string(), 0), // If the grond itself is concealed, it stays concealed.. no need for extra logic
-            _ => {
-                let mut key = [[Tile::default(); 3]; 3];
-                for delta_x in 0..3 {
-                    for delta_y in 0..3 {
-                        key[delta_x][delta_y] =
-                            self.get(x + delta_x as i32- 1, y + delta_y as i32 - 1);
-                    }
-                }
-
-                for rotation in 0..3 {
-                    if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                        return (result, 90 * (rotation + 1));
-                    };
-                    key = util::rotate_3x3(&key);
-                }
-                panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
+        dictionary: &'a Vec<([[Tile; 3]; 3], String)>,
+    ) -> (&'a str, i32) {
+        let tile = self.get(x as i32, y as i32);
+        if let Tile::Ground { concealed: true } = tile {
+            return (CONCEALED, 0);
+        };
+        let mut key = [[Tile::default(); 3]; 3];
+        for delta_x in 0..3 {
+            for delta_y in 0..3 {
+                key[delta_x][delta_y] = self.get(x + delta_x as i32 - 1, y + delta_y as i32 - 1);
             }
         }
+
+        for rotation in 0..3 {
+            if let Some(result) = util::find_in_vec(&key, &dictionary) {
+                return (result.as_str(), 90 * (rotation + 1));
+            };
+            key = util::rotate_3x3(&key);
+        }
+        panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
     fn get(&self, x: i32, y: i32) -> Tile {
@@ -130,12 +136,9 @@ impl Grid {
         *self.grid[x].get(y).unwrap_or(&Tile::default())
     }
 }
-
 impl Default for Grid {
     fn default() -> Grid {
-        Grid {
-            grid: vec![vec![]],
-        }
+        Grid { grid: vec![vec![]] }
     }
 }
 
@@ -205,18 +208,15 @@ impl LevelGrid {
     }
 
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
-        if x < 0 || y < 0 {
+        if x < 0 || y < 0 || x >= self.grid.len() as i32 {
             return None;
         }
 
-        let x = x as usize;
-        let y = y as usize;
-
-        if x >= self.grid.len() {
-            return None;
-        }
-
-        self.grid.get(x).unwrap().get(y).map(|entity| *entity)
+        self.grid
+            .get(x as usize)
+            .unwrap()
+            .get(y as usize)
+            .map(|entity| *entity)
     }
 }
 
