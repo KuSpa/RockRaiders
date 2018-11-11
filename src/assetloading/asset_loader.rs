@@ -5,14 +5,14 @@ use std::collections::HashMap;
 
 use amethyst::assets::*;
 use amethyst::ecs::*;
-use amethyst::renderer::{Mesh, Texture};
+use amethyst::renderer::{Mesh, ObjectFormat, PngFormat, Texture};
 
 pub trait AssetInformation {
     fn folder_name() -> String;
     fn extension() -> String;
 }
 
-impl AssetInformation for Mesh {
+impl AssetInformation for ObjectFormat {
     fn folder_name() -> String {
         "meshes/".to_string()
     }
@@ -21,7 +21,7 @@ impl AssetInformation for Mesh {
     }
 }
 
-impl AssetInformation for Texture {
+impl AssetInformation for PngFormat {
     fn folder_name() -> String {
         "textures/".to_string()
     }
@@ -36,7 +36,7 @@ pub struct AssetManager<T> {
 
 impl<T> Default for AssetManager<T>
 where
-    T: Asset + AssetInformation,
+    T: Asset,
 {
     fn default() -> Self {
         Self::new()
@@ -45,7 +45,7 @@ where
 
 impl<T> AssetManager<T>
 where
-    T: Asset + AssetInformation,
+    T: Asset,
 {
     pub fn new() -> Self {
         AssetManager {
@@ -60,7 +60,7 @@ where
     pub fn get_asset_handle_or_load<'a, F>(
         &mut self,
         path: &str,
-        format: F,
+        format: F + AssetInformation,
         options: F::Options,
         storage: &'a mut AssetStorage<T>,
         loader: &Loader,
@@ -73,7 +73,7 @@ where
         }
 
         let handle: Handle<T> = loader.load(
-            format!("{}{}{}", T::folder_name(), path, T::extension()),
+            format!("{}{}{}", format::folder_name(), path, format::extension()),
             format,
             options,
             (),
