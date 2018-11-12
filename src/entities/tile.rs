@@ -31,7 +31,6 @@ use amethyst::ecs::storage::GenericReadStorage;
 use amethyst::prelude::*;
 use util;
 
-//TODO impl From<Entity> Trait - less code in LevelGrid
 #[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall { breaks: bool, ore: u8 },
@@ -223,7 +222,7 @@ impl LevelGrid {
 impl Default for LevelGrid {
     fn default() -> LevelGrid {
         LevelGrid {
-            grid: vec![Vec::new()],
+            grid: vec![vec![]],
         }
     }
 }

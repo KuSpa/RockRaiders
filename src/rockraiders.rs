@@ -12,7 +12,6 @@ pub struct RockRaiders;
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
-        //initialize_cursor(world);
 
         initialize_camera(world);
     }
@@ -54,13 +53,4 @@ fn initialize_camera(world: &mut World) {
         .with(mat)
         .with(GlobalTransform::default())
         .build();
-}
-
-fn initialize_cursor(world: &mut World) {
-    use amethyst::renderer::mouse::grab_cursor;
-
-    //TODO - custom cursor icon xD
-
-    let mut msg = world.write_resource::<WindowMessages>();
-    grab_cursor(&mut msg);
 }

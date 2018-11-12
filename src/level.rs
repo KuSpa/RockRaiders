@@ -138,7 +138,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
 
         world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
 
-        //TODO refactor AssetLoader if this gets out of hand
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
 
