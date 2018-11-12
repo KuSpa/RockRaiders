@@ -34,17 +34,17 @@ impl Level {
         result
     }
 
-    fn load_grid() -> Grid {
-        let level_grid = Grid::load(Path::new(&format!(
+    fn load_grid() -> Vec<Vec<Tile>> {
+        let grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
 
         debug!("Loaded Grid successfully");
-        level_grid
+        grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid: Grid) {
+    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
         let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
         let max_y = level_grid.grid()[0].len();
@@ -153,8 +153,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
 
         let cam = Level::initialize_camera(world);
         Level::initialize_light(world, cam);
-        let grid_config = Level::load_grid();
-        Level::initialize_level_grid(world, grid_config);
+        let grid_definition = Level::load_grid();
+        Level::initialize_level_grid(world, grid_definition);
     }
 
     fn handle_event(

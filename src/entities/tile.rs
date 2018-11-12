@@ -84,71 +84,12 @@ impl Component for Tile {
     type Storage = DenseVecStorage<Tile>;
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct Grid {
-    grid: Vec<Vec<Tile>>,
-}
-
-impl Grid {
-    pub fn clone_grid(&self) -> Vec<Vec<Tile>> {
-        self.grid.clone()
-    }
-
-    pub fn determine_sprite_for<'a>(
-        &self,
-        x: i32,
-        y: i32,
-        dictionary: &'a Vec<([[Tile; 3]; 3], String)>,
-    ) -> (&'a str, i32) {
-        let tile = self.get(x as i32, y as i32);
-        if let Tile::Ground { concealed: true } = tile {
-            return (CONCEALED, 0);
-        };
-        let mut key = [[Tile::default(); 3]; 3];
-        for delta_x in 0..3 {
-            for delta_y in 0..3 {
-                key[delta_x][delta_y] = self.get(x + delta_x as i32 - 1, y + delta_y as i32 - 1);
-            }
-        }
-
-        for rotation in 0..3 {
-            if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                return (result.as_str(), 90 * (rotation + 1));
-            };
-            key = util::rotate_3x3(&key);
-        }
-        panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
-    }
-
-    fn get(&self, x: i32, y: i32) -> Tile {
-        if x < 0 || y < 0 {
-            return Tile::default();
-        }
-
-        let x = x as usize;
-        let y = y as usize;
-
-        if x >= self.grid.len() {
-            return Tile::default();
-        }
-
-        *self.grid[x].get(y).unwrap_or(&Tile::default())
-    }
-}
-impl Default for Grid {
-    fn default() -> Grid {
-        Grid { grid: vec![vec![]] }
-    }
-}
-
 pub struct LevelGrid {
     grid: Vec<Vec<Entity>>,
 }
 
 impl LevelGrid {
-    pub fn from_grid(grid: Grid, world: &mut World) -> LevelGrid {
-        let mut tile_grid = grid.clone_grid();
-
+    pub fn from_grid(mut tile_grid: Vec<Vec<Tile>>, world: &mut World) -> LevelGrid {
         let level_grid: Vec<Vec<Entity>> = tile_grid
             .iter_mut()
             .map(|tile_vec| {
@@ -188,22 +129,49 @@ impl LevelGrid {
         &self.grid
     }
 
-    // we cannot store and use the Grid we deserialized, because it may have changed and we don't want to have two representations of the the same Grid
-    pub fn generate_tile_grid_copy<T: GenericReadStorage<Component = Tile>>(
+    pub fn determine_sprite_for<'a, T: GenericReadStorage<Component = Tile>>(
         &self,
-        tile_storage: &T,
-    ) -> Grid {
-        let mut grid = self.grid.clone();
-        Grid {
-            grid: grid
-                .iter_mut()
-                .map(|vec| {
-                    vec.iter_mut()
-                        .map(|entity| (*tile_storage.get(*entity).unwrap()).clone())
-                        .collect()
-                })
-                .collect(),
+        x: i32,
+        y: i32,
+        dictionary: &'a Vec<([[Tile; 3]; 3], String)>,
+        storage: &T,
+    ) -> (&'a str, i32) {
+        let tile = self.get_tile(x as i32, y as i32, storage).unwrap();
+        if let Tile::Ground { concealed: true } = tile {
+            return (CONCEALED, 0);
+        };
+        let mut key = [[Tile::default(); 3]; 3];
+        for delta_x in 0..3 {
+            for delta_y in 0..3 {
+                if let Some(t) =
+                    self.get_tile(x + delta_x as i32 - 1, y + delta_y as i32 - 1, storage)
+                {
+                    key[delta_x][delta_y] = *t;
+                    // if we get a None (aka out of bounds) we want a Tile::Default at this position.
+                    // nothing to do here because of the initialize with Tile::Defaults...
+                }
+            }
         }
+
+        for rotation in 0..3 {
+            if let Some(result) = util::find_in_vec(&key, &dictionary) {
+                return (result.as_str(), 90 * (rotation + 1));
+            };
+            key = util::rotate_3x3(&key);
+        }
+        panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
+    }
+
+    pub fn get_tile<'a, T: GenericReadStorage<Component = Tile>>(
+        &self,
+        x: i32,
+        y: i32,
+        storage: &'a T,
+    ) -> Option<&'a Tile> {
+        if let Some(entity) = self.get(x, y) {
+            return storage.get(entity);
+        };
+        None
     }
 
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
@@ -221,8 +189,6 @@ impl LevelGrid {
 
 impl Default for LevelGrid {
     fn default() -> LevelGrid {
-        LevelGrid {
-            grid: vec![vec![]],
-        }
+        LevelGrid { grid: vec![vec![]] }
     }
 }

@@ -44,16 +44,10 @@ impl<'a> System<'a> for TileUpdateSystem {
             (mut tex_manager, mut mat_storage, mut tex_storage, mat_defaults),
         ): Self::SystemData,
     ) {
-        if tiles.is_empty() {
-            return;
-        };
-
-        //TODO remove tilegrid completely implement get tile on levelgrid
-        let tile_grid = level_grid.generate_tile_grid_copy(&tile_storage);
-
         for &(x, y) in tiles.iter() {
             // get sprite definition
-            let (wall_type, wall_rotation) = tile_grid.determine_sprite_for(x, y, &dict);
+            let (wall_type, wall_rotation) =
+                level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
 
             let mut transform = Transform::default();
             transform.set_position(Vector3 {

@@ -2,7 +2,7 @@ use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{Camera, Projection, VirtualKeyCode, WindowMessages};
+use amethyst::renderer::{Camera, Projection, VirtualKeyCode};
 use game_data::CustomGameData;
 
 use level::Level;
