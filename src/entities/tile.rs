@@ -31,7 +31,7 @@ use amethyst::ecs::storage::GenericReadStorage;
 use amethyst::prelude::*;
 use util;
 
-#[derive(Clone, Copy, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, Serialize, Deserialize)]
 pub enum Tile {
     Wall { breaks: bool, ore: u8 },
     Ground { concealed: bool },
@@ -53,12 +53,8 @@ impl Tile {
         };
         false
     }
-}
 
-// IMPORTANT - this is only implemented for the mesh selection, DO NOT USE IN OTHER CONTEXT
-// TODO implement pattern_eq in tile
-impl PartialEq for Tile {
-    fn eq(&self, other: &Self) -> bool {
+    pub fn pattern_eq(&self, other: &Self) -> bool {
         match (other, self) {
             (Tile::Wall { .. }, Tile::Wall { .. }) => true, // a Wall is a Wall
             (Tile::Ground { concealed: false }, Tile::Ground { concealed: false }) => true, // Ground is Ground, when it was revealed
@@ -152,11 +148,22 @@ impl LevelGrid {
                 }
             }
         }
-
         for rotation in 0..3 {
-            if let Some(result) = util::find_in_vec(&key, &dictionary) {
-                return (result.as_str(), 90 * (rotation + 1));
-            };
+            for (dict_key, value) in dictionary {
+                let mut pattern_match = true;
+                let dict_key = dict_key.iter().flatten();
+                let key = key.iter().flatten();
+
+                for (dict_tile, key_tile) in dict_key.zip(key) {
+                    if !dict_tile.pattern_eq(key_tile) {
+                        pattern_match = false;
+                        break;
+                    }
+                }
+                if pattern_match {
+                    return (value.as_str(), 90 * (rotation + 1));
+                }
+            }
             key = util::rotate_3x3(&key);
         }
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
