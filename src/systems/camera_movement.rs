@@ -20,8 +20,6 @@ impl<'a> System<'a> for CameraMovementSystem {
 
     fn run(&mut self, (time, mut transforms, input, cams, screen_size): Self::SystemData) {
         let (mut x, mut z) = (0.0, 0.0);
-        //TODO = 20 as magic number in .ron spec file?
-        //       Offset to borders as speed? for a smoother feeling?
 
         if let Some((mouse_x, mouse_y)) = input.mouse_position() {
             //X value of the mouse

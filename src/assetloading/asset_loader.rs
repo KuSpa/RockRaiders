@@ -5,28 +5,28 @@ use std::collections::HashMap;
 
 use amethyst::assets::*;
 use amethyst::ecs::*;
-use amethyst::renderer::{Mesh, Texture};
+use amethyst::renderer::{ObjFormat, PngFormat};
 
 pub trait AssetInformation {
-    fn folder_name() -> String;
-    fn extension() -> String;
+    fn folder_name(&self) -> &'static str;
+    fn extension(&self) -> &'static str;
 }
 
-impl AssetInformation for Mesh {
-    fn folder_name() -> String {
-        "meshes/".to_string()
+impl AssetInformation for ObjFormat {
+    fn folder_name(&self) -> &'static str {
+        "meshes/"
     }
-    fn extension() -> String {
-        ".obj".to_string()
+    fn extension(&self) -> &'static str {
+        ".obj"
     }
 }
 
-impl AssetInformation for Texture {
-    fn folder_name() -> String {
-        "textures/".to_string()
+impl AssetInformation for PngFormat {
+    fn folder_name(&self) -> &'static str {
+        "textures/"
     }
-    fn extension() -> String {
-        ".png".to_string()
+    fn extension(&self) -> &'static str {
+        ".png"
     }
 }
 
@@ -36,7 +36,7 @@ pub struct AssetManager<T> {
 
 impl<T> Default for AssetManager<T>
 where
-    T: Asset + AssetInformation,
+    T: Asset,
 {
     fn default() -> Self {
         Self::new()
@@ -45,7 +45,7 @@ where
 
 impl<T> AssetManager<T>
 where
-    T: Asset + AssetInformation,
+    T: Asset,
 {
     pub fn new() -> Self {
         AssetManager {
@@ -66,14 +66,14 @@ where
         loader: &Loader,
     ) -> Handle<T>
     where
-        F: Format<T> + 'static,
+        F: Format<T> + AssetInformation + 'static,
     {
         if let Some(h) = self.get_asset_handle(path) {
             return h;
         }
 
         let handle: Handle<T> = loader.load(
-            format!("{}{}{}", T::folder_name(), path, T::extension()),
+            format!("{}{}{}", format.folder_name(), path, format.extension()),
             format,
             options,
             (),

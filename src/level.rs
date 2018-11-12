@@ -34,28 +34,28 @@ impl Level {
         result
     }
 
-    fn load_grid() -> Grid {
-        let level_grid = Grid::load(Path::new(&format!(
+    fn load_grid() -> Vec<Vec<Tile>> {
+        let grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
 
         debug!("Loaded Grid successfully");
-        level_grid
+        grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid_config: Grid) {
-        let level_grid = LevelGrid::from_grid(grid_config, world);
+    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
+        let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
         let max_y = level_grid.grid()[0].len();
 
         world.add_resource(level_grid);
 
+        let mut queue = world.write_resource::<TileUpdateQueue>();
         for x in 0..max_x {
             for y in 0..max_y {
                 // write every coordinate in the update list to update every tile's mesh ans material
-                let mut queue = world.write_resource::<TileUpdateQueue>();
-                queue.insert((x, y));
+                queue.push((x as i32, y as i32));
             }
         }
     }
@@ -136,7 +136,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
 
         world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
 
-        //TODO refactor AssetLoader if this gets out of hand
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
 
@@ -152,8 +151,8 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
 
         let cam = Level::initialize_camera(world);
         Level::initialize_light(world, cam);
-        let grid_config = Level::load_grid();
-        Level::initialize_level_grid(world, grid_config);
+        let grid_definition = Level::load_grid();
+        Level::initialize_level_grid(world, grid_definition);
     }
 
     fn handle_event(

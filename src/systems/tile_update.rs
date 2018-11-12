@@ -7,7 +7,6 @@ use amethyst::renderer::{
 };
 use assetloading::asset_loader::AssetManager;
 use entities::tile::{LevelGrid, Tile};
-use std::vec::IntoIter;
 
 pub struct TileUpdateSystem;
 
@@ -45,20 +44,12 @@ impl<'a> System<'a> for TileUpdateSystem {
             (mut tex_manager, mut mat_storage, mut tex_storage, mat_defaults),
         ): Self::SystemData,
     ) {
-        if tiles.is_empty() {
-            return;
-        };
-
-        // TODO setup stuff
-        // TODO create a grid here and pass it... unnescessary to create it multiple times in one tick
-
-        for (x, y) in tiles.clone().into_iter() {
-            // get sprite defintion
+        for &(x, y) in tiles.iter() {
+            // get sprite definition
             let (wall_type, wall_rotation) =
                 level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
 
             let mut transform = Transform::default();
-            // maybe set 00 top left instead of bottom left?
             transform.set_position(Vector3 {
                 x: x as f32,
                 y: 0.0,
@@ -106,38 +97,27 @@ impl<'a> System<'a> for TileUpdateSystem {
 ///
 /// Wrapper for a Vec of Tiles that needs to be updated
 ///
-#[derive(Clone)]
 pub struct TileUpdateQueue {
-    tiles: Vec<(usize, usize)>,
+    tiles: Vec<(i32, i32)>,
 }
 
-impl TileUpdateQueue {
-    pub fn is_empty(&self) -> bool {
-        self.tiles.is_empty()
+impl std::ops::Deref for TileUpdateQueue {
+    type Target = Vec<(i32, i32)>;
+    fn deref(&self) -> &Self::Target {
+        &self.tiles
     }
+}
 
-    pub fn insert(&mut self, item: (usize, usize)) {
-        self.tiles.push(item);
-    }
-
-    pub fn clear(&mut self) {
-        self.tiles.clear()
+impl std::ops::DerefMut for TileUpdateQueue {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.tiles
     }
 }
 
 impl Default for TileUpdateQueue {
     fn default() -> Self {
         TileUpdateQueue {
-            tiles: Vec::<(usize, usize)>::new(),
+            tiles: Vec::<(i32, i32)>::new(),
         }
-    }
-}
-
-impl IntoIterator for TileUpdateQueue {
-    type Item = (usize, usize);
-    type IntoIter = IntoIter<(usize, usize)>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.tiles.into_iter()
     }
 }
