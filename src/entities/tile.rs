@@ -175,10 +175,8 @@ impl LevelGrid {
         y: i32,
         storage: &'a T,
     ) -> Option<&'a Tile> {
-        if let Some(entity) = self.get(x, y) {
-            return storage.get(entity);
-        };
-        None
+
+        self.get(x, y).map(|entity|storage.get(entity).unwrap())
     }
 
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {
