@@ -69,7 +69,6 @@ impl Level {
 
         for (_, asset) in world
             .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
-            .clone()
             .iter()
         {
             warn!("loading asset: {}", asset);
