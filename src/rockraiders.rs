@@ -2,7 +2,7 @@ use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{Camera, Projection, VirtualKeyCode, WindowMessages};
+use amethyst::renderer::{Camera, Projection, VirtualKeyCode};
 use game_data::CustomGameData;
 
 use level::Level;
@@ -12,7 +12,6 @@ pub struct RockRaiders;
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         let world = data.world;
-        //initialize_cursor(world);
 
         initialize_camera(world);
     }
@@ -54,13 +53,4 @@ fn initialize_camera(world: &mut World) {
         .with(mat)
         .with(GlobalTransform::default())
         .build();
-}
-
-fn initialize_cursor(world: &mut World) {
-    use amethyst::renderer::mouse::grab_cursor;
-
-    //TODO - custom cursor icon xD
-
-    let mut msg = world.write_resource::<WindowMessages>();
-    grab_cursor(&mut msg);
 }

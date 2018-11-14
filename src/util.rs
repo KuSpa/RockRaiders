@@ -9,11 +9,3 @@ pub fn rotate_3x3<T: Clone>(input: &[[T; 3]; 3]) -> [[T; 3]; 3] {
     }
     result
 }
-pub fn find_in_vec<K: Eq, R: Clone>(key: &K, dict: &Vec<(K, R)>) -> Option<R> {
-    for pair in dict {
-        if pair.0 == *key {
-            return Some(pair.1.clone());
-        }
-    }
-    None
-}

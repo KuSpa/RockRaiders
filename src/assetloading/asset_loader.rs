@@ -5,6 +5,30 @@ use std::collections::HashMap;
 
 use amethyst::assets::*;
 use amethyst::ecs::*;
+use amethyst::renderer::{ObjFormat, PngFormat};
+
+pub trait AssetInformation {
+    fn folder_name(&self) -> &'static str;
+    fn extension(&self) -> &'static str;
+}
+
+impl AssetInformation for ObjFormat {
+    fn folder_name(&self) -> &'static str {
+        "meshes/"
+    }
+    fn extension(&self) -> &'static str {
+        ".obj"
+    }
+}
+
+impl AssetInformation for PngFormat {
+    fn folder_name(&self) -> &'static str {
+        "textures/"
+    }
+    fn extension(&self) -> &'static str {
+        ".png"
+    }
+}
 
 pub struct AssetManager<T> {
     pub assets: HashMap<String, Handle<T>>,
@@ -42,12 +66,19 @@ where
         loader: &Loader,
     ) -> Handle<T>
     where
-        F: Format<T> + 'static,
+        F: Format<T> + AssetInformation + 'static,
     {
         if let Some(h) = self.get_asset_handle(path) {
             return h;
         }
-        let handle: Handle<T> = loader.load(path, format, options, (), storage);
+
+        let handle: Handle<T> = loader.load(
+            format!("{}{}{}", format.folder_name(), path, format.extension()),
+            format,
+            options,
+            (),
+            storage,
+        );
         self.assets.insert(String::from(path), handle.clone());
         handle
     }

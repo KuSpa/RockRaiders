@@ -1,17 +1,16 @@
-Grid(
-grid: [
+ [
     [
-        Ground,
-        Ground,
-        Wall(breaks:false, ore:0),
+       Ground(concealed:true),
+       Ground(concealed:true),
+       Ground(concealed:true),
     ],[
-        Ground,
+        Ground(concealed:true),
         Wall(breaks:false, ore:0),
+        Ground(concealed:true),
+    ],[
+        Ground(concealed:true),
         Wall(breaks:false, ore:0),
+        Ground(concealed:true),
 
-    ],[
-        Ground,
-        Wall(breaks:false, ore:0),
-        Wall(breaks:false, ore:0),
     ]
-])
+]
