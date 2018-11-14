@@ -148,7 +148,7 @@ impl LevelGrid {
                 }
             }
         }
-        for rotation in 0..3 {
+        for rotation in 0..4 {
             for (dict_key, value) in dictionary {
                 let mut pattern_match = true;
                 let dict_key = dict_key.iter().flatten();
