@@ -61,20 +61,17 @@ impl Level {
     }
 
     fn load_initial_assets(world: &World) {
-        let to_load = [
-            "wall",
-            "ground",
-            "concealed",
-            "single_edge",
-            "single_edge_270",
-        ];
         let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
         let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-        for asset in to_load.iter() {
+        for (_, asset) in world
+            .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
+            .iter()
+        {
+            warn!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,
                 ObjFormat,
@@ -146,10 +143,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.add_resource(mesh_manager);
         world.add_resource(texture_manager);
 
-        Level::load_initial_assets(world);
-
         let tile_pattern_config = Level::load_tile_pattern_config();
         world.add_resource(tile_pattern_config);
+
+        Level::load_initial_assets(world);
 
         let cam = Level::initialize_camera(world);
         Level::initialize_light(world, cam);
