@@ -161,7 +161,7 @@ impl LevelGrid {
                     }
                 }
                 if pattern_match {
-                    return (value.as_str(), 90 * (rotation + 1));
+                    return (value.as_str(), 90 * rotation);
                 }
             }
             key = util::rotate_3x3(&key);
