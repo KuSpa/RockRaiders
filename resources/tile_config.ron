@@ -113,7 +113,7 @@
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Ground(concealed:false)),
             (Wall(breaks:false, ore:0),Wall(breaks:false, ore:0),Any),
         ), 
-    "single_edge_270",
+        "single_edge_270",
     ),
 
     (
