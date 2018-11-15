@@ -161,7 +161,7 @@ impl LevelGrid {
                     }
                 }
                 if pattern_match {
-                    return (value.as_str(), 90 * (rotation + 1));
+                    return (value.as_str(), 90 * rotation);
                 }
             }
             key = util::rotate_3x3(&key);
@@ -175,8 +175,7 @@ impl LevelGrid {
         y: i32,
         storage: &'a T,
     ) -> Option<&'a Tile> {
-
-        self.get(x, y).map(|entity|storage.get(entity).unwrap())
+        self.get(x, y).map(|entity| storage.get(entity).unwrap())
     }
 
     pub fn get(&self, x: i32, y: i32) -> Option<Entity> {

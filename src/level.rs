@@ -96,7 +96,7 @@ impl Level {
             storage.clear();
         }
         let mut mat = Transform::default();
-        mat.move_global(Vector3::new(-2., 6.0, 2.0));
+        mat.move_global(Vector3::new(-2., 6.0, 4.0));
         mat.yaw_global(Deg(-45.0));
         mat.pitch_local(Deg(-45.0));
 

@@ -53,9 +53,9 @@ impl<'a> System<'a> for TileUpdateSystem {
             transform.set_position(Vector3 {
                 x: x as f32,
                 y: 0.0,
-                z: -(y as f32),
+                z: y as f32,
             });
-            transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(wall_rotation as f32));
+            transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-wall_rotation as f32));
 
             // load mesh
             let mesh = {

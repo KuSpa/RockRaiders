@@ -40,13 +40,13 @@ impl<'a> System<'a> for GroundRevealSystem {
 
             let tran = transforms.get(entity).unwrap().clone();
             let x = tran.translation[0] as i32;
-            let y = -tran.translation[2] as i32;
+            let y = tran.translation[2] as i32;
 
             let mut neighbors = vec![];
             neighbors.extend(grid.direct_neighbors(x, y));
 
             for neighbor in neighbors.clone().iter() {
-                // add conceiled to queue
+                // add concealed to queue
                 let tile = tiles.get_mut(*neighbor).unwrap();
                 match tile {
                     Tile::Ground { concealed: true } => {
@@ -73,7 +73,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                     _ => {
                         let transform = transforms.get(neighbor).unwrap().clone();
                         let x = transform.translation[0] as i32;
-                        let y = -transform.translation[2] as i32;
+                        let y = transform.translation[2] as i32;
                         tile_update_queue.push((x, y));
                     }
                 }
