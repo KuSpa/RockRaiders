@@ -1,7 +1,9 @@
 use amethyst::assets::{AssetStorage, Loader};
+
 use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
+
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
@@ -9,10 +11,11 @@ use amethyst::renderer::{
     Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
     TextureMetadata, VirtualKeyCode,
 };
+
 use std::cmp::Reverse;
 
 use assetloading::asset_loader::AssetManager;
-use entities::tile::*;
+use entities::grid::{LevelGrid, Tile};
 use game_data::CustomGameData;
 use std::time::Duration;
 use systems::TileUpdateQueue;

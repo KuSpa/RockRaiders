@@ -1,32 +1,6 @@
-//#############################
-//# The Dream - use an enum   #
-//#############################
-
-// https://users.rust-lang.org/t/could-enums-be-considered-an-anti-pattern/10068
-// https://internals.rust-lang.org/t/impl-trait-for-enum-variant/4131
-
-//pub enum Tile {
-//    Ground,
-//    Wall,
-//}
-//
-//trait Tiled {
-//    type T;
-//    fn new() -> Self::T;
-//}
-//
-//impl Tiled for Tile::Ground {
-//    type T = Tile::Ground;
-//
-//    fn new() -> Tile::Ground {
-//        Tile::Ground {}
-//    }
-//}
-
 const CONCEALED: &str = "concealed";
 
-use amethyst::ecs::prelude::Entity;
-use amethyst::ecs::prelude::{Component, DenseVecStorage};
+use amethyst::ecs::prelude::{Component, DenseVecStorage, Entity};
 use amethyst::ecs::storage::GenericReadStorage;
 use amethyst::prelude::*;
 use util;
@@ -148,6 +122,7 @@ impl LevelGrid {
                 }
             }
         }
+
         for rotation in 0..4 {
             for (dict_key, value) in dictionary {
                 let mut pattern_match = true;

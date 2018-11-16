@@ -1,10 +1,11 @@
 use amethyst::core::specs::prelude::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::input::InputHandler;
 
 use amethyst::core::cgmath::prelude::Zero;
 use amethyst::core::cgmath::{Vector3, Vector4};
+
+use amethyst::input::InputHandler;
 use amethyst::renderer::{Camera, ScreenDimensions};
 
 pub struct CameraMovementSystem;

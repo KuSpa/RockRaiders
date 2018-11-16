@@ -2,6 +2,7 @@ use amethyst::core::{ArcThreadPool, SystemBundle};
 use amethyst::ecs::prelude::{Dispatcher, DispatcherBuilder, System, World};
 use amethyst::renderer::pipe::pass::Pass;
 use amethyst::{DataInit, Error, Result};
+
 use std::path::Path;
 
 pub struct CustomGameData<'a, 'b> {

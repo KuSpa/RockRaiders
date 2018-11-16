@@ -3,12 +3,14 @@ use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::Entity;
 
-use entities::tile::LevelGrid;
-use entities::tile::Tile;
+use entities::grid::LevelGrid;
+use entities::grid::Tile;
+
+use systems::TileUpdateQueue;
+
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
-use systems::TileUpdateQueue;
 
 ///
 /// This system handles the recursive process of revealing tiles
