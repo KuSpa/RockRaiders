@@ -2,13 +2,10 @@ use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::specs::prelude::{Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use amethyst::core::transform::Transform;
-use amethyst::renderer::{
-    Material, MaterialDefaults, Mesh, MeshHandle,  Texture,
-};
+use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 use assetloading::asset_loader::AssetManager;
 use entities::Tile;
 use level::LevelGrid;
-use systems::UpdateQueue;
 
 pub struct TileUpdateSystem;
 
@@ -49,7 +46,6 @@ impl<'a> System<'a> for TileUpdateSystem {
         ): Self::SystemData,
     ) {
         for (x, y) in tiles.drain(..) {
-
             // get sprite definition
             let (wall_type, wall_rotation) =
                 level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
@@ -62,12 +58,9 @@ impl<'a> System<'a> for TileUpdateSystem {
             });
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-wall_rotation as f32));
 
-
             let entity = level_grid.get(x as i32, y as i32).unwrap();
             //update_queue.push((entity, wall_type));
             transform_storage.insert(entity, transform).unwrap();
-
-
         }
     }
 }

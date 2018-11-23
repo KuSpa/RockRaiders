@@ -12,13 +12,12 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use std::cmp::Reverse;
-
 use assetloading::asset_loader::AssetManager;
 use entities::buildings::Base;
 use entities::Tile;
 use game_data::CustomGameData;
 use level::LevelGrid;
+use std::cmp::Reverse;
 use std::time::Duration;
 use systems::TileUpdateQueue;
 
