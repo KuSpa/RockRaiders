@@ -3,17 +3,19 @@ use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::specs::prelude::{Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use amethyst::core::transform::Transform;
 use amethyst::renderer::{
-    Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
+    Material, MaterialDefaults, Mesh, MeshHandle,  Texture,
 };
 use assetloading::asset_loader::AssetManager;
 use entities::Tile;
 use level::LevelGrid;
+use systems::UpdateQueue;
 
 pub struct TileUpdateSystem;
 
 impl<'a> System<'a> for TileUpdateSystem {
     type SystemData = (
         Write<'a, TileUpdateQueue>,
+        //Write<'a, UpdateQueue<'a>>,
         Read<'a, Vec<([[Tile; 3]; 3], String)>>,
         Read<'a, LevelGrid>,
         ReadStorage<'a, Tile>,
@@ -36,6 +38,7 @@ impl<'a> System<'a> for TileUpdateSystem {
         &mut self,
         (
             mut tiles,
+            //mut update_queue,
             dict,
             level_grid,
             tile_storage,
@@ -45,7 +48,8 @@ impl<'a> System<'a> for TileUpdateSystem {
             (mut tex_manager, mut mat_storage, mut tex_storage, mat_defaults),
         ): Self::SystemData,
     ) {
-        for &(x, y) in tiles.iter() {
+        for (x, y) in tiles.drain(..) {
+
             // get sprite definition
             let (wall_type, wall_rotation) =
                 level_grid.determine_sprite_for(x, y, &dict, &tile_storage);
@@ -58,40 +62,13 @@ impl<'a> System<'a> for TileUpdateSystem {
             });
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-wall_rotation as f32));
 
-            // load mesh
-            let mesh = {
-                mesh_manager.get_asset_handle_or_load(
-                    &wall_type,
-                    ObjFormat,
-                    Default::default(),
-                    &mut mesh_storage,
-                    &amethyst_loader,
-                )
-            };
-
-            // load texture/material
-            let material = {
-                let handle = tex_manager.get_asset_handle_or_load(
-                    &wall_type,
-                    PngFormat,
-                    TextureMetadata::srgb(),
-                    &mut tex_storage,
-                    &amethyst_loader,
-                );
-                Material {
-                    albedo: handle,
-                    ..mat_defaults.0.clone()
-                }
-            };
 
             let entity = level_grid.get(x as i32, y as i32).unwrap();
+            //update_queue.push((entity, wall_type));
             transform_storage.insert(entity, transform).unwrap();
-            mat_storage.insert(entity, material).unwrap();
-            mesh_handles.insert(entity, mesh).unwrap();
-        }
 
-        // all tiles have been updated, we can remove the requests from the list
-        tiles.clear()
+
+        }
     }
 }
 
