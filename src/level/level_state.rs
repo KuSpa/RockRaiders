@@ -15,8 +15,10 @@ use amethyst::renderer::{
 use std::cmp::Reverse;
 
 use assetloading::asset_loader::AssetManager;
-use entities::grid::{LevelGrid, Tile};
+use entities::buildings::Base;
+use entities::Tile;
 use game_data::CustomGameData;
+use level::LevelGrid;
 use std::time::Duration;
 use systems::TileUpdateQueue;
 
@@ -24,9 +26,9 @@ use std::collections::BinaryHeap;
 
 use std::path::Path;
 
-pub struct Level;
+pub struct LevelState;
 
-impl Level {
+impl LevelState {
     fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
         let result = Vec::<([[Tile; 3]; 3], String)>::load(Path::new(&format!(
             "{}/resources/tile_config.ron",
@@ -128,13 +130,14 @@ impl Level {
     }
 }
 
-impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
+impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
         debug!("Entering Level state");
 
         let world = data.world;
         world.register::<Tile>();
         world.register::<Light>();
+        world.register::<Base>();
 
         world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
 
@@ -146,15 +149,15 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
         world.add_resource(mesh_manager);
         world.add_resource(texture_manager);
 
-        let tile_pattern_config = Level::load_tile_pattern_config();
+        let tile_pattern_config = LevelState::load_tile_pattern_config();
         world.add_resource(tile_pattern_config);
 
-        Level::load_initial_assets(world);
+        LevelState::load_initial_assets(world);
 
-        let cam = Level::initialize_camera(world);
-        Level::initialize_light(world, cam);
-        let grid_definition = Level::load_grid();
-        Level::initialize_level_grid(world, grid_definition);
+        let cam = LevelState::initialize_camera(world);
+        LevelState::initialize_light(world, cam);
+        let grid_definition = LevelState::load_grid();
+        LevelState::initialize_level_grid(world, grid_definition);
     }
 
     fn handle_event(
@@ -172,13 +175,16 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for Level {
             } else if is_key_down(&event, VirtualKeyCode::Space) {
                 debug!("Start revealing");
                 let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
-                let mut heap = data
-                    .world
-                    .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
-                heap.push(Reverse((
-                    data.world.read_resource::<Time>().absolute_time(),
-                    entity,
-                )));
+                {
+                    let mut heap = data
+                        .world
+                        .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
+                    heap.push(Reverse((
+                        data.world.read_resource::<Time>().absolute_time(),
+                        entity,
+                    )));
+                }
+                Base::try_instantiating(&entity, data.world);
                 return Trans::None;
             }
         }

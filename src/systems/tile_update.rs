@@ -6,7 +6,8 @@ use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
 use assetloading::asset_loader::AssetManager;
-use entities::grid::{LevelGrid, Tile};
+use entities::Tile;
+use level::LevelGrid;
 
 pub struct TileUpdateSystem;
 

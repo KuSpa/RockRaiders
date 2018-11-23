@@ -3,8 +3,8 @@ use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::Entity;
 
-use entities::grid::LevelGrid;
-use entities::grid::Tile;
+use entities::Tile;
+use level::LevelGrid;
 
 use systems::TileUpdateQueue;
 
