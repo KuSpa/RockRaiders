@@ -46,7 +46,7 @@ impl LevelGrid {
             y: 0.0,
             z: y as f32,
         });
-        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(- rotation as f32));
+        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
         let entity = self.get(x as i32, y as i32).unwrap();
         transforms.insert(entity, transform).unwrap();
     }

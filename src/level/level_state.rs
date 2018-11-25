@@ -12,14 +12,14 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use assetmanagement::{AssetManager, util::insert_from_world};
+use assetmanagement::{util::insert_from_world, AssetManager};
 use entities::buildings::Base;
 use entities::Tile;
 use game_data::CustomGameData;
 use level::LevelGrid;
 use std::cmp::Reverse;
-use std::time::Duration;
 use std::collections::BinaryHeap;
+use std::time::Duration;
 
 use std::path::Path;
 
