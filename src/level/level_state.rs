@@ -58,7 +58,7 @@ impl LevelState {
         let mut queue = world.write_resource::<TileUpdateQueue>();
         for x in 0..max_x {
             for y in 0..max_y {
-                // write every coordinate in the update list to update every tile's mesh ans material
+                // TODO use util::instert_into_storages
                 queue.push((x as i32, y as i32));
             }
         }

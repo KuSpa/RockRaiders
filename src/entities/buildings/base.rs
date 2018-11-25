@@ -10,6 +10,7 @@ use amethyst::Result;
 
 use assetloading::asset_loader::AssetManager;
 use entities::Tile;
+use util;
 
 pub struct Base {
     // will get some members in the future i guess?
@@ -38,53 +39,37 @@ impl Base {
     }
 
     fn build(entity: &Entity, world: &mut World) -> Result<Entity> {
-        let mut mesh: MeshHandle;
-        let mut material: Material;
         let base = Base {};
-        {
-            let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
-            let mut tex_manager = world.write_resource::<AssetManager<Texture>>();
-            let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-            let mut tex_storage = world.write_resource::<AssetStorage<Texture>>();
-            let mut amethyst_loader = world.write_resource::<Loader>();
-            let mat_defaults = world.read_resource::<MaterialDefaults>();
-
-            mesh = {
-                mesh_manager.get_asset_handle_or_load(
-                    Base::asset_name(),
-                    ObjFormat,
-                    Default::default(),
-                    &mut mesh_storage,
-                    &amethyst_loader,
-                )
-            };
-
-            material = {
-                let handle = tex_manager.get_asset_handle_or_load(
-                    Base::asset_name(),
-                    PngFormat,
-                    TextureMetadata::srgb(),
-                    &mut tex_storage,
-                    &amethyst_loader,
-                );
-                Material {
-                    albedo: handle,
-                    ..mat_defaults.0.clone()
-                }
-            };
-        }
-        // since we will be a child, this should translate us to the perfect spot ;)
-        let transform = Transform::default();
 
         let result = world
             .create_entity()
-            .with(transform)
+            .with(Transform::default()) // since we will be a child, this should translate us to the perfect spot ;)
             .with(GlobalTransform::default())
             .with(base)
-            .with(material)
-            .with(mesh)
             .with(Parent { entity: *entity })
             .build();
+
+        let mut mesh_handles = world.write_storage::<MeshHandle>();
+        let mut mat_storage = world.write_storage::<Material>();
+        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
+        let mut tex_manager = world.write_resource::<AssetManager<Texture>>();
+        let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
+        let mut tex_storage = world.write_resource::<AssetStorage<Texture>>();
+        let mut loader = world.write_resource::<Loader>();
+        let default_mat = world.read_resource::<MaterialDefaults>().0.clone();
+
+        util::insert_into_storages(
+            *entity,
+            Base::asset_name(),
+            &loader,
+            &mut mesh_manager,
+            &mut mesh_handles,
+            &mut mesh_storage,
+            &mut tex_manager,
+            &mut mat_storage,
+            &mut tex_storage,
+            default_mat,
+        );
 
         Ok(result)
     }

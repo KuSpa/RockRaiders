@@ -76,6 +76,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let transform = transforms.get(neighbor).unwrap().clone();
                         let x = transform.translation[0] as i32;
                         let y = transform.translation[2] as i32;
+                        //TODO use util::insert_into_storages
                         tile_update_queue.push((x, y));
                     }
                 }
