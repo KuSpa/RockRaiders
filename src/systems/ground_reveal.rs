@@ -27,7 +27,7 @@ impl<'a> System<'a> for GroundRevealSystem {
         Read<'a, Vec<([[Tile; 3]; 3], String)>>,
         Read<'a, LevelGrid>,
         Write<'a, BinaryHeap<Reverse<(Duration, Entity)>>>,
-        ReadStorage<'a, Transform>,
+        WriteStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
         (
             ReadExpect<'a, Loader>,
@@ -43,7 +43,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, grid, mut heap, transforms, mut tiles, mut storages): Self::SystemData,
+        (time, dict, grid, mut heap, mut transforms, mut tiles, mut storages): Self::SystemData,
     ) {
         while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
             let Reverse((_, entity)) = heap.pop().unwrap();
@@ -92,6 +92,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
                         let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
 
+                        grid.adjust_transform(x,y,rotation, &mut transforms);
                         util::insert_into_storages(
                             grid.get(x, y).unwrap(),
                             classifier,

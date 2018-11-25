@@ -47,7 +47,7 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        util::insert_from_world(*entity, Base::asset_name(), world);
+        util::insert_from_world(result, Base::asset_name(), world);
 
         Ok(result)
     }
@@ -58,8 +58,6 @@ impl Base {
 }
 
 impl Component for Base {
-    // Maybe use a HashMaspStorage? it feels bad to have a Vec with a maximum of one Element
-    // So far its just a flag
     type Storage = NullStorage<Base>;
 }
 
