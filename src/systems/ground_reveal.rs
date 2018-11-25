@@ -1,5 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::specs::prelude::{Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
+use amethyst::core::specs::prelude::{Read, ReadExpect, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::Entity;
@@ -7,10 +7,8 @@ use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 
 use entities::Tile;
 use level::LevelGrid;
-use systems::TileUpdateQueue;
-use util;
 
-use assetloading::asset_loader::AssetManager;
+use assetmanagement::{AssetManager, util::insert_into_storages};
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
@@ -93,12 +91,11 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
 
                         grid.adjust_transform(x,y,rotation, &mut transforms);
-                        util::insert_into_storages(
+                        insert_into_storages(
                             grid.get(x, y).unwrap(),
                             classifier,
                             &mut storages,
                         );
-                        //storages from systemdata
                     }
                 }
             }

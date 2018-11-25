@@ -12,19 +12,16 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use assetloading::asset_loader::AssetManager;
+use assetmanagement::{AssetManager, util::insert_from_world};
 use entities::buildings::Base;
 use entities::Tile;
 use game_data::CustomGameData;
 use level::LevelGrid;
 use std::cmp::Reverse;
 use std::time::Duration;
-use systems::TileUpdateQueue;
-
 use std::collections::BinaryHeap;
 
 use std::path::Path;
-use util;
 
 pub struct LevelState;
 
@@ -67,7 +64,7 @@ impl LevelState {
                         level_grid.determine_sprite_for(x as i32, y as i32, dict, &mut tiles);
                     let entity = level_grid.get(x as i32, y as i32).unwrap();
                     level_grid.adjust_transform(x as i32, y as i32, rotation, &mut transforms);
-                    util::insert_from_world(entity, classifier, world);
+                    insert_from_world(entity, classifier, world);
                 }
             }
         }
@@ -194,7 +191,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                         entity,
                     )));
                 }
-                Base::try_instantiating(&entity, data.world);
+                Base::try_instantiating(&entity, data.world).unwrap();
                 return Trans::None;
             }
         }

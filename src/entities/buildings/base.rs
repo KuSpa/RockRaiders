@@ -1,15 +1,11 @@
-use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::prelude::*;
-use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 use amethyst::Error;
 use amethyst::Result;
 
-use assetloading::asset_loader::AssetManager;
+use assetmanagement::util::insert_from_world;
 use entities::Tile;
-use util;
-
 pub struct Base {
     // will get some members in the future i guess?
 }
@@ -47,7 +43,7 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        util::insert_from_world(result, Base::asset_name(), world);
+        insert_from_world(result, Base::asset_name(), world);
 
         Ok(result)
     }

@@ -5,7 +5,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 
-mod assetloading;
+mod assetmanagement;
 mod entities;
 mod game_data;
 mod level;
@@ -36,11 +36,10 @@ fn main() -> amethyst::Result<()> {
         .with_core_bundle(input)?
         .with_core_bundle(TransformBundle::new())?
         .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
-        .with_running(systems::TileUpdateSystem, "tile_update_system", &[])
         .with_running(
             systems::GroundRevealSystem,
             "ground_reveal_system",
-            &["tile_update_system"],
+            &[],
         )
         .with_basic_renderer(path, DrawShaded::<PosNormTex>::new())?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
