@@ -2,9 +2,7 @@ use amethyst::assets::{AssetStorage, Loader};
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::prelude::*;
-use amethyst::renderer::{
-    Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
-};
+use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 use amethyst::Error;
 use amethyst::Result;
 
@@ -49,27 +47,7 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        let mut mesh_handles = world.write_storage::<MeshHandle>();
-        let mut mat_storage = world.write_storage::<Material>();
-        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
-        let mut tex_manager = world.write_resource::<AssetManager<Texture>>();
-        let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-        let mut tex_storage = world.write_resource::<AssetStorage<Texture>>();
-        let mut loader = world.write_resource::<Loader>();
-        let default_mat = world.read_resource::<MaterialDefaults>().0.clone();
-
-        util::insert_into_storages(
-            *entity,
-            Base::asset_name(),
-            &loader,
-            &mut mesh_manager,
-            &mut mesh_handles,
-            &mut mesh_storage,
-            &mut tex_manager,
-            &mut mat_storage,
-            &mut tex_storage,
-            default_mat,
-        );
+        util::insert_from_world(*entity, Base::asset_name(), world);
 
         Ok(result)
     }

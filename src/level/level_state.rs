@@ -24,6 +24,7 @@ use systems::TileUpdateQueue;
 use std::collections::BinaryHeap;
 
 use std::path::Path;
+use util;
 
 pub struct LevelState;
 
@@ -48,20 +49,29 @@ impl LevelState {
         grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
+    fn initialize_level_grid(
+        world: &mut World,
+        grid: Vec<Vec<Tile>>,
+        dict: &Vec<([[Tile; 3]; 3], String)>,
+    ) {
         let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
         let max_y = level_grid.grid()[0].len();
+        {
+            let mut tiles = world.write_storage::<Tile>();
+            let mut transforms = world.write_storage::<Transform>();
 
-        world.add_resource(level_grid);
-
-        let mut queue = world.write_resource::<TileUpdateQueue>();
-        for x in 0..max_x {
-            for y in 0..max_y {
-                // TODO use util::instert_into_storages
-                queue.push((x as i32, y as i32));
+            for x in 0..max_x {
+                for y in 0..max_y {
+                    let (classifier, rotation) =
+                        level_grid.determine_sprite_for(x as i32, y as i32, dict, &mut tiles);
+                    let entity = level_grid.get(x as i32, y as i32).unwrap();
+                    level_grid.adjust_transform(x as i32, y as i32, rotation, &mut transforms);
+                    util::insert_from_world(entity, classifier, world);
+                }
             }
         }
+        world.add_resource(level_grid);
     }
 
     fn load_initial_assets(world: &World) {
@@ -149,14 +159,15 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.add_resource(texture_manager);
 
         let tile_pattern_config = LevelState::load_tile_pattern_config();
-        world.add_resource(tile_pattern_config);
 
         LevelState::load_initial_assets(world);
 
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
         let grid_definition = LevelState::load_grid();
-        LevelState::initialize_level_grid(world, grid_definition);
+        LevelState::initialize_level_grid(world, grid_definition, &tile_pattern_config);
+
+        world.add_resource(tile_pattern_config);
     }
 
     fn handle_event(

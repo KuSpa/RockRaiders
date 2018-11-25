@@ -1,13 +1,16 @@
-use amethyst::core::specs::prelude::{Read, ReadStorage, System, Write, WriteStorage};
+use amethyst::assets::{AssetStorage, Loader};
+use amethyst::core::specs::prelude::{Read, ReadExpect, ReadStorage, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::Entity;
+use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 
 use entities::Tile;
 use level::LevelGrid;
-
 use systems::TileUpdateQueue;
+use util;
 
+use assetloading::asset_loader::AssetManager;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
@@ -21,16 +24,26 @@ pub struct GroundRevealSystem;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        Read<'a, Vec<([[Tile; 3]; 3], String)>>,
         Read<'a, LevelGrid>,
         Write<'a, BinaryHeap<Reverse<(Duration, Entity)>>>,
         ReadStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
-        Write<'a, TileUpdateQueue>,
+        (
+            ReadExpect<'a, Loader>,
+            Write<'a, AssetManager<Mesh>>,
+            WriteStorage<'a, MeshHandle>,
+            Write<'a, AssetStorage<Mesh>>,
+            Write<'a, AssetManager<Texture>>,
+            WriteStorage<'a, Material>,
+            Write<'a, AssetStorage<Texture>>,
+            ReadExpect<'a, MaterialDefaults>,
+        ),
     );
 
     fn run(
         &mut self,
-        (time, grid, mut heap, transforms, mut tiles, mut tile_update_queue): Self::SystemData,
+        (time, dict, grid, mut heap, transforms, mut tiles, mut storages): Self::SystemData,
     ) {
         while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
             let Reverse((_, entity)) = heap.pop().unwrap();
@@ -76,8 +89,15 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let transform = transforms.get(neighbor).unwrap().clone();
                         let x = transform.translation[0] as i32;
                         let y = transform.translation[2] as i32;
-                        //TODO use util::insert_into_storages
-                        tile_update_queue.push((x, y));
+
+                        let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
+
+                        util::insert_into_storages(
+                            grid.get(x, y).unwrap(),
+                            classifier,
+                            &mut storages,
+                        );
+                        //storages from systemdata
                     }
                 }
             }

@@ -1,6 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::ecs::storage::GenericWriteStorage;
-use amethyst::ecs::{Entity, WriteStorage};
+use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
 use amethyst::prelude::*;
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
@@ -20,31 +19,36 @@ pub fn rotate_3x3<T: Clone>(input: &[[T; 3]; 3]) -> [[T; 3]; 3] {
     result
 }
 
-pub fn insert_into_storages<M, T>(
-    entity: Entity,
-    asset_name: &str,
-    loader: &Loader,
-    // mesh stuff
-    mesh_manager: &mut AssetManager<Mesh>,
-    mesh_handles: &mut M,
-    mesh_storage: &mut AssetStorage<Mesh>,
+pub type Storages<'a> = (
+    ReadExpect<'a, Loader>,
+    Write<'a, AssetManager<Mesh>>,
+    WriteStorage<'a, MeshHandle>,
+    Write<'a, AssetStorage<Mesh>>,
+    Write<'a, AssetManager<Texture>>,
+    WriteStorage<'a, Material>,
+    Write<'a, AssetStorage<Texture>>,
+    ReadExpect<'a, MaterialDefaults>,
+);
 
-    //material
-    tex_manager: &mut AssetManager<Texture>,
-    mat_storage: &mut T,
-    tex_storage: &mut AssetStorage<Texture>,
-    default_mat: Material,
-) where
-    M: GenericWriteStorage<Component = MeshHandle>,
-    T: GenericWriteStorage<Component = Material>,
-{
+pub fn insert_into_storages(entity: Entity, asset_name: &str, storages: &mut Storages) {
+    let (
+        ref loader,
+        ref mut mesh_manager,
+        ref mut mesh_handles,
+        ref mut mesh_storage,
+        ref mut tex_manager,
+        ref mut mat_storage,
+        ref mut tex_storage,
+        ref default_mat,
+    ) = storages;
+
     let mesh = {
         mesh_manager.get_asset_handle_or_load(
             asset_name,
             ObjFormat,
             Default::default(),
             mesh_storage,
-            loader,
+            &loader,
         )
     };
 
@@ -55,11 +59,11 @@ pub fn insert_into_storages<M, T>(
             PngFormat,
             TextureMetadata::srgb(),
             tex_storage,
-            loader,
+            &loader,
         );
         Material {
             albedo: handle,
-            ..default_mat
+            ..default_mat.0.clone()
         }
     };
 
@@ -67,28 +71,7 @@ pub fn insert_into_storages<M, T>(
     mesh_handles.insert(entity, mesh).unwrap();
 }
 
-pub fn gather_storages(
-    world: &World,
-) -> (
-    FetchMut<Loader>,
-    // mesh stuff
-    FetchMut<AssetManager<Mesh>>,
-    WriteStorage<MeshHandle>,
-    FetchMut<AssetStorage<Mesh>>,
-    //material
-    FetchMut<AssetManager<Texture>>,
-    WriteStorage<Material>,
-    FetchMut<AssetStorage<Texture>>,
-    Material,
-) {
-    (
-        world.write_resource::<Loader>(),
-        world.write_resource::<AssetManager<Mesh>>(),
-        world.write_storage::<MeshHandle>(),
-        world.write_resource::<AssetStorage<Mesh>>(),
-        world.write_resource::<AssetManager<Texture>>(),
-        world.write_storage::<Material>(),
-        world.write_resource::<AssetStorage<Texture>>(),
-        world.read_resource::<MaterialDefaults>().0.clone(),
-    )
+pub fn insert_from_world(entity: Entity, classifier: &str, world: &World) {
+    let mut storages = world.system_data();
+    insert_into_storages(entity, classifier, &mut storages);
 }

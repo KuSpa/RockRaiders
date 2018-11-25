@@ -59,8 +59,8 @@ impl<'a> System<'a> for TileUpdateSystem {
             transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-wall_rotation as f32));
 
             let entity = level_grid.get(x as i32, y as i32).unwrap();
-            //update_queue.push((entity, wall_type));
             transform_storage.insert(entity, transform).unwrap();
+            //update_queue.push((entity, wall_type));
         }
     }
 }

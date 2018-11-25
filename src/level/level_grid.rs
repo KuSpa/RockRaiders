@@ -1,7 +1,9 @@
 const CONCEALED: &str = "concealed";
 
+use amethyst::core::cgmath::{Deg, Vector3};
+use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
-use amethyst::ecs::storage::GenericReadStorage;
+use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
 use amethyst::prelude::*;
 use entities::Tile;
 use util;
@@ -17,12 +19,36 @@ impl LevelGrid {
             .map(|tile_vec| {
                 tile_vec
                     .iter_mut()
-                    .map(|tile| world.create_entity().with(*tile).build())
+                    .map(|tile| {
+                        world
+                            .create_entity()
+                            .with(*tile)
+                            .with(GlobalTransform::default())
+                            .build()
+                    })
                     .collect()
             })
             .collect();
 
         LevelGrid { grid: level_grid }
+    }
+
+    pub fn adjust_transform<T: GenericWriteStorage<Component = Transform>>(
+        &self,
+        x: i32,
+        y: i32,
+        rotation: i32,
+        mut transforms: T,
+    ) {
+        let mut transform = Transform::default();
+        transform.set_position(Vector3 {
+            x: x as f32,
+            y: 0.0,
+            z: y as f32,
+        });
+        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(rotation as f32));
+        let entity = self.get(x as i32, y as i32).unwrap();
+        transforms.insert(entity, transform).unwrap();
     }
 
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
