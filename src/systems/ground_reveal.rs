@@ -90,7 +90,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
                         let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
 
-                        grid.adjust_transform(x, y, rotation, &mut transforms);
+                        grid.set_transform(x, y, rotation, &mut transforms);
                         insert_into_storages(grid.get(x, y).unwrap(), classifier, &mut storages);
                     }
                 }

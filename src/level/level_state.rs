@@ -63,7 +63,7 @@ impl LevelState {
                     let (classifier, rotation) =
                         level_grid.determine_sprite_for(x as i32, y as i32, dict, &mut tiles);
                     let entity = level_grid.get(x as i32, y as i32).unwrap();
-                    level_grid.adjust_transform(x as i32, y as i32, rotation, &mut transforms);
+                    level_grid.set_transform(x as i32, y as i32, rotation, &mut transforms);
                     insert_from_world(entity, classifier, world);
                 }
             }

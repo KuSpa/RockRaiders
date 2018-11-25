@@ -33,7 +33,7 @@ impl LevelGrid {
         LevelGrid { grid: level_grid }
     }
 
-    pub fn adjust_transform<T: GenericWriteStorage<Component = Transform>>(
+    pub fn set_transform<T: GenericWriteStorage<Component = Transform>>(
         &self,
         x: i32,
         y: i32,
