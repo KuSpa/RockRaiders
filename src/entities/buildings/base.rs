@@ -11,22 +11,23 @@ pub struct Base {
 }
 
 impl Base {
-    pub fn try_instantiating(
-        entity: &Entity,
-        world: &mut World,
-        //hierarchy: &ParentHierarchy,
-    ) -> Result<Entity> {
-        // if the entity has children (in context of the transform), they have to be buildings so far.
-        // If we will ever have other children than buildings, we will have to test for every children, if it is a building
-        //if !hierarchy.children(*entity).is_empty() {
-        //    // TODO Custom error types for better failure dispatch
-        //    return Err(Error::Application);
-        //}
+    pub fn try_instantiating(entity: &Entity, world: &mut World) -> Result<Entity> {
+        {
+            // if the entity has children, they have to be buildings so far.
+            // If we will ever have other children than buildings, we will have to test for every children, if it is a building
+            let hierarchy = world.read_resource::<ParentHierarchy>();
+            if !hierarchy.children(*entity).is_empty() {
+                // TODO Custom error types for better failure dispatch
+                // ERROR another building occupies this tile
+                return Err(Error::Application);
+            }
+        }
 
         // if the tile is a revealed ground tile, we continue, otherwise we return
         match world.read_storage::<Tile>().get(*entity) {
             Some(Tile::Ground { .. }) => (),
             // TODO Custom error types for better failure dispatch
+            // ERROR cannot build on Walls
             _ => return Err(Error::Application),
         }
         Base::build(entity, world)
