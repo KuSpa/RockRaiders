@@ -46,17 +46,14 @@ impl LevelState {
         grid
     }
 
-    fn initialize_level_grid(
-        world: &mut World,
-        grid: Vec<Vec<Tile>>,
-    ) {
+    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
         let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
         let max_y = level_grid.grid()[0].len();
         {
             let mut tiles = world.write_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
-            let dict = world.read_resource::<Vec<([[Tile;3];3],String)>>();
+            let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -78,14 +75,11 @@ impl LevelState {
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-        println!("WEOWEOWEOWEOWE");
-
         for (_, asset) in world
             .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
             .iter()
         {
-            println!("WUFFWAU");
-            warn!("loading asset: {}", asset);
+            debug!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,
                 ObjFormat,
@@ -167,8 +161,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         LevelState::initialize_light(world, cam);
         let grid_definition = LevelState::load_grid();
         LevelState::initialize_level_grid(world, grid_definition);
-
-
     }
 
     fn handle_event(
