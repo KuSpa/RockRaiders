@@ -49,7 +49,6 @@ impl LevelState {
     fn initialize_level_grid(
         world: &mut World,
         grid: Vec<Vec<Tile>>,
-        dict: &Vec<([[Tile; 3]; 3], String)>,
     ) {
         let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.grid().len();
@@ -57,11 +56,12 @@ impl LevelState {
         {
             let mut tiles = world.write_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
+            let dict = world.read_resource::<Vec<([[Tile;3];3],String)>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
                     let (classifier, rotation) =
-                        level_grid.determine_sprite_for(x as i32, y as i32, dict, &mut tiles);
+                        level_grid.determine_sprite_for(x as i32, y as i32, &dict, &mut tiles);
                     let entity = level_grid.get(x as i32, y as i32).unwrap();
                     level_grid.set_transform(x as i32, y as i32, rotation, &mut transforms);
                     insert_from_world(entity, classifier, world);
@@ -78,10 +78,13 @@ impl LevelState {
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
+        println!("WEOWEOWEOWEOWE");
+
         for (_, asset) in world
             .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
             .iter()
         {
+            println!("WUFFWAU");
             warn!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,
@@ -156,15 +159,16 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.add_resource(texture_manager);
 
         let tile_pattern_config = LevelState::load_tile_pattern_config();
+        world.add_resource(tile_pattern_config);
 
         LevelState::load_initial_assets(world);
 
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
         let grid_definition = LevelState::load_grid();
-        LevelState::initialize_level_grid(world, grid_definition, &tile_pattern_config);
+        LevelState::initialize_level_grid(world, grid_definition);
 
-        world.add_resource(tile_pattern_config);
+
     }
 
     fn handle_event(
