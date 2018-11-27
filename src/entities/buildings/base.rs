@@ -1,8 +1,6 @@
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::prelude::*;
-use amethyst::Error;
-use amethyst::Result;
 
 use assetmanagement::util::insert_into_asset_storages;
 use entities::Tile;
@@ -10,27 +8,26 @@ use entities::Tile;
 pub struct Base;
 
 impl Base {
-    pub fn try_instantiating(entity: &Entity, world: &mut World) -> Result<Entity> {
+    pub fn try_instantiating(entity: &Entity, world: &mut World) {
         {
             // if the entity has children, they have to be buildings so far.
             // If we will ever have other children than buildings, we will have to test for every children, if it is a building
             let hierarchy = world.read_resource::<ParentHierarchy>();
             if !hierarchy.children(*entity).is_empty() {
-                // ERROR another building occupies this tile
-                return Err(Error::Application);
+                panic!("ERROR another building occupies this tile");
             }
         }
 
         // if the tile is a revealed ground tile, we continue, otherwise we return
         match world.read_storage::<Tile>().get(*entity) {
             Some(Tile::Ground { .. }) => (),
-            // ERROR cannot build on Walls
-            _ => return Err(Error::Application),
+
+            _ => panic!("ERROR cannot build on Walls"),
         }
-        Ok(Base::build(entity, world))
+        Base::build(entity, world);
     }
 
-    fn build(entity: &Entity, world: &mut World) -> Entity {
+    fn build(entity: &Entity, world: &mut World) {
         let base = Base;
 
         let result = world
@@ -43,8 +40,6 @@ impl Base {
 
         let mut storages = world.system_data();
         insert_into_asset_storages(result, Base::asset_name(), &mut storages);
-
-        result
     }
 
     fn asset_name() -> &'static str {

@@ -190,7 +190,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                         entity,
                     )));
                 }
-                Base::try_instantiating(&entity, data.world).unwrap();
+                Base::try_instantiating(&entity, data.world);
                 return Trans::None;
             }
         }
