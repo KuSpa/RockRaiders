@@ -41,10 +41,12 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, grid, mut heap, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (time, dict, grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
     ) {
-        while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
-            let Reverse((_, entity)) = heap.pop().unwrap();
+        while !ground_reveal_queue.is_empty()
+            && ((ground_reveal_queue.peek().unwrap().0).0 <= time.absolute_time())
+        {
+            let Reverse((_, entity)) = ground_reveal_queue.pop().unwrap();
 
             // reveal yourself
             if !tiles.get_mut(entity).unwrap().reveal() {
@@ -63,7 +65,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                 let tile = tiles.get_mut(*neighbor).unwrap();
                 match tile {
                     Tile::Ground { concealed: true } => {
-                        heap.push(Reverse((
+                        ground_reveal_queue.push(Reverse((
                             Duration::from_millis(50) + time.absolute_time(),
                             *neighbor,
                         )));
@@ -90,7 +92,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
                         let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
 
-                        grid.set_transform(x, y, rotation, &mut transforms);
+                        LevelGrid::set_transform(neighbor, x, y, rotation, &mut transforms);
                         insert_into_storages(grid.get(x, y).unwrap(), classifier, &mut storages);
                     }
                 }

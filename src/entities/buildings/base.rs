@@ -4,11 +4,10 @@ use amethyst::prelude::*;
 use amethyst::Error;
 use amethyst::Result;
 
-use assetmanagement::util::insert_from_world;
+use assetmanagement::util::insert_into_storages;
 use entities::Tile;
-pub struct Base {
-    // will get some members in the future i guess?
-}
+
+pub struct Base;
 
 impl Base {
     pub fn try_instantiating(entity: &Entity, world: &mut World) -> Result<Entity> {
@@ -30,11 +29,11 @@ impl Base {
             // ERROR cannot build on Walls
             _ => return Err(Error::Application),
         }
-        Base::build(entity, world)
+        Ok(Base::build(entity, world))
     }
 
-    fn build(entity: &Entity, world: &mut World) -> Result<Entity> {
-        let base = Base {};
+    fn build(entity: &Entity, world: &mut World) -> Entity {
+        let base = Base;
 
         let result = world
             .create_entity()
@@ -44,9 +43,10 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        insert_from_world(result, Base::asset_name(), world);
+        let mut storages = world.system_data();
+        insert_into_storages(result, Base::asset_name(), &mut storages);
 
-        Ok(result)
+        result
     }
 
     fn asset_name() -> &'static str {
@@ -60,6 +60,6 @@ impl Component for Base {
 
 impl Default for Base {
     fn default() -> Self {
-        Base {}
+        Base
     }
 }

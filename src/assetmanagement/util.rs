@@ -1,6 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
-use amethyst::prelude::*;
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
@@ -56,9 +55,4 @@ pub fn insert_into_storages(entity: Entity, asset_name: &str, storages: &mut Sto
 
     mat_storage.insert(entity, material).unwrap();
     mesh_handles.insert(entity, mesh).unwrap();
-}
-
-pub fn insert_from_world(entity: Entity, classifier: &str, world: &World) {
-    let mut storages = world.system_data();
-    insert_into_storages(entity, classifier, &mut storages);
 }

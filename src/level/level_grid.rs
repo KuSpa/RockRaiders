@@ -34,7 +34,7 @@ impl LevelGrid {
     }
 
     pub fn set_transform<T: GenericWriteStorage<Component = Transform>>(
-        &self,
+        entity: Entity,
         x: i32,
         y: i32,
         rotation: i32,
@@ -47,7 +47,6 @@ impl LevelGrid {
             z: y as f32,
         });
         transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
-        let entity = self.get(x as i32, y as i32).unwrap();
         transforms.insert(entity, transform).unwrap();
     }
 
@@ -73,8 +72,12 @@ impl LevelGrid {
         result
     }
 
-    pub fn grid(&self) -> &Vec<Vec<Entity>> {
-        &self.grid
+    pub fn x_len(&self) -> usize {
+        self.grid.len()
+    }
+
+    pub fn y_len_at(&self, x: usize) -> usize {
+        self.grid[x].len()
     }
 
     pub fn determine_sprite_for<'a, T: GenericReadStorage<Component = Tile>>(
