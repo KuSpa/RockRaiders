@@ -8,7 +8,7 @@ use entities::Tile;
 pub struct Base;
 
 impl Base {
-    pub fn try_instantiating(entity: &Entity, world: &mut World) {
+    pub fn build(entity: &Entity, world: &mut World) {
         {
             // if the entity has children, they have to be buildings so far.
             // If we will ever have other children than buildings, we will have to test for every children, if it is a building
@@ -24,10 +24,7 @@ impl Base {
 
             _ => panic!("ERROR cannot build on Walls"),
         }
-        Base::build(entity, world);
-    }
 
-    fn build(entity: &Entity, world: &mut World) {
         let base = Base;
 
         let result = world
