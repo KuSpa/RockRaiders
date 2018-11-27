@@ -4,7 +4,7 @@ use amethyst::prelude::*;
 use amethyst::Error;
 use amethyst::Result;
 
-use assetmanagement::util::insert_into_storages;
+use assetmanagement::util::insert_into_asset_storages;
 use entities::Tile;
 
 pub struct Base;
@@ -42,7 +42,7 @@ impl Base {
             .build();
 
         let mut storages = world.system_data();
-        insert_into_storages(result, Base::asset_name(), &mut storages);
+        insert_into_asset_storages(result, Base::asset_name(), &mut storages);
 
         result
     }

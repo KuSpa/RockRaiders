@@ -5,7 +5,7 @@ use amethyst::renderer::{
 };
 use assetmanagement::AssetManager;
 
-type Storages<'a> = (
+pub type AssetStorages<'a> = (
     ReadExpect<'a, Loader>,
     Write<'a, AssetManager<Mesh>>,
     WriteStorage<'a, MeshHandle>,
@@ -16,7 +16,7 @@ type Storages<'a> = (
     ReadExpect<'a, MaterialDefaults>,
 );
 
-pub fn insert_into_storages(entity: Entity, asset_name: &str, storages: &mut Storages) {
+pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &mut AssetStorages) {
     let (
         ref loader,
         ref mut mesh_manager,

@@ -12,7 +12,7 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use assetmanagement::{util::insert_into_storages, AssetManager};
+use assetmanagement::AssetManager;
 use entities::buildings::Base;
 use entities::Tile;
 use game_data::CustomGameData;
@@ -53,18 +53,21 @@ impl LevelState {
         let max_x = level_grid.x_len();
         let max_y = level_grid.y_len();
         {
-            let mut tiles = world.write_storage::<Tile>();
+            let tiles = world.read_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
             let dict = world.read_resource::<TilePatternMap>();
             let mut storages = world.system_data();
 
             for x in 0..max_x {
                 for y in 0..max_y {
-                    let (classifier, rotation) =
-                        level_grid.determine_sprite_for(x as i32, y as i32, &dict, &mut tiles);
-                    let entity = level_grid.get(x as i32, y as i32).unwrap();
-                    LevelGrid::set_transform(entity, x as i32, y as i32, rotation, &mut transforms);
-                    insert_into_storages(entity, classifier, &mut storages);
+                    level_grid.update_tile(
+                        x as i32,
+                        y as i32,
+                        &dict,
+                        &mut transforms,
+                        &tiles,
+                        &mut storages,
+                    );
                 }
             }
         }

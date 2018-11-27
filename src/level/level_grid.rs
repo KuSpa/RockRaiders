@@ -5,6 +5,7 @@ use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
 use amethyst::prelude::*;
+use assetmanagement::util::*;
 use entities::Tile;
 use level::TilePatternMap;
 use util;
@@ -32,23 +33,6 @@ impl LevelGrid {
             .collect();
 
         LevelGrid { grid: level_grid }
-    }
-
-    pub fn set_transform<T: GenericWriteStorage<Component = Transform>>(
-        entity: Entity,
-        x: i32,
-        y: i32,
-        rotation: i32,
-        mut transforms: T,
-    ) {
-        let mut transform = Transform::default();
-        transform.set_position(Vector3 {
-            x: x as f32,
-            y: 0.0,
-            z: y as f32,
-        });
-        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
-        transforms.insert(entity, transform).unwrap();
     }
 
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
@@ -124,6 +108,32 @@ impl LevelGrid {
             key = util::rotate_3x3(&key);
         }
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
+    }
+
+    pub fn update_tile<
+        T: GenericReadStorage<Component = Tile>,
+        R: GenericWriteStorage<Component = Transform>,
+    >(
+        &self,
+        x: i32,
+        y: i32,
+        dict: &TilePatternMap,
+        transforms: &mut R,
+        tiles: &T,
+        storages: &mut AssetStorages,
+    ) {
+        let entity = self.get(x, y).unwrap();
+        let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
+        insert_into_asset_storages(entity, classifier, storages);
+
+        let mut transform = Transform::default();
+        transform.set_position(Vector3 {
+            x: x as f32,
+            y: 0.0,
+            z: y as f32,
+        });
+        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
+        transforms.insert(entity, transform).unwrap();
     }
 
     pub fn get_tile<'a, T: GenericReadStorage<Component = Tile>>(

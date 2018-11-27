@@ -9,7 +9,7 @@ use entities::Tile;
 use level::LevelGrid;
 use level::TilePatternMap;
 
-use assetmanagement::{util::insert_into_storages, AssetManager};
+use assetmanagement::AssetManager;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
@@ -91,10 +91,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let x = transform.translation[0] as i32;
                         let y = transform.translation[2] as i32;
 
-                        let (classifier, rotation) = level_grid.determine_sprite_for(x, y, &dict, &tiles);
-
-                        LevelGrid::set_transform(neighbor, x, y, rotation, &mut transforms);
-                        insert_into_storages(level_grid.get(x, y).unwrap(), classifier, &mut storages);
+                        level_grid.update_tile(x, y, &dict, &mut transforms, &tiles, &mut storages);
                     }
                 }
             }
