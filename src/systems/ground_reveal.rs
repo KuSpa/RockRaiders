@@ -42,7 +42,7 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (time, dict, level_grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
     ) {
         while !ground_reveal_queue.is_empty()
             && ((ground_reveal_queue.peek().unwrap().0).0 <= time.absolute_time())
@@ -59,7 +59,7 @@ impl<'a> System<'a> for GroundRevealSystem {
             let y = tran.translation[2] as i32;
 
             let mut neighbors = vec![];
-            neighbors.extend(grid.direct_neighbors(x, y));
+            neighbors.extend(level_grid.direct_neighbors(x, y));
 
             for neighbor in neighbors.clone().iter() {
                 // add concealed to queue
@@ -78,7 +78,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                 }
             }
 
-            neighbors.extend(grid.diagonal_neighbors(x, y));
+            neighbors.extend(level_grid.diagonal_neighbors(x, y));
             neighbors.push(entity);
 
             for neighbor in neighbors.drain(..) {
@@ -91,10 +91,10 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let x = transform.translation[0] as i32;
                         let y = transform.translation[2] as i32;
 
-                        let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
+                        let (classifier, rotation) = level_grid.determine_sprite_for(x, y, &dict, &tiles);
 
                         LevelGrid::set_transform(neighbor, x, y, rotation, &mut transforms);
-                        insert_into_storages(grid.get(x, y).unwrap(), classifier, &mut storages);
+                        insert_into_storages(level_grid.get(x, y).unwrap(), classifier, &mut storages);
                     }
                 }
             }

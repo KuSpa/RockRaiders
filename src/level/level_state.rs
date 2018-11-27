@@ -39,17 +39,17 @@ impl LevelState {
     }
 
     fn load_grid() -> Vec<Vec<Tile>> {
-        let grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
+        let tile_grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
 
         debug!("Loaded Grid successfully");
-        grid
+        tile_grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
-        let level_grid = LevelGrid::from_grid(grid, world);
+    fn initialize_level_grid(world: &mut World, tile_grid: Vec<Vec<Tile>>) {
+        let level_grid = LevelGrid::from_grid(tile_grid, world);
         let max_x = level_grid.x_len();
         let max_y = level_grid.y_len();
         {
