@@ -77,8 +77,8 @@ impl LevelGrid {
         self.grid.len()
     }
 
-    pub fn y_len_at(&self, x: usize) -> usize {
-        self.grid[x].len()
+    pub fn y_len(&self) -> usize {
+        self.grid[0].len()
     }
 
     pub fn determine_sprite_for<'a, T: GenericReadStorage<Component = Tile>>(

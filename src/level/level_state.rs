@@ -51,7 +51,7 @@ impl LevelState {
     fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
         let level_grid = LevelGrid::from_grid(grid, world);
         let max_x = level_grid.x_len();
-        let max_y = level_grid.y_len_at(0);
+        let max_y = level_grid.y_len();
         {
             let mut tiles = world.write_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
@@ -78,10 +78,7 @@ impl LevelState {
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-        for (_, asset) in world
-            .read_resource::<TilePatternMap>()
-            .iter()
-        {
+        for (_, asset) in world.read_resource::<TilePatternMap>().iter() {
             debug!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,
