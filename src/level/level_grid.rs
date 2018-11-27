@@ -6,6 +6,7 @@ use amethyst::ecs::prelude::Entity;
 use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
 use amethyst::prelude::*;
 use entities::Tile;
+use level::TilePatternMap;
 use util;
 
 pub struct LevelGrid {
@@ -84,7 +85,7 @@ impl LevelGrid {
         &self,
         x: i32,
         y: i32,
-        dictionary: &'a Vec<([[Tile; 3]; 3], String)>,
+        tile_patterns: &'a TilePatternMap,
         storage: &T,
     ) -> (&'a str, i32) {
         let tile = self.get_tile(x as i32, y as i32, storage).unwrap();
@@ -105,7 +106,7 @@ impl LevelGrid {
         }
 
         for rotation in 0..4 {
-            for (dict_key, value) in dictionary {
+            for (dict_key, value) in tile_patterns {
                 let mut pattern_match = true;
                 let dict_key = dict_key.iter().flatten();
                 let key = key.iter().flatten();

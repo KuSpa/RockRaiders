@@ -25,9 +25,11 @@ use std::path::Path;
 
 pub struct LevelState;
 
+pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
+
 impl LevelState {
-    fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
-        let result = Vec::<([[Tile; 3]; 3], String)>::load(Path::new(&format!(
+    fn load_tile_pattern_config() -> TilePatternMap {
+        let result = TilePatternMap::load(Path::new(&format!(
             "{}/resources/tile_config.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -53,7 +55,7 @@ impl LevelState {
         {
             let mut tiles = world.write_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
-            let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
+            let dict = world.read_resource::<TilePatternMap>();
             let mut storages = world.system_data();
 
             for x in 0..max_x {
@@ -77,7 +79,7 @@ impl LevelState {
         let loader = world.read_resource::<Loader>();
 
         for (_, asset) in world
-            .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
+            .read_resource::<TilePatternMap>()
             .iter()
         {
             debug!("loading asset: {}", asset);
@@ -180,10 +182,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Start revealing");
                 let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
                 {
-                    let mut heap = data
+                    let mut ground_reveal_queue = data
                         .world
                         .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
-                    heap.push(Reverse((
+                    ground_reveal_queue.push(Reverse((
                         data.world.read_resource::<Time>().absolute_time(),
                         entity,
                     )));

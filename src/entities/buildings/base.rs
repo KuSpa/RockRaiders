@@ -16,7 +16,6 @@ impl Base {
             // If we will ever have other children than buildings, we will have to test for every children, if it is a building
             let hierarchy = world.read_resource::<ParentHierarchy>();
             if !hierarchy.children(*entity).is_empty() {
-                // TODO Custom error types for better failure dispatch
                 // ERROR another building occupies this tile
                 return Err(Error::Application);
             }
@@ -25,7 +24,6 @@ impl Base {
         // if the tile is a revealed ground tile, we continue, otherwise we return
         match world.read_storage::<Tile>().get(*entity) {
             Some(Tile::Ground { .. }) => (),
-            // TODO Custom error types for better failure dispatch
             // ERROR cannot build on Walls
             _ => return Err(Error::Application),
         }

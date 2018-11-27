@@ -7,6 +7,7 @@ use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 
 use entities::Tile;
 use level::LevelGrid;
+use level::TilePatternMap;
 
 use assetmanagement::{util::insert_into_storages, AssetManager};
 use std::cmp::Reverse;
@@ -22,7 +23,7 @@ pub struct GroundRevealSystem;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
-        Read<'a, Vec<([[Tile; 3]; 3], String)>>,
+        Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, BinaryHeap<Reverse<(Duration, Entity)>>>,
         WriteStorage<'a, Transform>,
