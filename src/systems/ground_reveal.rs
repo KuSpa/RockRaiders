@@ -7,8 +7,9 @@ use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 
 use entities::Tile;
 use level::LevelGrid;
+use level::TilePatternMap;
 
-use assetmanagement::{util::insert_into_storages, AssetManager};
+use assetmanagement::AssetManager;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
@@ -22,7 +23,7 @@ pub struct GroundRevealSystem;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
-        Read<'a, Vec<([[Tile; 3]; 3], String)>>,
+        Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, BinaryHeap<Reverse<(Duration, Entity)>>>,
         WriteStorage<'a, Transform>,
@@ -41,10 +42,12 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, grid, mut heap, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (time, dict, level_grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
     ) {
-        while !heap.is_empty() && ((heap.peek().unwrap().0).0 <= time.absolute_time()) {
-            let Reverse((_, entity)) = heap.pop().unwrap();
+        while !ground_reveal_queue.is_empty()
+            && ((ground_reveal_queue.peek().unwrap().0).0 <= time.absolute_time())
+        {
+            let Reverse((_, entity)) = ground_reveal_queue.pop().unwrap();
 
             // reveal yourself
             if !tiles.get_mut(entity).unwrap().reveal() {
@@ -56,14 +59,14 @@ impl<'a> System<'a> for GroundRevealSystem {
             let y = tran.translation[2] as i32;
 
             let mut neighbors = vec![];
-            neighbors.extend(grid.direct_neighbors(x, y));
+            neighbors.extend(level_grid.direct_neighbors(x, y));
 
             for neighbor in neighbors.clone().iter() {
                 // add concealed to queue
                 let tile = tiles.get_mut(*neighbor).unwrap();
                 match tile {
                     Tile::Ground { concealed: true } => {
-                        heap.push(Reverse((
+                        ground_reveal_queue.push(Reverse((
                             Duration::from_millis(50) + time.absolute_time(),
                             *neighbor,
                         )));
@@ -75,7 +78,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                 }
             }
 
-            neighbors.extend(grid.diagonal_neighbors(x, y));
+            neighbors.extend(level_grid.diagonal_neighbors(x, y));
             neighbors.push(entity);
 
             for neighbor in neighbors.drain(..) {
@@ -88,10 +91,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                         let x = transform.translation[0] as i32;
                         let y = transform.translation[2] as i32;
 
-                        let (classifier, rotation) = grid.determine_sprite_for(x, y, &dict, &tiles);
-
-                        grid.set_transform(x, y, rotation, &mut transforms);
-                        insert_into_storages(grid.get(x, y).unwrap(), classifier, &mut storages);
+                        level_grid.update_tile(x, y, &dict, &mut transforms, &tiles, &mut storages);
                     }
                 }
             }

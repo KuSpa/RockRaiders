@@ -2,7 +2,6 @@ use amethyst::core::cgmath::{Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage, WriteStorage};
 use amethyst::ecs::world::Entities;
-use amethyst::prelude::*;
 
 pub use assetmanagement::util::*;
 
@@ -12,7 +11,7 @@ type Storages<'a> = (
     WriteStorage<'a, RockRaider>,
     WriteStorage<'a, Transform>,
     WriteStorage<'a, GlobalTransform>,
-    RequiredAssetStorages<'a>,
+    AssetStorages<'a>,
 );
 
 impl RockRaider {
@@ -43,7 +42,7 @@ impl RockRaider {
             .with(GlobalTransform::default(), global_transform_storage)
             .build();
 
-        insert_into_storages(entity, RockRaider::asset_name(), asset_storages);
+        insert_into_asset_storages(entity, RockRaider::asset_name(), asset_storages);
         entity
     }
 

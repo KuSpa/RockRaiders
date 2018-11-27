@@ -12,7 +12,7 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use assetmanagement::{util::insert_from_world, AssetManager};
+use assetmanagement::AssetManager;
 use entities::buildings::Base;
 use entities::Tile;
 use game_data::CustomGameData;
@@ -25,9 +25,11 @@ use std::path::Path;
 
 pub struct LevelState;
 
+pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
+
 impl LevelState {
-    fn load_tile_pattern_config() -> Vec<([[Tile; 3]; 3], String)> {
-        let result = Vec::<([[Tile; 3]; 3], String)>::load(Path::new(&format!(
+    fn load_tile_pattern_config() -> TilePatternMap {
+        let result = TilePatternMap::load(Path::new(&format!(
             "{}/resources/tile_config.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -37,31 +39,35 @@ impl LevelState {
     }
 
     fn load_grid() -> Vec<Vec<Tile>> {
-        let grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
+        let tile_grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
 
         debug!("Loaded Grid successfully");
-        grid
+        tile_grid
     }
 
-    fn initialize_level_grid(world: &mut World, grid: Vec<Vec<Tile>>) {
-        let level_grid = LevelGrid::from_grid(grid, world);
-        let max_x = level_grid.grid().len();
-        let max_y = level_grid.grid()[0].len();
+    fn initialize_level_grid(world: &mut World, tile_grid: Vec<Vec<Tile>>) {
+        let level_grid = LevelGrid::from_grid(tile_grid, world);
+        let max_x = level_grid.x_len();
+        let max_y = level_grid.y_len();
         {
-            let mut tiles = world.write_storage::<Tile>();
+            let tiles = world.read_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
-            let dict = world.read_resource::<Vec<([[Tile; 3]; 3], String)>>();
+            let dict = world.read_resource::<TilePatternMap>();
+            let mut storages = world.system_data();
 
             for x in 0..max_x {
                 for y in 0..max_y {
-                    let (classifier, rotation) =
-                        level_grid.determine_sprite_for(x as i32, y as i32, &dict, &mut tiles);
-                    let entity = level_grid.get(x as i32, y as i32).unwrap();
-                    level_grid.set_transform(x as i32, y as i32, rotation, &mut transforms);
-                    insert_from_world(entity, classifier, world);
+                    level_grid.update_tile(
+                        x as i32,
+                        y as i32,
+                        &dict,
+                        &mut transforms,
+                        &tiles,
+                        &mut storages,
+                    );
                 }
             }
         }
@@ -75,10 +81,8 @@ impl LevelState {
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-        for (_, asset) in world
-            .read_resource::<Vec<([[Tile; 3]; 3], String)>>()
-            .iter()
-        {
+
+        for (_, asset) in world.read_resource::<TilePatternMap>().iter() {
             debug!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
                 asset,
@@ -179,15 +183,17 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Start revealing");
                 let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
                 {
-                    let mut heap = data
+
+                    let mut ground_reveal_queue = data
                         .world
                         .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
-                    heap.push(Reverse((
+                    ground_reveal_queue.push(Reverse((
                         data.world.read_resource::<Time>().absolute_time(),
                         entity,
                     )));
                 }
-                Base::try_instantiating(&entity, data.world).unwrap();
+
+                Base::build(&entity, data.world);
                 return Trans::None;
             }
         }

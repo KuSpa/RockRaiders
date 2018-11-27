@@ -1,12 +1,12 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
-use amethyst::prelude::*;
+
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
 use assetmanagement::AssetManager;
 
-pub type RequiredAssetStorages<'a> = (
+pub type AssetStorages<'a> = (
     ReadExpect<'a, Loader>,
     Write<'a, AssetManager<Mesh>>,
     WriteStorage<'a, MeshHandle>,
@@ -17,11 +17,8 @@ pub type RequiredAssetStorages<'a> = (
     ReadExpect<'a, MaterialDefaults>,
 );
 
-pub fn insert_into_storages(
-    entity: Entity,
-    asset_name: &str,
-    storages: &mut RequiredAssetStorages,
-) {
+
+pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &mut AssetStorages) {
     let (
         ref loader,
         ref mut mesh_manager,
@@ -60,9 +57,4 @@ pub fn insert_into_storages(
 
     mat_storage.insert(entity, material).unwrap();
     mesh_handles.insert(entity, mesh).unwrap();
-}
-
-pub fn insert_from_world(entity: Entity, classifier: &str, world: &World) {
-    let mut storages = world.system_data();
-    insert_into_storages(entity, classifier, &mut storages);
 }
