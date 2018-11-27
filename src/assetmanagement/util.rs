@@ -1,6 +1,5 @@
 use amethyst::assets::{AssetStorage, Loader};
 use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
-
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
@@ -16,7 +15,6 @@ pub type AssetStorages<'a> = (
     Write<'a, AssetStorage<Texture>>,
     ReadExpect<'a, MaterialDefaults>,
 );
-
 
 pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &mut AssetStorages) {
     let (

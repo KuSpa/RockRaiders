@@ -81,7 +81,6 @@ impl LevelState {
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
         let loader = world.read_resource::<Loader>();
 
-
         for (_, asset) in world.read_resource::<TilePatternMap>().iter() {
             debug!("loading asset: {}", asset);
             mesh_manager.get_asset_handle_or_load(
@@ -183,7 +182,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Start revealing");
                 let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
                 {
-
                     let mut ground_reveal_queue = data
                         .world
                         .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
@@ -192,7 +190,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                         entity,
                     )));
                 }
-
                 Base::build(&entity, data.world);
                 return Trans::None;
             }

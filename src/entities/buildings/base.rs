@@ -9,13 +9,11 @@ pub struct Base;
 
 impl Base {
     pub fn build(entity: &Entity, world: &mut World) {
-
         {
             // if the entity has children, they have to be buildings so far.
             // If we will ever have other children than buildings, we will have to test for every children, if it is a building
             let hierarchy = world.read_resource::<ParentHierarchy>();
             if !hierarchy.children(*entity).is_empty() {
-
                 panic!("ERROR another building occupies this tile");
             }
         }
