@@ -5,7 +5,7 @@ use amethyst::prelude::*;
 use amethyst::renderer::{Camera, Projection, VirtualKeyCode};
 use game_data::CustomGameData;
 
-use level::Level;
+use level::LevelState;
 
 pub struct RockRaiders;
 
@@ -25,7 +25,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 return Trans::Quit;
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
-                return Trans::Push(Box::new(Level));
+                return Trans::Push(Box::new(LevelState));
             }
         }
         Trans::None
