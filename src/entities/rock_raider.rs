@@ -7,24 +7,24 @@ pub use assetmanagement::util::*;
 
 pub struct RockRaider;
 
-type Storages<'a> = (
-    WriteStorage<'a, RockRaider>,
-    WriteStorage<'a, Transform>,
-    WriteStorage<'a, GlobalTransform>,
+pub type RockRaiderStorages<'a> = (
+    (
+        WriteStorage<'a, RockRaider>,
+        WriteStorage<'a, Transform>,
+        WriteStorage<'a, GlobalTransform>,
+    ),
     AssetStorages<'a>,
 );
 
 impl RockRaider {
     //note: this is a type alias for Read<'a, EntityRes>
     pub fn instantiate(
-        entities: &mut Entities,
+        entities: &Entities,
         position: Point2<f32>,
-        storages: &mut Storages,
+        storages: &mut RockRaiderStorages,
     ) -> Entity {
         let (
-            ref mut people_storage,
-            ref mut transform_storage,
-            ref mut global_transform_storage,
+            (ref mut people_storage, ref mut transform_storage, ref mut global_transform_storage),
             ref mut asset_storages,
         ) = storages;
 

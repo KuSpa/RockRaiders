@@ -1,13 +1,29 @@
+use amethyst::core::cgmath::Point2;
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
+use amethyst::ecs::Entities;
 use amethyst::prelude::*;
+use assetmanagement::util::AssetStorages;
 
 use assetmanagement::util::insert_into_asset_storages;
 use entities::Tile;
+use entities::{RockRaider, RockRaiderStorages};
 
 pub struct Base;
 
 impl Base {
+    pub fn spawn_rock_raider(
+        spawn_position: Point2<f32>,
+        entities: &Entities,
+        storages: &mut RockRaiderStorages,
+    ) {
+        // TODO check for valid request
+
+        // TODO add Spawnposition as member of the Base
+
+        RockRaider::instantiate(entities, spawn_position, storages);
+    }
+
     pub fn build(entity: &Entity, world: &mut World) {
         {
             // if the entity has children, they have to be buildings so far.
