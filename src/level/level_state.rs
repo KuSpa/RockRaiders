@@ -12,6 +12,8 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
+use systems::Oxygen;
+
 use assetmanagement::AssetManager;
 use entities::buildings::Base;
 use entities::RockRaider;
@@ -165,6 +167,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
 
+        // Load Oxygen from disk
+        let oxygen = Oxygen {
+            remaining_oxygen: 10.,
+        };
+
+        world.add_resource(oxygen);
         world.add_resource(mesh_manager);
         world.add_resource(texture_manager);
         world.add_resource(tile_pattern_config);

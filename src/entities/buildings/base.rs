@@ -2,32 +2,32 @@ use amethyst::core::cgmath::Point2;
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::ecs::Entities;
-use amethyst::ecs::Join;
 use amethyst::prelude::*;
 
 use assetmanagement::util::insert_into_asset_storages;
 use entities::Tile;
 use entities::{RockRaider, RockRaiderStorages};
+use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;
 
 pub struct Base;
 
 impl Base {
-
     pub fn spawn_rock_raider(
         spawn_position: Point2<f32>,
         entities: &Entities,
         storages: &mut RockRaiderStorages,
     ) {
         {
-            let ((rr_storage, ..), ..) = storages;
-
-            if (rr_storage).join().count() >= MAX_RAIDERS {
-                panic!("Cannot spawn more Raiders. Limit of {} is already reached", MAX_RAIDERS);
+            let ((ref rr_storage, ..), ..) = storages;
+            if amount_in(rr_storage) >= MAX_RAIDERS {
+                panic!(
+                    "Cannot spawn more Raiders. Limit of {} is already reached",
+                    MAX_RAIDERS
+                );
             }
         }
-        // TODO add Spawnposition as member of the Base
 
         RockRaider::instantiate(entities, spawn_position, storages);
     }
