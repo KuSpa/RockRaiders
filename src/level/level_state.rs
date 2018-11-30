@@ -4,7 +4,7 @@ use amethyst::core::cgmath::{Deg, Point2, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 
-use amethyst::ecs::{Entities, Entity};
+use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
