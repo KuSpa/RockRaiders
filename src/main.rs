@@ -35,6 +35,7 @@ fn main() -> amethyst::Result<()> {
     let game_data = CustomGameDataBuilder::default()
         .with_core_bundle(input)?
         .with_core_bundle(TransformBundle::new())?
+        .with_running(systems::MovementSystem, "movement_system", &[])
         .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
         .with_running(systems::GroundRevealSystem, "ground_reveal_system", &[])
         .with_running(systems::OxygenSystem, "oxygen_system", &[])

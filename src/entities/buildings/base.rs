@@ -18,7 +18,7 @@ impl Base {
         spawn_position: Point2<f32>,
         entities: &Entities,
         storages: &mut RockRaiderStorages,
-    ) {
+    ) -> Entity {
         {
             let ((ref rr_storage, ..), ..) = storages;
             if amount_in(rr_storage) >= MAX_RAIDERS {
@@ -29,7 +29,7 @@ impl Base {
             }
         }
 
-        RockRaider::instantiate(entities, spawn_position, storages);
+        RockRaider::instantiate(entities, spawn_position, storages)
     }
 
     pub fn build(entity: &Entity, world: &mut World) {

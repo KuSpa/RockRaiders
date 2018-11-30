@@ -23,6 +23,7 @@ use level::LevelGrid;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
+use systems::MovementIntent;
 
 use std::path::Path;
 
@@ -162,6 +163,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.register::<RockRaider>();
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
+        world.register::<MovementIntent>();
 
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
@@ -207,11 +209,19 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 let entities = data.world.entities();
                 let asset_storages = data.world.system_data();
                 let rr_storages = data.world.system_data();
-                Base::spawn_rock_raider(
+                let raider = Base::spawn_rock_raider(
                     Point2 { x: 1., y: 1. },
                     &entities,
                     &mut (rr_storages, asset_storages),
                 );
+
+                let movement_intent = MovementIntent {
+                    path: vec![Point2 { x: 3., y: 0. }, Point2 { x: 5., y: 2. }],
+                };
+                data.world
+                    .write_storage::<MovementIntent>()
+                    .insert(raider, movement_intent)
+                    .unwrap();
 
                 //TESTING SCOPE ENDS
                 return Trans::None;
