@@ -1,6 +1,6 @@
 const CONCEALED: &str = "concealed";
 
-use amethyst::core::cgmath::{Deg, Vector3};
+use amethyst::core::cgmath::{Deg, Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::Entity;
 use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
@@ -8,6 +8,8 @@ use amethyst::prelude::*;
 use assetmanagement::util::*;
 use entities::Tile;
 use level::TilePatternMap;
+use pathfinding::directed::bfs;
+use systems::MovementIntent;
 use util;
 
 pub struct LevelGrid {
@@ -155,6 +157,81 @@ impl LevelGrid {
             .unwrap()
             .get(y as usize)
             .map(|entity| *entity)
+    }
+
+    pub fn find_path<
+        T: GenericReadStorage<Component = Tile>,
+        TR: GenericReadStorage<Component = Transform>,
+    >(
+        &self,
+        start: Entity,
+        destination: Entity,
+        tiles: &T,
+        transforms: &TR,
+    ) -> Option<MovementIntent> {
+        if let Some(result) = bfs::bfs(
+            &start,
+            |&entity| self.walkable_neighbors(&entity, tiles, transforms),
+            |&node| node == destination,
+        ) {
+            let result = result
+                .iter()
+                .map(|entity| {
+                    let position = self.grid_position_of(entity, transforms);
+                    Point2::new(position.0 as f32, position.1 as f32)
+                })
+                .collect();
+
+            return Some(MovementIntent { path: result });
+        };
+
+        None
+    }
+
+    fn walkable_neighbors<
+        T: GenericReadStorage<Component = Tile>,
+        TR: GenericReadStorage<Component = Transform>,
+    >(
+        &self,
+        entity: &Entity,
+        tiles: &T,
+        transforms: &TR,
+    ) -> Vec<Entity> {
+        let mut result = Vec::<Entity>::with_capacity(8);
+        let position = self.grid_position_of(entity, transforms);
+
+        // Note that the diagonals are not included. At hte moment, the movement is not weighed, so a diagonal path is as expensive as a linear walking when going linear
+        // thus, RockRaiders decide to go diagonal when they don't need to
+        // TODO #22
+        let mut directs = self.direct_neighbors(position.0, position.1);
+        result.append(&mut directs);
+
+        let result = result
+            .iter()
+            .filter(|&entity| {
+                if let Some(result) = tiles.get(*entity) {
+                    return result.is_walkable();
+                };
+                false
+            })
+            .map(|entity| *entity)
+            .collect::<Vec<Entity>>();
+
+        result
+    }
+
+    fn grid_position_of<T: GenericReadStorage<Component = Transform>>(
+        &self,
+        entity: &Entity,
+        storage: &T,
+    ) -> (i32, i32) {
+        if let Some(transform) = storage.get(*entity) {
+            return (
+                transform.translation[0] as i32,
+                transform.translation[2] as i32,
+            );
+        };
+        panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }
 

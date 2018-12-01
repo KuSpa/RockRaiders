@@ -40,6 +40,7 @@ impl<'a> System<'a> for MovementSystem {
     }
 }
 
+#[derive(Debug)]
 pub struct MovementIntent {
     pub path: Vec<Point2<f32>>,
 }

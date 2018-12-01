@@ -111,7 +111,7 @@ impl LevelState {
             storage.clear();
         }
         let mut mat = Transform::default();
-        mat.move_global(Vector3::new(-2., 6.0, 4.0));
+        mat.move_global(Vector3::new(-1., 6.0, 7.0));
         mat.yaw_global(Deg(-45.0));
         mat.pitch_local(Deg(-45.0));
 
@@ -171,7 +171,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
 
         // Load Oxygen from disk
         let oxygen = Oxygen {
-            remaining_oxygen: 10.,
+            remaining_oxygen: 100.,
         };
 
         world.add_resource(oxygen);
@@ -207,21 +207,33 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
 
                 // TESTING SCOPE ONLY
                 let entities = data.world.entities();
-                let asset_storages = data.world.system_data();
-                let rr_storages = data.world.system_data();
-                let raider = Base::spawn_rock_raider(
-                    Point2 { x: 1., y: 1. },
-                    &entities,
-                    &mut (rr_storages, asset_storages),
+                let rr: Entity;
+                let level_grid = data.world.read_resource::<LevelGrid>();
+                {
+                    let asset_storages = data.world.system_data();
+                    let rr_storages = data.world.system_data();
+                    rr = Base::spawn_rock_raider(
+                        Point2 { x: 1., y: 1. },
+                        &entities,
+                        &mut (rr_storages, asset_storages),
+                    );
+                }
+
+                let tile_storage = data.world.write_storage::<Tile>();
+                let transform_storage = data.world.write_storage::<Transform>();
+                let movement_intent = level_grid.find_path(
+                    level_grid.get(1, 1).unwrap(),
+                    level_grid.get(0, 5).unwrap(),
+                    &tile_storage,
+                    &transform_storage,
                 );
 
-                let movement_intent = MovementIntent {
-                    path: vec![Point2 { x: 3., y: 0. }, Point2 { x: 5., y: 2. }],
+                if let Some(movement_intent) = movement_intent {
+                    data.world
+                        .write_storage::<MovementIntent>()
+                        .insert(rr, movement_intent)
+                        .unwrap();
                 };
-                data.world
-                    .write_storage::<MovementIntent>()
-                    .insert(raider, movement_intent)
-                    .unwrap();
 
                 //TESTING SCOPE ENDS
                 return Trans::None;
