@@ -8,7 +8,7 @@ use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
+    ActiveCamera, Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
     TextureMetadata, VirtualKeyCode,
 };
 
@@ -19,9 +19,8 @@ use game_data::CustomGameData;
 use level::LevelGrid;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
-use std::time::Duration;
-
 use std::path::Path;
+use std::time::Duration;
 
 pub struct LevelState;
 
@@ -111,12 +110,16 @@ impl LevelState {
         mat.yaw_global(Deg(-45.0));
         mat.pitch_local(Deg(-45.0));
 
-        world
+        let entity = world
             .create_entity()
             .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
             .with(mat)
             .with(GlobalTransform::default())
-            .build()
+            .build();
+
+        // not sure about this line tho
+        world.add_resource(ActiveCamera { entity });
+        entity
     }
 
     fn initialize_light(world: &mut World, parent: Entity) {
