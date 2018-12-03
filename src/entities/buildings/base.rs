@@ -1,9 +1,13 @@
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::prelude::*;
+use amethyst::renderer::{Material, MaterialDefaults};
 
-use assetmanagement::util::insert_into_asset_storages;
+use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
+use collision::primitive::Cuboid;
+use collision::primitive::Primitive3;
 use entities::Tile;
+use systems::HoverHandler;
 
 pub struct Base;
 
@@ -35,12 +39,28 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        let mut storages = world.system_data();
-        insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+        {
+            let mut storages = world.system_data();
+            add_hover_handler(
+                result,
+                Base::asset_name(),
+                Base::bounding_box(),
+                &mut storages,
+            );
+        }
+
+        {
+            let mut storages = world.system_data();
+            insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+        }
     }
 
     fn asset_name() -> &'static str {
         "buildings/base"
+    }
+
+    fn bounding_box() -> Primitive3<f32> {
+        Primitive3::Cuboid(Cuboid::<f32>::new(1., 1., 1.))
     }
 }
 

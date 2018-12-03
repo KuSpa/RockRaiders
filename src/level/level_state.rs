@@ -21,6 +21,8 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::path::Path;
 use std::time::Duration;
+use systems::HoverHandler;
+use systems::Hovered;
 
 pub struct LevelState;
 
@@ -147,8 +149,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.register::<Tile>();
         world.register::<Light>();
         world.register::<Base>();
+        world.register::<HoverHandler>();
 
         world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
+        world.add_resource::<Option<Hovered>>(None);
 
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();

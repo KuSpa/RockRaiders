@@ -1,12 +1,12 @@
 use amethyst::core::cgmath::{MetricSpace, Point3};
 use amethyst::core::GlobalTransform;
 use amethyst::ecs::prelude::{
-    Component, DenseVecStorage, Entities, Entity, Join, Read, ReadExpect, ReadStorage, System,
-    Write, WriteStorage,
+    Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
+    WriteStorage,
 };
 use amethyst::renderer::Material;
 use collision::primitive::Primitive3;
-use collision::{ContinuousTransformed, Ray3};
+use collision::ContinuousTransformed;
 use systems::MouseRay;
 
 pub struct HoverInteractionSystem;
@@ -55,25 +55,25 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 hover_handlers
                     .get_mut(*a)
                     .unwrap()
-                    .revert_hover_effect(*a, &materials);
+                    .change_materials(*a, &mut materials);
                 hover_handlers
                     .get_mut(*b)
                     .unwrap()
-                    .do_hover_effect(*b, &materials);
+                    .change_materials(*b, &mut materials);
             }
             (Some(Hovered { entity: a, .. }), None) => {
                 // hover stopped, no new hover
                 hover_handlers
                     .get_mut(*a)
                     .unwrap()
-                    .revert_hover_effect(*a, &materials);
+                    .change_materials(*a, &mut materials);
             }
             (None, Some(Hovered { entity: b, .. })) => {
                 //hover started
                 hover_handlers
                     .get_mut(*b)
                     .unwrap()
-                    .do_hover_effect(*b, &materials);
+                    .change_materials(*b, &mut materials);
             }
             _ => (), //either the same entity or None at all -> no need to update Mat
         }
@@ -83,16 +83,23 @@ impl<'a> System<'a> for HoverInteractionSystem {
 // Only entities with this Component can be hovered. Other Entities will be ignored
 pub struct HoverHandler {
     pub bounding_box: Primitive3<f32>,
+
+    // when hovered, the original texture will be stored here.
     pub hover: Material,
-    revert: Option<Material>,
 }
 
 impl HoverHandler {
-    fn revert_hover_effect(&mut self, entity: Entity, materials: &WriteStorage<Material>) {
-        //TODO
+    fn from(hover: Material, bounding_box: Primitive3<f32>) -> Self {
+        HoverHandler {
+            bounding_box,
+            hover,
+        }
     }
-    fn do_hover_effect(&mut self, entity: Entity, materials: &WriteStorage<Material>) {
-        //TODO
+
+    fn change_materials(&mut self, entity: Entity, materials: &mut WriteStorage<Material>) {
+        let mat = materials.get(entity).unwrap().clone();
+        materials.insert(entity, self.hover.clone()).unwrap();
+        self.hover = mat;
     }
 }
 
