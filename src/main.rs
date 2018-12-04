@@ -4,6 +4,7 @@ extern crate log;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate pathfinding;
 
 mod assetmanagement;
 mod entities;
@@ -35,8 +36,10 @@ fn main() -> amethyst::Result<()> {
     let game_data = CustomGameDataBuilder::default()
         .with_core_bundle(input)?
         .with_core_bundle(TransformBundle::new())?
+        .with_running(systems::MovementSystem, "movement_system", &[])
         .with_running(systems::CameraMovementSystem, "camera_movement_system", &[])
         .with_running(systems::GroundRevealSystem, "ground_reveal_system", &[])
+        .with_running(systems::OxygenSystem, "oxygen_system", &[])
         .with_basic_renderer(path, DrawShaded::<PosNormTex>::new())?;
     let mut game = Application::new(assets_dir, RockRaiders, game_data)?;
     game.run();

@@ -1,6 +1,6 @@
 use amethyst::assets::{AssetStorage, Loader};
 
-use amethyst::core::cgmath::{Deg, Vector3};
+use amethyst::core::cgmath::{Deg, Point2, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 
@@ -12,16 +12,20 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
+use systems::Oxygen;
+
 use assetmanagement::AssetManager;
 use entities::buildings::Base;
+use entities::RockRaider;
 use entities::Tile;
 use game_data::CustomGameData;
 use level::LevelGrid;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
+use systems::Path;
 
-use std::path::Path;
+use std::path::Path as OSPath;
 
 pub struct LevelState;
 
@@ -29,7 +33,7 @@ pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
 
 impl LevelState {
     fn load_tile_pattern_config() -> TilePatternMap {
-        let result = TilePatternMap::load(Path::new(&format!(
+        let result = TilePatternMap::load(OSPath::new(&format!(
             "{}/resources/tile_config.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -38,8 +42,8 @@ impl LevelState {
         result
     }
 
-    fn load_grid() -> Vec<Vec<Tile>> {
-        let tile_grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
+    fn load_tile_grid() -> Vec<Vec<Tile>> {
+        let tile_grid = Vec::<Vec<Tile>>::load(OSPath::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -107,7 +111,7 @@ impl LevelState {
             storage.clear();
         }
         let mut mat = Transform::default();
-        mat.move_global(Vector3::new(-2., 6.0, 4.0));
+        mat.move_global(Vector3::new(-1., 6.0, 7.0));
         mat.yaw_global(Deg(-45.0));
         mat.pitch_local(Deg(-45.0));
 
@@ -134,36 +138,55 @@ impl LevelState {
             .with(Parent { entity: parent })
             .build();
     }
+
+    fn initialize_base(world: &mut World) {
+        let entity = world.read_resource::<LevelGrid>().get(2, 0).unwrap();
+        {
+            let mut ground_reveal_queue =
+                world.write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
+            ground_reveal_queue.push(Reverse((
+                world.read_resource::<Time>().absolute_time(),
+                entity,
+            )));
+        }
+        Base::build(&entity, world);
+    }
 }
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
     fn on_start(&mut self, data: StateData<CustomGameData>) {
-        debug!("Entering Level state");
-
         let world = data.world;
+
         world.register::<Tile>();
         world.register::<Light>();
         world.register::<Base>();
-
-        world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
-
+        world.register::<RockRaider>();
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
+        world.register::<Path>();
 
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
+        let tile_pattern_config = LevelState::load_tile_pattern_config();
+
+        let oxygen = Oxygen {
+            remaining_oxygen: 100.,
+        };
+
+        world.add_resource(oxygen);
         world.add_resource(mesh_manager);
         world.add_resource(texture_manager);
-
-        let tile_pattern_config = LevelState::load_tile_pattern_config();
         world.add_resource(tile_pattern_config);
+        world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
 
         LevelState::load_initial_assets(world);
 
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
-        let grid_definition = LevelState::load_grid();
-        LevelState::initialize_level_grid(world, grid_definition);
+
+        LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
+
+        LevelState::initialize_base(world);
     }
 
     fn handle_event(
@@ -179,18 +202,39 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Leaving Level State");
                 return Trans::Pop;
             } else if is_key_down(&event, VirtualKeyCode::Space) {
-                debug!("Start revealing");
-                let entity = data.world.read_resource::<LevelGrid>().get(2, 0).unwrap();
+                debug!("Create RockRaider");
+
+                // TESTING SCOPE ONLY
+                let entities = data.world.entities();
+                let rr: Entity;
+                let level_grid = data.world.read_resource::<LevelGrid>();
                 {
-                    let mut ground_reveal_queue = data
-                        .world
-                        .write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
-                    ground_reveal_queue.push(Reverse((
-                        data.world.read_resource::<Time>().absolute_time(),
-                        entity,
-                    )));
+                    let asset_storages = data.world.system_data();
+                    let rr_storages = data.world.system_data();
+                    rr = Base::spawn_rock_raider(
+                        Point2 { x: 1., y: 1. },
+                        &entities,
+                        &mut (rr_storages, asset_storages),
+                    );
                 }
-                Base::build(&entity, data.world);
+
+                let tile_storage = data.world.write_storage::<Tile>();
+                let transform_storage = data.world.write_storage::<Transform>();
+                let movement_intent = level_grid.find_path(
+                    level_grid.get(1, 1).unwrap(),
+                    level_grid.get(0, 5).unwrap(),
+                    &tile_storage,
+                    &transform_storage,
+                );
+
+                if let Some(movement_intent) = movement_intent {
+                    data.world
+                        .write_storage::<Path>()
+                        .insert(rr, movement_intent)
+                        .unwrap();
+                };
+
+                //TESTING SCOPE ENDS
                 return Trans::None;
             }
         }

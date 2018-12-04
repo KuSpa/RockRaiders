@@ -9,3 +9,9 @@ pub fn rotate_3x3<T: Clone>(input: &[[T; 3]; 3]) -> [[T; 3]; 3] {
     }
     result
 }
+
+use amethyst::ecs::storage::GenericReadStorage;
+use amethyst::ecs::Join;
+pub fn amount_in<T: Join + GenericReadStorage>(storage: T) -> usize {
+    storage.join().count()
+}
