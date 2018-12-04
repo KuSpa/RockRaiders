@@ -5,6 +5,7 @@ use amethyst::ecs::world::Entities;
 
 pub use assetmanagement::util::*;
 
+#[derive(Default)]
 pub struct RockRaider;
 
 pub type RockRaiderStorages<'a> = (
@@ -17,9 +18,8 @@ pub type RockRaiderStorages<'a> = (
 );
 
 impl RockRaider {
-    //note: this is a type alias for Read<'a, EntityRes>
     pub fn instantiate(
-        entities: &Entities,
+        entities: &Entities, //note: this is a type alias for Read<'a, EntityRes>
         position: Point2<f32>,
         storages: &mut RockRaiderStorages,
     ) -> Entity {
@@ -53,10 +53,4 @@ impl RockRaider {
 
 impl Component for RockRaider {
     type Storage = NullStorage<RockRaider>;
-}
-
-impl Default for RockRaider {
-    fn default() -> Self {
-        RockRaider
-    }
 }

@@ -9,7 +9,7 @@ use assetmanagement::util::*;
 use entities::Tile;
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
-use systems::MovementIntent;
+use systems::Path;
 use util;
 
 pub struct LevelGrid {
@@ -168,7 +168,7 @@ impl LevelGrid {
         destination: Entity,
         tiles: &T,
         transforms: &TR,
-    ) -> Option<MovementIntent> {
+    ) -> Option<Path> {
         if let Some(result) = bfs::bfs(
             &start,
             |&entity| self.walkable_neighbors(&entity, tiles, transforms),
@@ -182,7 +182,7 @@ impl LevelGrid {
                 })
                 .collect();
 
-            return Some(MovementIntent { path: result });
+            return Some(Path { path: result });
         };
 
         None
@@ -197,25 +197,24 @@ impl LevelGrid {
         tiles: &T,
         transforms: &TR,
     ) -> Vec<Entity> {
-        let mut result = Vec::<Entity>::with_capacity(8);
+        let mut possible_neighbors = Vec::<Entity>::with_capacity(8);
         let position = self.grid_position_of(entity, transforms);
 
         // Note that the diagonals are not included. At hte moment, the movement is not weighed, so a diagonal path is as expensive as a linear walking when going linear
         // thus, RockRaiders decide to go diagonal when they don't need to
         // TODO #22
         let mut directs = self.direct_neighbors(position.0, position.1);
-        result.append(&mut directs);
+        possible_neighbors.append(&mut directs);
 
-        let result = result
+        let result = possible_neighbors
             .iter()
-            .filter(|&entity| {
-                if let Some(result) = tiles.get(*entity) {
-                    return result.is_walkable();
-                };
-                false
+            .filter_map(|&entity| {
+                if tiles.get(entity).unwrap().is_walkable() {
+                    return Some(entity);
+                }
+                None
             })
-            .map(|entity| *entity)
-            .collect::<Vec<Entity>>();
+            .collect();
 
         result
     }

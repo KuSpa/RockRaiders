@@ -23,9 +23,9 @@ use level::LevelGrid;
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 use std::time::Duration;
-use systems::MovementIntent;
+use systems::Path;
 
-use std::path::Path;
+use std::path::Path as OSPath;
 
 pub struct LevelState;
 
@@ -33,7 +33,7 @@ pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
 
 impl LevelState {
     fn load_tile_pattern_config() -> TilePatternMap {
-        let result = TilePatternMap::load(Path::new(&format!(
+        let result = TilePatternMap::load(OSPath::new(&format!(
             "{}/resources/tile_config.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -43,7 +43,7 @@ impl LevelState {
     }
 
     fn load_tile_grid() -> Vec<Vec<Tile>> {
-        let tile_grid = Vec::<Vec<Tile>>::load(Path::new(&format!(
+        let tile_grid = Vec::<Vec<Tile>>::load(OSPath::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -163,13 +163,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.register::<RockRaider>();
         world.register::<AssetManager<Mesh>>();
         world.register::<AssetManager<Texture>>();
-        world.register::<MovementIntent>();
+        world.register::<Path>();
 
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
 
-        // Load Oxygen from disk
         let oxygen = Oxygen {
             remaining_oxygen: 100.,
         };
@@ -230,7 +229,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
 
                 if let Some(movement_intent) = movement_intent {
                     data.world
-                        .write_storage::<MovementIntent>()
+                        .write_storage::<Path>()
                         .insert(rr, movement_intent)
                         .unwrap();
                 };
