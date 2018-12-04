@@ -24,7 +24,11 @@ impl RockRaider {
         storages: &mut RockRaiderStorages,
     ) -> Entity {
         let (
-            (ref mut people_storage, ref mut transform_storage, ref mut global_transform_storage),
+            (
+                ref mut rock_raider_storage,
+                ref mut transform_storage,
+                ref mut global_transform_storage,
+            ),
             ref mut asset_storages,
         ) = storages;
 
@@ -37,7 +41,7 @@ impl RockRaider {
 
         let entity = entities
             .build_entity()
-            .with(RockRaider, people_storage)
+            .with(RockRaider, rock_raider_storage)
             .with(transform, transform_storage)
             .with(GlobalTransform::default(), global_transform_storage)
             .build();

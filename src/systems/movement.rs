@@ -1,5 +1,7 @@
 use amethyst::core::cgmath::{Angle, InnerSpace, Point2, Quaternion, Rad, Rotation3, Vector3};
-use amethyst::core::specs::prelude::{Component, Entity, Entities,Join, Read, System, WriteStorage};
+use amethyst::core::specs::prelude::{
+    Component, Entities, Entity, Join, Read, System, WriteStorage,
+};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::storage::DenseVecStorage;
@@ -14,20 +16,20 @@ impl<'a> System<'a> for MovementSystem {
         WriteStorage<'a, Transform>,
     );
 
-    fn run(&mut self, (entities, time, mut movement_intents, mut transforms): Self::SystemData) {
-        let mut removable_paths:Vec<Entity> = vec![];
+    fn run(&mut self, (entities, time, mut path_storage, mut transforms): Self::SystemData) {
+        let mut removable_paths: Vec<Entity> = vec![];
 
-        for (entity, mut path, mut transform) in (&entities, &mut movement_intents, &mut transforms).join() {
-
-
+        for (entity, mut path, mut transform) in
+            (&entities, &mut path_storage, &mut transforms).join()
+        {
             let next_destination = path[0];
             let next_destination = Vector3::from((next_destination.x, 0., next_destination.y));
 
             // shouldn't this be reversed?
             // BUT IT WORKS, SO IT STAYS until there is a solution :)
-            let direction = transform.translation- next_destination ;
+            let direction = transform.translation - next_destination;
 
-            (*transform).rotation = Quaternion::from_angle_y(Rad::atan2( direction.x,direction.z));
+            (*transform).rotation = Quaternion::from_angle_y(Rad::atan2(direction.x, direction.z));
 
             transform.move_forward(time.delta_seconds());
 
@@ -44,7 +46,7 @@ impl<'a> System<'a> for MovementSystem {
         // removable_paths.iter().map(|&e| movement_intents.remove(*e));
         // because `map` is lazy and would do nothing...
         for e in removable_paths.iter() {
-            movement_intents.remove(*e);
+            path_storage.remove(*e);
         }
     }
 }
