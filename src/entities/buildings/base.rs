@@ -3,14 +3,12 @@ use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transf
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::ecs::Entities;
 use amethyst::prelude::*;
-use amethyst::renderer::{Material, MaterialDefaults};
 
 use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
 use collision::primitive::Cuboid;
 use collision::primitive::Primitive3;
 use entities::Tile;
 use entities::{RockRaider, RockRaiderStorages};
-use systems::HoverHandler;
 use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;

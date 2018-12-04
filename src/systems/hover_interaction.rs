@@ -89,13 +89,6 @@ pub struct HoverHandler {
 }
 
 impl HoverHandler {
-    fn from(hover: Material, bounding_box: Primitive3<f32>) -> Self {
-        HoverHandler {
-            bounding_box,
-            hover,
-        }
-    }
-
     fn change_materials(&mut self, entity: Entity, materials: &mut WriteStorage<Material>) {
         let mat = materials.get(entity).unwrap().clone();
         materials.insert(entity, self.hover.clone()).unwrap();

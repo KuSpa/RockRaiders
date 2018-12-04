@@ -64,10 +64,9 @@ pub fn add_hover_handler<'a>(
     entity: Entity,
     asset_name: &str,
     bounding_box: Primitive3<f32>,
-    (loader, tex_manager, mat_storage, tex_storage, default_mat, hover_storage): &mut (
+    (loader, tex_manager, tex_storage, default_mat, hover_storage): &mut (
         ReadExpect<'a, Loader>,
         Write<'a, AssetManager<Texture>>,
-        WriteStorage<'a, Material>,
         Write<'a, AssetStorage<Texture>>,
         ReadExpect<'a, MaterialDefaults>,
         WriteStorage<'a, HoverHandler>,
@@ -90,5 +89,5 @@ pub fn add_hover_handler<'a>(
         hover: hover_mat,
         bounding_box,
     };
-    hover_storage.insert(entity, handler);
+    hover_storage.insert(entity, handler).unwrap();
 }
