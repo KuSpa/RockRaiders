@@ -34,6 +34,13 @@ impl Tile {
             _ => false,
         }
     }
+
+    pub fn is_walkable(&self) -> bool {
+        match self {
+            Tile::Ground { concealed: false } => true,
+            _ => false,
+        }
+    }
 }
 
 impl Default for Tile {
