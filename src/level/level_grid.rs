@@ -188,7 +188,7 @@ impl LevelGrid {
         None
     }
 
-    fn walkable_neighbors<
+    pub fn walkable_neighbors<
         T: GenericReadStorage<Component = Tile>,
         TR: GenericReadStorage<Component = Transform>,
     >(

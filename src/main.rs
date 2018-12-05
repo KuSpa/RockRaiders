@@ -6,6 +6,7 @@ extern crate serde;
 extern crate serde_derive;
 extern crate collision;
 extern crate pathfinding;
+extern crate rand;
 
 mod assetmanagement;
 mod entities;

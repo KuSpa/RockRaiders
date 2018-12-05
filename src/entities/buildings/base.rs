@@ -3,12 +3,14 @@ use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transf
 use amethyst::ecs::prelude::{Component, Entity, NullStorage};
 use amethyst::ecs::Entities;
 use amethyst::prelude::*;
+use rand::prelude::*;
 
 use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
 use collision::primitive::Cuboid;
 use collision::primitive::Primitive3;
 use entities::Tile;
 use entities::{RockRaider, RockRaiderStorages};
+use level::LevelGrid;
 use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;
@@ -17,14 +19,10 @@ const MAX_RAIDERS: usize = 10;
 pub struct Base;
 
 impl Base {
-    pub fn spawn_rock_raider(
-        &self,
-        entities: &Entities,
-        storages: &mut RockRaiderStorages,
-    ) -> Entity {
+    pub fn spawn_rock_raider(&self, own_entity: Entity, world: &World) -> Entity {
         {
-            let ((ref rr_storage, ..), ..) = storages;
-            if amount_in(rr_storage) >= MAX_RAIDERS {
+            let rr_storage = world.read_storage::<RockRaider>();
+            if amount_in(&rr_storage) >= MAX_RAIDERS {
                 panic!(
                     "Cannot spawn more Raiders. Limit of {} is already reached",
                     MAX_RAIDERS
@@ -32,9 +30,38 @@ impl Base {
             }
         }
 
-        let spawn_position = Point2 { x: 1., y: 1. };
+        let spawn_position = {
+            let parent = world
+                .read_storage::<Parent>()
+                .get(own_entity)
+                .unwrap()
+                .entity
+                .clone();
+            let tiles = world.read_storage::<Tile>();
+            let level_grid = world.read_resource::<LevelGrid>();
+            let transforms = world.read_storage::<Transform>();
+            let possible_spawns = level_grid.walkable_neighbors(&parent, &tiles, &transforms);
 
-        RockRaider::instantiate(entities, spawn_position, storages)
+            // when the spawns are empty, something went horribly wrong
+            assert!(!possible_spawns.is_empty());
+
+            let spawn_index = ((rand::thread_rng().gen::<f32>() * possible_spawns.len() as f32)
+                .floor() as usize)
+                // in case `thread_rng` returned exactly 1, we need to subtract 1 in the end
+                .min(possible_spawns.len() - 1);
+            let spawn_tile_position = transforms
+                .get(possible_spawns[spawn_index])
+                .unwrap()
+                .translation;
+            Point2 {
+                x: spawn_tile_position.x,
+                y: spawn_tile_position.z,
+            }
+        };
+
+        let mut storages = world.system_data();
+        let entities = world.entities();
+        RockRaider::instantiate(&entities, spawn_position, &mut storages)
     }
 
     pub fn build(entity: &Entity, world: &mut World) {
