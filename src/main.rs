@@ -9,6 +9,7 @@ extern crate pathfinding;
 
 mod assetmanagement;
 mod entities;
+mod eventhandling;
 mod game_data;
 mod level;
 mod rockraiders;

@@ -1,17 +1,18 @@
 use amethyst::assets::{AssetStorage, Loader};
 
-use amethyst::core::cgmath::{Deg, Point2, Vector3};
+use amethyst::core::cgmath::{Deg, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 
 use amethyst::ecs::Entity;
-use amethyst::input::{is_close_requested, is_key_down};
+use amethyst::input::{is_close_requested, is_key_down, InputHandler};
 use amethyst::prelude::*;
 use amethyst::renderer::{
-    ActiveCamera, Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
-    TextureMetadata, VirtualKeyCode,
+    ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Projection,
+    Rgba, Texture, TextureMetadata, VirtualKeyCode,
 };
 
+use eventhandling::Clickable;
 use systems::Oxygen;
 
 use assetmanagement::AssetManager;
@@ -29,7 +30,9 @@ use systems::Path;
 
 use std::path::Path as OSPath;
 
-pub struct LevelState;
+pub struct LevelState {
+    pub mouse_button_was_down: bool,
+}
 
 pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
 
@@ -167,6 +170,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.register::<Light>();
         world.register::<Base>();
         world.register::<HoverHandler>();
+        world.register::<Box<dyn Clickable>>();
 
         world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
         world.add_resource::<Option<Hovered>>(None);
@@ -196,8 +200,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         LevelState::initialize_light(world, cam);
 
         LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
-
-        LevelState::initialize_base(world);
     }
 
     fn handle_event(
@@ -213,42 +215,28 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Leaving Level State");
                 return Trans::Pop;
             } else if is_key_down(&event, VirtualKeyCode::Space) {
-                debug!("Create RockRaider");
-
-                // TESTING SCOPE ONLY
-                let entities = data.world.entities();
-                let rr: Entity;
-                let level_grid = data.world.read_resource::<LevelGrid>();
-                {
-                    let asset_storages = data.world.system_data();
-                    let rr_storages = data.world.system_data();
-                    rr = Base::spawn_rock_raider(
-                        Point2 { x: 1., y: 1. },
-                        &entities,
-                        &mut (rr_storages, asset_storages),
-                    );
-                }
-
-                let tile_storage = data.world.write_storage::<Tile>();
-                let transform_storage = data.world.write_storage::<Transform>();
-                let movement_intent = level_grid.find_path(
-                    level_grid.get(1, 1).unwrap(),
-                    level_grid.get(0, 5).unwrap(),
-                    &tile_storage,
-                    &transform_storage,
-                );
-
-                if let Some(movement_intent) = movement_intent {
-                    data.world
-                        .write_storage::<Path>()
-                        .insert(rr, movement_intent)
-                        .unwrap();
-                };
-
-                //TESTING SCOPE ENDS
+                do_test_method(data);
                 return Trans::None;
             }
         }
+
+        let mouse_button = data
+            .world
+            .read_resource::<InputHandler<String, String>>()
+            .mouse_button_is_down(MouseButton::Left);
+
+        if !self.mouse_button_was_down && mouse_button {
+            if let Some(hovered) = &*data.world.read_resource::<Option<Hovered>>() {
+                let entity = hovered.entity;
+                data.world
+                    .read_storage::<Box<dyn Clickable>>()
+                    .get(entity)
+                    .map(|handler| handler.on_click(&entity, data.world));
+            }
+        }
+
+        self.mouse_button_was_down = mouse_button;
+
         Trans::None
     }
 
@@ -259,4 +247,9 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         data.data.update(&data.world, true);
         Trans::None
     }
+}
+
+fn do_test_method(data: StateData<CustomGameData>) {
+    let mut world = data.world;
+    LevelState::initialize_base(world);
 }

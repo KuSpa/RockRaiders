@@ -39,7 +39,7 @@ impl<'s> System<'s> for MouseRaySystem {
                     transform.matrix(),
                 );
             }
-            _ => warn!("Could not calculate MouseRay"),
+            _ => (),
         }
     }
 }

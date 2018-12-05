@@ -13,11 +13,12 @@ use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;
 
+#[derive(Clone)]
 pub struct Base;
 
 impl Base {
     pub fn spawn_rock_raider(
-        spawn_position: Point2<f32>,
+        &self,
         entities: &Entities,
         storages: &mut RockRaiderStorages,
     ) -> Entity {
@@ -30,6 +31,8 @@ impl Base {
                 );
             }
         }
+
+        let spawn_position = Point2 { x: 1., y: 1. };
 
         RockRaider::instantiate(entities, spawn_position, storages)
     }
@@ -74,6 +77,16 @@ impl Base {
         {
             let mut storages = world.system_data();
             insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+        }
+
+        //Build Click Handler
+        {
+            use eventhandling::*;
+            let tmp: Box<dyn Clickable> = Box::new(Base);
+            world
+                .write_storage::<Box<dyn Clickable>>()
+                .insert(result, tmp)
+                .unwrap();
         }
     }
 
