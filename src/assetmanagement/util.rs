@@ -3,6 +3,7 @@ use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
 use amethyst::renderer::{
     Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
 };
+
 use assetmanagement::AssetManager;
 
 pub type AssetStorages<'a> = (

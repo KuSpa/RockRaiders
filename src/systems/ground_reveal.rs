@@ -1,13 +1,11 @@
 use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::specs::prelude::{Read, ReadExpect, System, Write, WriteStorage};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::ecs::Entity;
+use amethyst::ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage};
 use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
 
 use entities::Tile;
-use level::LevelGrid;
-use level::TilePatternMap;
+use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
 use std::cmp::Reverse;

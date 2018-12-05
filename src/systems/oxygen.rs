@@ -1,5 +1,5 @@
-use amethyst::core::specs::prelude::{Read, ReadStorage, System, Write};
 use amethyst::core::timing::Time;
+use amethyst::ecs::prelude::{Read, ReadStorage, System, Write};
 use entities::RockRaider;
 use util::amount_in;
 

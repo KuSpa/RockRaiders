@@ -1,10 +1,9 @@
 use amethyst::core::cgmath::{Angle, InnerSpace, Point2, Quaternion, Rad, Rotation3, Vector3};
-use amethyst::core::specs::prelude::{
-    Component, Entities, Entity, Join, Read, System, WriteStorage,
-};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
-use amethyst::ecs::storage::DenseVecStorage;
+use amethyst::ecs::prelude::{
+    Component, DenseVecStorage, Entities, Entity, Join, Read, System, WriteStorage,
+};
 
 pub struct MovementSystem;
 

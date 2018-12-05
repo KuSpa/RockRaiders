@@ -12,20 +12,17 @@ use amethyst::renderer::{
     TextureMetadata, VirtualKeyCode,
 };
 
-use systems::Oxygen;
+use systems::{Oxygen, Path};
 
 use assetmanagement::AssetManager;
-use entities::buildings::Base;
-use entities::RockRaider;
-use entities::Tile;
+use entities::{buildings::Base, RockRaider, Tile};
 use game_data::CustomGameData;
 use level::LevelGrid;
+
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
-use std::time::Duration;
-use systems::Path;
-
 use std::path::Path as OSPath;
+use std::time::Duration;
 
 pub struct LevelState;
 

@@ -1,12 +1,9 @@
 use amethyst::core::cgmath::Point2;
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
-use amethyst::ecs::prelude::{Component, Entity, NullStorage};
-use amethyst::ecs::Entities;
-use amethyst::prelude::*;
+use amethyst::ecs::prelude::{Builder, Component, Entities, Entity, NullStorage, World};
 
 use assetmanagement::util::insert_into_asset_storages;
-use entities::Tile;
-use entities::{RockRaider, RockRaiderStorages};
+use entities::{RockRaider, RockRaiderStorages, Tile};
 use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;
