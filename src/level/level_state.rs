@@ -13,22 +13,17 @@ use amethyst::renderer::{
 };
 
 use eventhandling::Clickable;
-use systems::Oxygen;
+use systems::{HoverHandler, Hovered, Oxygen, Path};
 
 use assetmanagement::AssetManager;
-use entities::buildings::Base;
-use entities::RockRaider;
-use entities::Tile;
+use entities::{buildings::Base, RockRaider, Tile};
 use game_data::CustomGameData;
 use level::LevelGrid;
+
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
-use std::time::Duration;
-use systems::HoverHandler;
-use systems::Hovered;
-use systems::Path;
-
 use std::path::Path as OSPath;
+use std::time::Duration;
 
 pub struct LevelState {
     pub mouse_button_was_down: bool,
@@ -250,6 +245,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
 }
 
 fn do_test_method(data: StateData<CustomGameData>) {
-    let mut world = data.world;
+    let world = data.world;
     LevelState::initialize_base(world);
 }

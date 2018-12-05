@@ -1,15 +1,12 @@
-use amethyst::core::cgmath::Point2;
-use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
-use amethyst::ecs::prelude::{Component, Entity, NullStorage};
-use amethyst::ecs::Entities;
-use amethyst::prelude::*;
+use collision::primitive::{Cuboid, Primitive3};
 use rand::prelude::*;
 
+use amethyst::core::cgmath::Point2;
+use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
+use amethyst::ecs::prelude::{Builder, Component, Entity, NullStorage, World};
+
 use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
-use collision::primitive::Cuboid;
-use collision::primitive::Primitive3;
-use entities::Tile;
-use entities::{RockRaider, RockRaiderStorages};
+use entities::{RockRaider, Tile};
 use level::LevelGrid;
 use util::amount_in;
 
