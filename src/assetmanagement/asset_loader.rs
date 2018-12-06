@@ -1,15 +1,8 @@
-// thanks to @jojolepro for his work at https://github.com/jojolepro/amethyst-extra
-// licensed under apache 2.0 shown in LICENSE file
-
 use amethyst::{
     assets::*,
-    ecs::*,
     renderer::{ObjFormat, PngFormat},
 };
-
 use std::collections::HashMap;
-use amethyst::assets::*;
-use amethyst::renderer::{ObjFormat, PngFormat};
 
 /// This trait provides basic information about the assets on disk
 /// The data is stored in a dedicated folder per asset (e.g. `.png`, `.obj`, ...). Each of which has to be identical to the other asset folders except for the different endings
@@ -65,7 +58,7 @@ where
             assets: HashMap::new(),
         }
     }
-    
+
     pub fn get_asset_handle_or_load<'a, F>(
         &mut self,
         path: &str,
