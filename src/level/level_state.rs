@@ -174,8 +174,6 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         world.add_resource::<Option<Hovered>>(None);
 
         world.register::<RockRaider>();
-        world.register::<AssetManager<Mesh>>();
-        world.register::<AssetManager<Texture>>();
         world.register::<Path>();
 
         let mesh_manager = AssetManager::<Mesh>::default();

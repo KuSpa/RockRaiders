@@ -32,8 +32,6 @@ fn main() -> amethyst::Result<()> {
 
     let path = format!("{}/resources/display.ron", env!("CARGO_MANIFEST_DIR"));
 
-    // This line is not mentioned in the pong tutorial as it is specific to the context
-    // of the git repository. It only is a different location to load the assets from.
     let assets_dir = format!("{}/assets", env!("CARGO_MANIFEST_DIR"));
 
     let input = InputBundle::<String, String>::new();
