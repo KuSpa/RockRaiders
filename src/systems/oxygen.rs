@@ -24,6 +24,7 @@ impl<'a> System<'a> for OxygenSystem {
     }
 }
 
+/// Wrapper around the amount of oxygen left in the cave.
 #[derive(Default)]
 pub struct Oxygen {
     pub remaining_oxygen: f32,

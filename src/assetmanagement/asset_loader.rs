@@ -30,12 +30,12 @@ impl AssetInformation for PngFormat {
 }
 
 /// Amethyst may drop an asset as soon as there is no valid handle to the asset anymore. This causes problems when updating the asset of an entity to an asset, which has to be loaded from disk first.
-/// 
+///
 /// Furthermore, when loosing a handle to an asset in Amethyst, it is required to load the asset once again to get another handle. So one's basically the exact same asset loaded twice.
-/// 
+///
 /// To avoid both, this struct exists once per type `T` and holds a handle to every existing asset of type `T` and returns a copy of the requested handle. If the asset handle does not exist already, the asset is loaded from disk.
-/// 
-/// Note, that this disables automated asset dropping completely, because, there will allways be a valid handle to an asset, the one which is stored in this manager 
+///
+/// Note, that this disables automated asset dropping completely, because, there will allways be a valid handle to an asset, the one which is stored in this manager
 pub struct AssetManager<T> {
     pub assets: HashMap<String, Handle<T>>,
 }

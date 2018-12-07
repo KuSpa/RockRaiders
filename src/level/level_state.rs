@@ -24,10 +24,23 @@ use systems::{HoverHandler, Hovered, Oxygen, Path};
 
 use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
 
+/// The `State` that is active, when a level runs
 pub struct LevelState {
     pub mouse_button_was_down: bool,
 }
 
+/// This is a Map referencing from a 3x3 Tile matrix to a String.
+/// The 3x3 describes a pattern (for example 9 times a `Tile::Wall`) that can occur in the cave's layout and maps to the asset's name that is representing it:
+///
+/// example:
+/// ```
+/// (
+///  [[Ground, Ground, Ground],
+///   [Wall,   Wall,   Wall],
+///   [Wall,   Wall,   Wall]]
+///  , "straight_wall"
+/// ```
+///
 pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
 
 impl LevelState {

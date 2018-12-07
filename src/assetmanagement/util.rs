@@ -9,6 +9,7 @@ use amethyst::{
 
 use assetmanagement::AssetManager;
 
+/// A collection of the required resources necessary to attach `Texture` and `MeshHandle` to an entity
 pub type AssetStorages<'a> = (
     ReadExpect<'a, Loader>,
     Write<'a, AssetManager<Mesh>>,
@@ -20,6 +21,7 @@ pub type AssetStorages<'a> = (
     ReadExpect<'a, MaterialDefaults>,
 );
 
+/// Attaches `Material` and `MéshHandle` of specified asset to the entity
 pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &mut AssetStorages) {
     let (
         ref loader,
