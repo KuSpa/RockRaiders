@@ -65,27 +65,20 @@ pub fn add_hover_handler<'a>(
     entity: Entity,
     asset_name: &str,
     bounding_box: Primitive3<f32>,
-    (loader, tex_manager, tex_storage, default_mat, hover_storage): &mut (
+    (loader, tex_manager, tex_storage, hover_storage): &mut (
         ReadExpect<'a, Loader>,
         Write<'a, AssetManager<Texture>>,
         Write<'a, AssetStorage<Texture>>,
-        ReadExpect<'a, MaterialDefaults>,
         WriteStorage<'a, HoverHandler>,
     ),
 ) {
-    let hover_mat = {
-        let handle = tex_manager.get_asset_handle_or_load(
-            &[asset_name, "_hover"].join(""),
-            PngFormat,
-            TextureMetadata::srgb(),
-            tex_storage,
-            &loader,
-        );
-        Material {
-            albedo: handle,
-            ..default_mat.0.clone()
-        }
-    };
+    let hover_mat = tex_manager.get_asset_handle_or_load(
+        &[asset_name, "_hover"].join(""),
+        PngFormat,
+        TextureMetadata::srgb(),
+        tex_storage,
+        &loader,
+    );
     let handler = HoverHandler {
         hover: hover_mat,
         bounding_box,

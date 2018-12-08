@@ -1,10 +1,10 @@
-use amethyst::core::cgmath::{MetricSpace };
+use amethyst::core::cgmath::MetricSpace;
 use amethyst::core::GlobalTransform;
 use amethyst::ecs::prelude::{
     Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
     WriteStorage,
 };
-use amethyst::renderer::Material;
+use amethyst::renderer::{Material, TextureHandle};
 use collision::primitive::Primitive3;
 use collision::ContinuousTransformed;
 use systems::MouseRay;
@@ -37,9 +37,9 @@ impl<'a> System<'a> for HoverInteractionSystem {
 
                 // Option::map_or
                 // If there is no nearest collision (the `true` part), or if the current distance is shorter than the stored one, then override nearest
-                if nearest.map_or(true, |(nearest_distance,  _)|
+                if nearest.map_or(true, |(nearest_distance, _)| {
                     collision_distance < nearest_distance
-               ) {
+                }) {
                     nearest = Some((collision_distance, entity))
                 }
             }
@@ -47,17 +47,17 @@ impl<'a> System<'a> for HoverInteractionSystem {
 
         let old_hovered_entity = (*hovered).take();
 
-        *hovered = nearest.map(|(_, entity)| Hovered {
-            entity,
+        *hovered = nearest.map(|(_, entity)| Hovered { entity });
+
+        old_hovered_entity.map(|hovered| {
+            hover_handlers
+                .get_mut(hovered.entity)
+                .unwrap()
+                .change_materials(&hovered.entity, &mut materials)
         });
 
-        old_hovered_entity.map(|hovered|hover_handlers
-            .get_mut(hovered.entity)
-            .unwrap()
-            .change_materials(&hovered.entity, &mut materials));
-
         // we cannot use `map()` here, because map would move `hovered` while only only borrowed it from the world
-        if let Some(Hovered{entity:e, ..}) = *hovered {
+        if let Some(Hovered { entity: e, .. }) = *hovered {
             hover_handlers
                 .get_mut(e)
                 .unwrap()
@@ -70,15 +70,16 @@ impl<'a> System<'a> for HoverInteractionSystem {
 pub struct HoverHandler {
     pub bounding_box: Primitive3<f32>,
 
-    // when hovered, the original texture will be stored here.
-    pub hover: Material,
+    // when hovered, the original `TextureHandle` will be stored here.
+    pub hover: TextureHandle,
 }
 
 impl HoverHandler {
     fn change_materials(&mut self, entity: &Entity, materials: &mut WriteStorage<Material>) {
-        let mat = materials.remove(*entity).unwrap();
-        materials.insert(*entity, self.hover.clone()).unwrap();
-        self.hover = mat;
+        let mat = materials.get_mut(*entity).unwrap();
+        let texture_handle = mat.albedo.clone();
+        mat.albedo = self.hover.clone();
+        self.hover = texture_handle;
     }
 }
 
