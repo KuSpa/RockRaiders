@@ -12,7 +12,6 @@ use util::amount_in;
 
 const MAX_RAIDERS: usize = 10;
 
-#[derive(Clone)]
 pub struct Base;
 
 impl Base {
@@ -32,8 +31,7 @@ impl Base {
                 .read_storage::<Parent>()
                 .get(own_entity)
                 .unwrap()
-                .entity
-                .clone();
+                .entity;
             let tiles = world.read_storage::<Tile>();
             let level_grid = world.read_resource::<LevelGrid>();
             let transforms = world.read_storage::<Transform>();

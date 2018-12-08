@@ -51,13 +51,11 @@ fn from_window_space(
     view: Matrix4<f32>,
 ) -> Vector3<f32> {
     let mut v = Vector4 {
-        x: position_x,
-        y: position_y,
+        x: 2. * position_x / width - 1.,
+        y: 2. * (height - position_y) / height - 1.,
         z: 0.,
         w: 0.,
     };
-    v.x = 2. * v.x / width - 1.;
-    v.y = 2. * (height - v.y) / height - 1.;
     v = proj.invert().expect("cannot invert projection matrix") * v;
     v.z = -1.;
     v = view * v;

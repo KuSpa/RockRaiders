@@ -122,7 +122,6 @@ impl LevelState {
             .with(GlobalTransform::default())
             .build();
 
-        // not sure about this line tho
         world.add_resource(ActiveCamera { entity });
         entity
     }

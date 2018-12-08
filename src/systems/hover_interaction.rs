@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::{MetricSpace, Point3};
+use amethyst::core::cgmath::{MetricSpace };
 use amethyst::core::GlobalTransform;
 use amethyst::ecs::prelude::{
     Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
@@ -34,48 +34,34 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 .intersection_transformed(&mouse_ray.ray, &transform.0)
             {
                 let collision_distance = mouse_ray.ray.origin.distance2(point);
-                if nearest.map_or(true, |(nearest_distance, _, _)| {
+
+                // Option::map_or
+                // If there is no nearest collision (the `true` part), or if the current distance is shorter than the stored one, then override nearest
+                if nearest.map_or(true, |(nearest_distance,  _)|
                     collision_distance < nearest_distance
-                }) {
-                    nearest = Some((collision_distance, point, entity))
+               ) {
+                    nearest = Some((collision_distance, entity))
                 }
             }
         }
 
-        let old_hovered_entity = (*hovered).clone();
+        let old_hovered_entity = (*hovered).take();
 
-        *hovered = nearest.map(|(_, point, entity)| Hovered {
-            entity: entity,
-            point: point,
+        *hovered = nearest.map(|(_, entity)| Hovered {
+            entity,
         });
 
-        match (&old_hovered_entity, &*hovered) {
-            (Some(Hovered { entity: a, .. }), Some(Hovered { entity: b, .. })) if a != b => {
-                // a new entity was hovered. Revert the old's Material and update the new one's
-                hover_handlers
-                    .get_mut(*a)
-                    .unwrap()
-                    .change_materials(*a, &mut materials);
-                hover_handlers
-                    .get_mut(*b)
-                    .unwrap()
-                    .change_materials(*b, &mut materials);
-            }
-            (Some(Hovered { entity: a, .. }), None) => {
-                // hover stopped, no new hover
-                hover_handlers
-                    .get_mut(*a)
-                    .unwrap()
-                    .change_materials(*a, &mut materials);
-            }
-            (None, Some(Hovered { entity: b, .. })) => {
-                //hover started
-                hover_handlers
-                    .get_mut(*b)
-                    .unwrap()
-                    .change_materials(*b, &mut materials);
-            }
-            _ => (), //either the same entity or None at all -> no need to update Mat
+        old_hovered_entity.map(|hovered|hover_handlers
+            .get_mut(hovered.entity)
+            .unwrap()
+            .change_materials(&hovered.entity, &mut materials));
+
+        // we cannot use `map()` here, because map would move `hovered` while only only borrowed it from the world
+        if let Some(Hovered{entity:e, ..}) = *hovered {
+            hover_handlers
+                .get_mut(e)
+                .unwrap()
+                .change_materials(&e, &mut materials)
         }
     }
 }
@@ -89,9 +75,9 @@ pub struct HoverHandler {
 }
 
 impl HoverHandler {
-    fn change_materials(&mut self, entity: Entity, materials: &mut WriteStorage<Material>) {
-        let mat = materials.get(entity).unwrap().clone();
-        materials.insert(entity, self.hover.clone()).unwrap();
+    fn change_materials(&mut self, entity: &Entity, materials: &mut WriteStorage<Material>) {
+        let mat = materials.remove(*entity).unwrap();
+        materials.insert(*entity, self.hover.clone()).unwrap();
         self.hover = mat;
     }
 }
@@ -103,5 +89,4 @@ impl Component for HoverHandler {
 #[derive(Clone)]
 pub struct Hovered {
     pub entity: Entity,
-    pub point: Point3<f32>,
 }
