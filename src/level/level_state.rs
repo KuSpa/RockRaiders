@@ -7,8 +7,8 @@ use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{ScreenDimensions,
-    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Rgba, Texture,
+use amethyst::renderer::{
+    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Rgba, ScreenDimensions, Texture,
     TextureMetadata, VirtualKeyCode,
 };
 
@@ -112,9 +112,10 @@ impl LevelState {
         mat.yaw_global(-std::f32::consts::FRAC_PI_4);
         mat.pitch_local(-std::f32::consts::FRAC_PI_4);
 
-
-        let (screen_w, screen_h)= {let dims = world.read_resource::<ScreenDimensions>();
-            (dims.width(), dims.height())};
+        let (screen_w, screen_h) = {
+            let dims = world.read_resource::<ScreenDimensions>();
+            (dims.width(), dims.height())
+        };
 
         world
             .create_entity()
@@ -213,7 +214,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                     let asset_storages = data.world.system_data();
                     let rr_storages = data.world.system_data();
                     rr = Base::spawn_rock_raider(
-                        Point2::<f32>::new(1., 1. ),
+                        Point2::<f32>::new(1., 1.),
                         &entities,
                         &mut (rr_storages, asset_storages),
                     );

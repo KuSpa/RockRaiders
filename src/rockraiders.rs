@@ -8,7 +8,6 @@ use level::LevelState;
 pub struct RockRaiders;
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
-
     fn handle_event(
         &mut self,
         _: StateData<CustomGameData>,

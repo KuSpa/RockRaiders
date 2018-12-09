@@ -2,7 +2,7 @@ use amethyst::core::specs::prelude::{Join, Read, ReadExpect, ReadStorage, System
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 
-use amethyst::core::nalgebra::{Vector3, Vector4, Unit};
+use amethyst::core::nalgebra::{Unit, Vector3, Vector4};
 
 use amethyst::input::InputHandler;
 use amethyst::renderer::{Camera, ScreenDimensions};
@@ -45,7 +45,7 @@ impl<'a> System<'a> for CameraMovementSystem {
 
                 transform.move_along_global(
                     Unit::<Vector3<f32>>::new_normalize(move_dir),
-                    time.delta_seconds()
+                    time.delta_seconds(),
                 );
             }
         }

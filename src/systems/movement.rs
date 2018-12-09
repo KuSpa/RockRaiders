@@ -1,4 +1,4 @@
-use amethyst::core::nalgebra::{Point2, UnitQuaternion, Vector3, Real};
+use amethyst::core::nalgebra::{Point2, Real, UnitQuaternion, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 use amethyst::ecs::prelude::{
@@ -26,9 +26,12 @@ impl<'a> System<'a> for MovementSystem {
 
             // shouldn't this be reversed?
             // BUT IT WORKS, SO IT STAYS until there is a solution :)
-            let direction = transform.translation()- next_destination;
+            let direction = transform.translation() - next_destination;
 
-            *transform.rotation_mut() = UnitQuaternion::<f32>::from_axis_angle(&Vector3::<f32>::y_axis() , Real::atan2(direction.x, direction.z));
+            *transform.rotation_mut() = UnitQuaternion::<f32>::from_axis_angle(
+                &Vector3::<f32>::y_axis(),
+                Real::atan2(direction.x, direction.z),
+            );
 
             transform.move_forward(time.delta_seconds());
 
