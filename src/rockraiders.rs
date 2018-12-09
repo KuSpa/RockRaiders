@@ -1,8 +1,6 @@
-use amethyst::core::nalgebra::Vector3;
-use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{Camera, Projection, VirtualKeyCode};
+use amethyst::renderer::VirtualKeyCode;
 use game_data::CustomGameData;
 
 use level::LevelState;
@@ -10,11 +8,6 @@ use level::LevelState;
 pub struct RockRaiders;
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
-    fn on_start(&mut self, data: StateData<CustomGameData>) {
-        let world = data.world;
-
-        initialize_camera(world);
-    }
 
     fn handle_event(
         &mut self,
@@ -38,19 +31,4 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
         data.data.update(&data.world, false);
         Trans::None
     }
-}
-
-/// initialize the camera.
-fn initialize_camera(world: &mut World) {
-    let mut mat = Transform::default();
-    mat.move_global(Vector3::new(-2.0, 5.0, 2.0));
-    mat.yaw_global(-45.0);
-    mat.pitch_local(-45.0);
-
-    world
-        .create_entity()
-        .with(Camera::from(Projection::perspective(1.0, 60.0)))
-        .with(mat)
-        .with(GlobalTransform::default())
-        .build();
 }

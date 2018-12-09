@@ -7,8 +7,8 @@ use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 use amethyst::ecs::Entity;
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
-use amethyst::renderer::{
-    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Projection, Rgba, Texture,
+use amethyst::renderer::{ScreenDimensions,
+    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Rgba, Texture,
     TextureMetadata, VirtualKeyCode,
 };
 
@@ -109,12 +109,16 @@ impl LevelState {
         }
         let mut mat = Transform::default();
         mat.move_global(Vector3::new(-1., 6.0, 7.0));
-        mat.yaw_global(-45.0);
-        mat.pitch_local(-45.0);
+        mat.yaw_global(-std::f32::consts::FRAC_PI_4);
+        mat.pitch_local(-std::f32::consts::FRAC_PI_4);
+
+
+        let (screen_w, screen_h)= {let dims = world.read_resource::<ScreenDimensions>();
+            (dims.width(), dims.height())};
 
         world
             .create_entity()
-            .with(Camera::from(Projection::perspective(1.0, 60.0)))
+            .with(Camera::standard_3d(screen_w, screen_h))
             .with(mat)
             .with(GlobalTransform::default())
             .build()
@@ -199,7 +203,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 debug!("Leaving Level State");
                 return Trans::Pop;
             } else if is_key_down(&event, VirtualKeyCode::Space) {
-                debug!("Create RockRaider");
+                error!("Create RockRaider");
 
                 // TESTING SCOPE ONLY
                 let entities = data.world.entities();
