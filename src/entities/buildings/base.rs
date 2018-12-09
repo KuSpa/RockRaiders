@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::Point2;
+use amethyst::core::nalgebra::Point2;
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Builder, Component, Entities, Entity, NullStorage, World};
 

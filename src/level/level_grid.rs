@@ -2,7 +2,7 @@ const CONCEALED: &str = "concealed";
 
 use pathfinding::directed::bfs;
 
-use amethyst::core::cgmath::{Deg, Point2, Vector3};
+use amethyst::core::nalgebra::{Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::{Builder, Entity, World};
 use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
@@ -130,12 +130,12 @@ impl LevelGrid {
         insert_into_asset_storages(entity, classifier, storages);
 
         let mut transform = Transform::default();
-        transform.set_position(Vector3 {
-            x: x as f32,
-            y: 0.0,
-            z: y as f32,
-        });
-        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
+        transform.set_position(Vector3::<f32>::new(
+            x as f32,
+            0.0,
+            y as f32,
+        ));
+        transform.rotate_local(Vector3::<f32>::y_axis(), -rotation as f32);
         transforms.insert(entity, transform).unwrap();
     }
 
@@ -227,8 +227,8 @@ impl LevelGrid {
     ) -> (i32, i32) {
         if let Some(transform) = storage.get(*entity) {
             return (
-                transform.translation[0] as i32,
-                transform.translation[2] as i32,
+                transform.translation().x as i32,
+                transform.translation().z as i32,
             );
         };
         panic!("Entity is not part of the grid, but its grid position was asked");

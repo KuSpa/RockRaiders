@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::{Deg, Vector3};
+use amethyst::core::nalgebra::Vector3;
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::input::{is_close_requested, is_key_down};
 use amethyst::prelude::*;
@@ -44,12 +44,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
 fn initialize_camera(world: &mut World) {
     let mut mat = Transform::default();
     mat.move_global(Vector3::new(-2.0, 5.0, 2.0));
-    mat.yaw_global(Deg(-45.0));
-    mat.pitch_local(Deg(-45.0));
+    mat.yaw_global(-45.0);
+    mat.pitch_local(-45.0);
 
     world
         .create_entity()
-        .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
+        .with(Camera::from(Projection::perspective(1.0, 60.0)))
         .with(mat)
         .with(GlobalTransform::default())
         .build();

@@ -53,8 +53,8 @@ impl<'a> System<'a> for GroundRevealSystem {
             };
 
             let tran = transforms.get(entity).unwrap().clone();
-            let x = tran.translation[0] as i32;
-            let y = tran.translation[2] as i32;
+            let x = tran.translation().x as i32;
+            let y = tran.translation().z as i32;
 
             let mut neighbors = vec![];
             neighbors.extend(level_grid.direct_neighbors(x, y));
@@ -86,8 +86,8 @@ impl<'a> System<'a> for GroundRevealSystem {
                     Tile::Ground { concealed: true } => (),
                     _ => {
                         let transform = transforms.get(neighbor).unwrap().clone();
-                        let x = transform.translation[0] as i32;
-                        let y = transform.translation[2] as i32;
+                        let x = transform.translation().x as i32;
+                        let y = transform.translation().z as i32;
 
                         level_grid.update_tile(x, y, &dict, &mut transforms, &tiles, &mut storages);
                     }

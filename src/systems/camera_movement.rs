@@ -2,7 +2,7 @@ use amethyst::core::specs::prelude::{Join, Read, ReadExpect, ReadStorage, System
 use amethyst::core::timing::Time;
 use amethyst::core::transform::Transform;
 
-use amethyst::core::cgmath::{Vector3, Vector4, Zero};
+use amethyst::core::nalgebra::{Vector3, Vector4, Unit};
 
 use amethyst::input::InputHandler;
 use amethyst::renderer::{Camera, ScreenDimensions};
@@ -38,14 +38,14 @@ impl<'a> System<'a> for CameraMovementSystem {
         }
 
         let mut dir = Vector4::new(x, 0.0, z, 0.0);
-        if !dir.is_zero() {
+        if !(dir.magnitude() == 0.0) {
             for (transform, _) in (&mut transforms, &cams).join() {
                 dir = transform.matrix() * dir;
                 let move_dir = Vector3::new(dir.x, 0.0, dir.z);
 
                 transform.move_along_global(
-                    move_dir,
-                    time.delta_seconds() * ((x.abs() + z.abs()) / 2.0),
+                    Unit::<Vector3<f32>>::new_normalize(move_dir),
+                    time.delta_seconds()
                 );
             }
         }

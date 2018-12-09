@@ -1,6 +1,6 @@
 use amethyst::assets::{AssetStorage, Loader};
 
-use amethyst::core::cgmath::{Deg, Point2, Vector3};
+use amethyst::core::nalgebra::{Point2, Vector3};
 use amethyst::core::timing::Time;
 use amethyst::core::transform::{GlobalTransform, Parent, Transform};
 
@@ -109,12 +109,12 @@ impl LevelState {
         }
         let mut mat = Transform::default();
         mat.move_global(Vector3::new(-1., 6.0, 7.0));
-        mat.yaw_global(Deg(-45.0));
-        mat.pitch_local(Deg(-45.0));
+        mat.yaw_global(-45.0);
+        mat.pitch_local(-45.0);
 
         world
             .create_entity()
-            .with(Camera::from(Projection::perspective(1.0, Deg(60.0))))
+            .with(Camera::from(Projection::perspective(1.0, 60.0)))
             .with(mat)
             .with(GlobalTransform::default())
             .build()
@@ -209,7 +209,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                     let asset_storages = data.world.system_data();
                     let rr_storages = data.world.system_data();
                     rr = Base::spawn_rock_raider(
-                        Point2 { x: 1., y: 1. },
+                        Point2::<f32>::new(1., 1. ),
                         &entities,
                         &mut (rr_storages, asset_storages),
                     );
