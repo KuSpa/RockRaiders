@@ -74,10 +74,10 @@ impl LevelGrid {
         y: i32,
         tile_patterns: &'a TilePatternMap,
         storage: &T,
-    ) -> (&'a str, i32) {
+    ) -> (&'a str, f32) {
         let tile = self.get_tile(x as i32, y as i32, storage).unwrap();
         if let Tile::Ground { concealed: true } = tile {
-            return (CONCEALED, 0);
+            return (CONCEALED, 0.);
         };
         let mut key = [[Tile::default(); 3]; 3];
         for delta_x in 0..3 {
@@ -105,7 +105,7 @@ impl LevelGrid {
                     }
                 }
                 if pattern_match {
-                    return (value.as_str(), 90 * rotation);
+                    return (value.as_str(), (rotation as f32) * std::f32::consts::PI/2.);
                 }
             }
             key = util::rotate_3x3(&key);
@@ -135,7 +135,7 @@ impl LevelGrid {
             0.0,
             y as f32,
         ));
-        transform.rotate_local(Vector3::<f32>::y_axis(), -rotation as f32);
+        transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
     }
 
