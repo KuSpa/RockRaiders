@@ -41,12 +41,9 @@ impl<'a> System<'a> for CameraMovementSystem {
         if !(dir.magnitude() == 0.0) {
             for (transform, _) in (&mut transforms, &cams).join() {
                 dir = transform.matrix() * dir;
-                let move_dir = Vector3::new(dir.x, 0.0, dir.z);
+                let move_dir = Unit::<Vector3<f32>>::new_normalize(Vector3::new(dir.x, 0.0, dir.z));
 
-                transform.move_along_global(
-                    Unit::<Vector3<f32>>::new_normalize(move_dir),
-                    time.delta_seconds(),
-                );
+                transform.move_along_global(move_dir, time.delta_seconds());
             }
         }
     }
