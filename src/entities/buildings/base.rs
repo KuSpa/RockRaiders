@@ -1,7 +1,6 @@
-use collision::primitive::{Cuboid, Primitive3};
 use rand::prelude::*;
 
-use amethyst::core::cgmath::Point2;
+use amethyst::core::nalgebra::{Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
 use amethyst::ecs::prelude::{Builder, Component, Entity, NullStorage, World};
 
@@ -9,6 +8,8 @@ use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
 use entities::{RockRaider, Tile};
 use level::LevelGrid;
 use util::amount_in;
+
+use ncollide3d::shape::{Cuboid, Shape};
 
 const MAX_RAIDERS: usize = 10;
 
@@ -47,11 +48,8 @@ impl Base {
             let spawn_tile_position = transforms
                 .get(possible_spawns[spawn_index])
                 .unwrap()
-                .translation;
-            Point2 {
-                x: spawn_tile_position.x,
-                y: spawn_tile_position.z,
-            }
+                .translation();
+            Point2::new(spawn_tile_position.x, spawn_tile_position.z)
         };
 
         let mut storages = world.system_data();
@@ -116,8 +114,8 @@ impl Base {
         "buildings/base"
     }
 
-    fn bounding_box() -> Primitive3<f32> {
-        Primitive3::Cuboid(Cuboid::<f32>::new(1., 1., 1.))
+    fn bounding_box() -> Box<dyn Shape<f32>> {
+        Box::new(Cuboid::new(Vector3::new(0.5, 0.5, 0.5)))
     }
 }
 

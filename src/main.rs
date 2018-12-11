@@ -4,7 +4,7 @@ extern crate log;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
-extern crate collision;
+extern crate ncollide3d;
 extern crate pathfinding;
 extern crate rand;
 

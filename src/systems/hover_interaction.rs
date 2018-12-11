@@ -1,12 +1,12 @@
-use amethyst::core::cgmath::MetricSpace;
+use amethyst::core::nalgebra::geometry::Isometry3;
+use amethyst::core::nalgebra::try_convert_ref;
 use amethyst::core::GlobalTransform;
 use amethyst::ecs::prelude::{
     Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
     WriteStorage,
 };
 use amethyst::renderer::{Material, TextureHandle};
-use collision::primitive::Primitive3;
-use collision::ContinuousTransformed;
+use ncollide3d::shape::Shape;
 use systems::MouseRay;
 
 pub struct HoverInteractionSystem;
@@ -29,12 +29,15 @@ impl<'a> System<'a> for HoverInteractionSystem {
         for (entity, hover_handler, transform) in
             (&*entities, &mut hover_handlers, &transforms).join()
         {
-            if let Some(point) = hover_handler
+            if let Some(collision_distance) = hover_handler
                 .bounding_box
-                .intersection_transformed(&mouse_ray.ray, &transform.0)
-            {
-                let collision_distance = mouse_ray.ray.origin.distance2(point);
-
+                .as_ray_cast()
+                .unwrap()
+                .toi_with_ray(
+                    &try_convert_ref(&transform.0).unwrap(),
+                    &mouse_ray.ray,
+                    true,
+                ) {
                 // Option::map_or
                 // If there is no nearest collision (the `true` part), or if the current distance is shorter than the stored one, then override nearest
                 if nearest.map_or(true, |(nearest_distance, _)| {
@@ -44,18 +47,14 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 }
             }
         }
-
         let old_hovered_entity = (*hovered).take();
-
         *hovered = nearest.map(|(_, entity)| Hovered { entity });
-
         old_hovered_entity.map(|hovered| {
             hover_handlers
                 .get_mut(hovered.entity)
                 .unwrap()
                 .change_materials(&hovered.entity, &mut materials)
         });
-
         // we cannot use `map()` here, because map would move `hovered` while only only borrowed it from the world
         if let Some(Hovered { entity: e, .. }) = *hovered {
             hover_handlers
@@ -68,8 +67,7 @@ impl<'a> System<'a> for HoverInteractionSystem {
 
 // Only entities with this Component can be hovered. Other Entities will be ignored
 pub struct HoverHandler {
-    pub bounding_box: Primitive3<f32>,
-
+    pub bounding_box: Box<dyn Shape<f32>>,
     // when hovered, the original `TextureHandle` will be stored here.
     pub hover: TextureHandle,
 }
