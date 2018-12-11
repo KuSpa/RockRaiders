@@ -5,7 +5,6 @@ use amethyst::renderer::{
 };
 
 use assetmanagement::AssetManager;
-use collision::primitive::Primitive3;
 
 pub type AssetStorages<'a> = (
     ReadExpect<'a, Loader>,
@@ -60,11 +59,11 @@ pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &m
 }
 
 use systems::HoverHandler;
-
+use ncollide3d::shape::Shape;
 pub fn add_hover_handler<'a>(
     entity: Entity,
     asset_name: &str,
-    bounding_box: Primitive3<f32>,
+    bounding_box: Box<dyn Shape<f32>>,
     (loader, tex_manager, tex_storage, hover_storage): &mut (
         ReadExpect<'a, Loader>,
         Write<'a, AssetManager<Texture>>,

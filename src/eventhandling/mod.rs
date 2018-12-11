@@ -1,3 +1,3 @@
-mod click_handler;
+mod click_handling;
 
-pub use self::click_handler::*;
+pub use self::click_handling::*;
