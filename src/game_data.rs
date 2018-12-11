@@ -1,7 +1,9 @@
 use amethyst::{
+    config::Config,
     core::{ArcThreadPool, SystemBundle},
     ecs::prelude::{Dispatcher, DispatcherBuilder, System, World},
-    renderer::pipe::pass::Pass,
+    renderer::{DisplayConfig, DrawShaded, Pipeline, PosNormTex, RenderBundle, Stage},
+    ui::DrawUi,
     DataInit, Error, Result,
 };
 
@@ -35,22 +37,16 @@ impl<'a, 'b> CustomGameDataBuilder<'a, 'b> {
         }
     }
 
-    // edited funtion without UI
-    // nescessary cause, basic renderer is used so far...
-    // will be obsolet with 0.9 probably
-    pub fn with_basic_renderer<A, P>(self, path: A, pass: P) -> Result<Self>
+    pub fn with_custom_renderer<A>(self, path: A) -> Result<Self>
     where
         A: AsRef<Path>,
-        P: Pass + 'b,
     {
-        use amethyst::config::Config;
-        use amethyst::renderer::{DisplayConfig, Pipeline, RenderBundle, Stage};
-
         let config = DisplayConfig::load(path);
         let pipe = Pipeline::build().with_stage(
             Stage::with_backbuffer()
                 .clear_target([0.0, 0.0, 0.0, 1.0], 1.0)
-                .with_pass(pass),
+                .with_pass(DrawShaded::<PosNormTex>::new())
+                .with_pass(DrawUi::new()),
         );
         self.with_core_bundle(RenderBundle::new(pipe, Some(config)))
     }
@@ -61,6 +57,16 @@ impl<'a, 'b> CustomGameDataBuilder<'a, 'b> {
     {
         bundle
             .build(&mut self.core)
+            .map_err(|err| Error::Core(err))?;
+        Ok(self)
+    }
+
+    pub fn with_running_bundle<B>(mut self, bundle: B) -> Result<Self>
+    where
+        B: SystemBundle<'a, 'b>,
+    {
+        bundle
+            .build(&mut self.level)
             .map_err(|err| Error::Core(err))?;
         Ok(self)
     }
