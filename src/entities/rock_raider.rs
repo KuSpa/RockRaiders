@@ -1,4 +1,4 @@
-use amethyst::core::cgmath::{Point2, Vector3};
+use amethyst::core::nalgebra::{Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::{Component, Entities, Entity, NullStorage, WriteStorage};
 
@@ -32,11 +32,7 @@ impl RockRaider {
         ) = storages;
 
         let mut transform = Transform::default();
-        transform.set_position(Vector3 {
-            x: position.x,
-            y: 0.0,
-            z: position.y,
-        });
+        transform.set_position(Vector3::<f32>::new(position.x, 0.0, position.y));
 
         let entity = entities
             .build_entity()

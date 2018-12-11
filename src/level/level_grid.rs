@@ -2,7 +2,7 @@ const CONCEALED: &str = "concealed";
 
 use pathfinding::directed::bfs;
 
-use amethyst::core::cgmath::{Deg, Point2, Vector3};
+use amethyst::core::nalgebra::{Point2, Vector3};
 use amethyst::core::transform::{GlobalTransform, Transform};
 use amethyst::ecs::prelude::{Builder, Entity, World};
 use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
@@ -74,10 +74,10 @@ impl LevelGrid {
         y: i32,
         tile_patterns: &'a TilePatternMap,
         storage: &T,
-    ) -> (&'a str, i32) {
+    ) -> (&'a str, f32) {
         let tile = self.get_tile(x as i32, y as i32, storage).unwrap();
         if let Tile::Ground { concealed: true } = tile {
-            return (CONCEALED, 0);
+            return (CONCEALED, 0.);
         };
         let mut key = [[Tile::default(); 3]; 3];
         for delta_x in 0..3 {
@@ -105,7 +105,10 @@ impl LevelGrid {
                     }
                 }
                 if pattern_match {
-                    return (value.as_str(), 90 * rotation);
+                    return (
+                        value.as_str(),
+                        (rotation as f32) * std::f32::consts::PI / 2.,
+                    );
                 }
             }
             key = util::rotate_3x3(&key);
@@ -130,12 +133,8 @@ impl LevelGrid {
         insert_into_asset_storages(entity, classifier, storages);
 
         let mut transform = Transform::default();
-        transform.set_position(Vector3 {
-            x: x as f32,
-            y: 0.0,
-            z: y as f32,
-        });
-        transform.rotate_local(Vector3::new(0.0, 1.0, 0.0), Deg(-rotation as f32));
+        transform.set_position(Vector3::<f32>::new(x as f32, 0.0, y as f32));
+        transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
     }
 
@@ -227,8 +226,8 @@ impl LevelGrid {
     ) -> (i32, i32) {
         if let Some(transform) = storage.get(*entity) {
             return (
-                transform.translation[0] as i32,
-                transform.translation[2] as i32,
+                transform.translation().x as i32,
+                transform.translation().z as i32,
             );
         };
         panic!("Entity is not part of the grid, but its grid position was asked");
