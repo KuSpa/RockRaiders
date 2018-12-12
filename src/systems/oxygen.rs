@@ -1,25 +1,38 @@
 use amethyst::{
     core::timing::Time,
-    ecs::prelude::{Read, ReadStorage, System, Write},
+    ecs::prelude::{Read,ReadExpect, ReadStorage, System, Write, WriteStorage},
+    ui::UiTransform,
 };
 use entities::RockRaider;
+use ui::OxygenBar;
 use util::amount_in;
 
 pub struct OxygenSystem;
 
 impl<'a> System<'a> for OxygenSystem {
     type SystemData = (
+        Option<ReadExpect<'a, OxygenBar>>,
         Read<'a, Time>,
         Write<'a, Oxygen>,
         ReadStorage<'a, RockRaider>,
+        WriteStorage<'a, UiTransform>,
     );
 
-    fn run(&mut self, (time, mut oxygen, rock_raiders): Self::SystemData) {
+    fn run(&mut self, (ui, time, mut oxygen, rock_raiders, mut ui_transforms): Self::SystemData) {
         let breathed_oxygen = amount_in(&rock_raiders) as f32 * time.delta_seconds();
-        **oxygen -= breathed_oxygen;
+        oxygen.remaining_oxygen -= breathed_oxygen;
 
-        if **oxygen <= 0. {
+        if oxygen.remaining_oxygen <= 0. {
             panic!("No oxygen left for Breathing. You lost");
+        }
+
+        if let Some(ui) = ui {
+            let percentage = oxygen.remaining_oxygen / oxygen.max_oxygen;
+
+            let max_width = ui_transforms.get(ui.background_bar.clone()).unwrap().width;
+            let mut transform = ui_transforms.get_mut(ui.filled_bar.clone()).unwrap();
+            transform.width = max_width * percentage;
+            transform.local_x = max_width * percentage / 2.;
         }
     }
 }
@@ -27,20 +40,15 @@ impl<'a> System<'a> for OxygenSystem {
 /// Wrapper around the amount of oxygen left in the cave.
 #[derive(Default)]
 pub struct Oxygen {
+    pub max_oxygen: f32,
     pub remaining_oxygen: f32,
 }
 
-use std::ops::{Deref, DerefMut};
-impl Deref for Oxygen {
-    type Target = f32;
-
-    fn deref(&self) -> &Self::Target {
-        &self.remaining_oxygen
-    }
-}
-
-impl DerefMut for Oxygen {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.remaining_oxygen
+impl Oxygen {
+    pub fn new(amount: f32) -> Self {
+        Oxygen {
+            max_oxygen: amount,
+            remaining_oxygen: amount,
+        }
     }
 }

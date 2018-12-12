@@ -14,6 +14,7 @@ mod eventhandling;
 mod level;
 mod rockraiders;
 mod systems;
+mod ui;
 mod util;
 
 use amethyst::{

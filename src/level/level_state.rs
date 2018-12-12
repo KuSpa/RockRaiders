@@ -20,6 +20,7 @@ use eventhandling::Clickable;
 use entities::{buildings::Base, RockRaider, Tile};
 use level::LevelGrid;
 use systems::{HoverHandler, Hovered, Oxygen, Path};
+use ui::OxygenBar;
 use GameScene;
 
 use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
@@ -201,13 +202,13 @@ impl SimpleState for LevelState {
         world.register::<RockRaider>();
         world.register::<Path>();
 
+        OxygenBar::add_to_world(world);
+
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
 
-        let oxygen = Oxygen {
-            remaining_oxygen: 100.,
-        };
+        let oxygen = Oxygen::new(100.);
 
         world.add_resource(oxygen);
         world.add_resource(mesh_manager);
