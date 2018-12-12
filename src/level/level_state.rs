@@ -18,9 +18,9 @@ use assetmanagement::AssetManager;
 use eventhandling::Clickable;
 
 use entities::{buildings::Base, RockRaider, Tile};
-use game_data::CustomGameData;
 use level::LevelGrid;
 use systems::{HoverHandler, Hovered, Oxygen, Path};
+use GameScene;
 
 use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
 
@@ -178,10 +178,15 @@ impl LevelState {
         }
         Base::build(&entity, world);
     }
+
+    fn scene() -> GameScene {
+        GameScene::Level
+    }
 }
 
-impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
-    fn on_start(&mut self, data: StateData<CustomGameData>) {
+impl SimpleState for LevelState {
+    fn on_start(&mut self, data: StateData<GameData>) {
+        *data.world.write_resource() = LevelState::scene();
         let world = data.world;
 
         world.register::<Tile>();
@@ -218,11 +223,11 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
     }
 
-    fn handle_event(
-        &mut self,
-        data: StateData<CustomGameData>,
-        event: StateEvent,
-    ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
+    fn on_resume(&mut self, data: StateData<GameData>) {
+        *data.world.write_resource() = LevelState::scene();
+    }
+
+    fn handle_event(&mut self, data: StateData<GameData>, event: StateEvent) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 debug!("Quitting");
@@ -257,20 +262,12 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         Trans::None
     }
 
-    fn update(
-        &mut self,
-        data: StateData<CustomGameData>,
-    ) -> Trans<CustomGameData<'a, 'b>, StateEvent> {
-        data.data.update(&data.world, true);
-        Trans::None
-    }
-
-    fn on_stop(&mut self, data: StateData<CustomGameData>) {
+    fn on_stop(&mut self, data: StateData<GameData>) {
         data.world.delete_all();
     }
 }
 
-fn do_test_method(data: StateData<CustomGameData>) {
+fn do_test_method(data: StateData<GameData>) {
     let world = data.world;
     LevelState::initialize_base(world);
 }
