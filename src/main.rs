@@ -14,15 +14,15 @@ mod eventhandling;
 mod level;
 mod rockraiders;
 mod systems;
-mod ui;
 mod util;
 
 use amethyst::{
     core::transform::TransformBundle,
     input::InputBundle,
-    ui::{UiBundle, DrawUi},
+    prelude::*,
     renderer::{DisplayConfig, DrawShaded, Pipeline, PosNormTex, RenderBundle, Stage},
-    prelude::*, };
+    ui::{DrawUi, UiBundle},
+};
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
@@ -44,34 +44,33 @@ fn main() -> amethyst::Result<()> {
 
     let game_data = GameDataBuilder::new()
         .with_bundle(input)?
-        .with_bundle(RenderBundle::new(pipe, Some(config)))? // Base
-        .with_bundle(TransformBundle::new())? // Base
+        .with_bundle(RenderBundle::new(pipe, Some(config)))?
+        .with_bundle(TransformBundle::new())?
+        .with_bundle(UiBundle::<String, String>::new())?
         .with(systems::MouseRaySystem.pausable(GameScene::Level),
-        "mouse_ray_system", &[])
+              "mouse_ray_system", &[])
         .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
-            &[],
-        ) //RRRR
+            &["transform_system"],
+        )
         .with(
             systems::CameraMovementSystem.pausable(GameScene::Level),
             "camera_movement_system",
             &[],
-        ) //R
+        )
         .with(
             systems::GroundRevealSystem.pausable(GameScene::Level),
             "ground_reveal_system",
-            &[],
-        ) //R
+            &["transform_system"],
+        )
         .with(
             systems::OxygenSystem.pausable(GameScene::Level),
-            "oxygen_system",
-            &[],
-        ) //R
+            "oxygen_system",&["ui_transform"],)
+
         .with(systems::HoverInteractionSystem.pausable(GameScene::Level),
               "mouse_input_system",
-              &["mouse_ray_system"],)
-        .with_bundle(UiBundle::<String, String>::new())?; //R
+              &["mouse_ray_system"],);
     let mut game = Application::new(assets_dir, MainState, game_data)?;
     game.run();
     Ok(())

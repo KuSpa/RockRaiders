@@ -10,4 +10,4 @@ pub use self::ground_reveal::GroundRevealSystem;
 pub use self::hover_interaction::*;
 pub use self::mouse_ray::*;
 pub use self::movement::{MovementSystem, Path};
-pub use self::oxygen::{Oxygen, OxygenSystem};
+pub use self::oxygen::{Oxygen, OxygenBar, OxygenSystem};

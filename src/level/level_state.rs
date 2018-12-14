@@ -12,7 +12,10 @@ use amethyst::{
         ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
         ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
     },
+    ui::*,
 };
+
+use systems::OxygenBar;
 
 use assetmanagement::AssetManager;
 use eventhandling::Clickable;
@@ -20,7 +23,6 @@ use eventhandling::Clickable;
 use entities::{buildings::Base, RockRaider, Tile};
 use level::LevelGrid;
 use systems::{HoverHandler, Hovered, Oxygen, Path};
-use ui::OxygenBar;
 use GameScene;
 
 use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
@@ -202,14 +204,15 @@ impl SimpleState for LevelState {
         world.register::<RockRaider>();
         world.register::<Path>();
 
-        OxygenBar::add_to_world(world);
-
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
 
         let oxygen = Oxygen::new(100.);
 
+        world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
+
+        world.add_resource::<Option<OxygenBar>>(None);
         world.add_resource(oxygen);
         world.add_resource(mesh_manager);
         world.add_resource(texture_manager);
