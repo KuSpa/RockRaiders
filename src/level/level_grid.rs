@@ -1,11 +1,17 @@
 const CONCEALED: &str = "concealed";
 
-use pathfinding::directed::bfs;
+use amethyst::{
+    core::{
+        nalgebra::{Point2, Vector3},
+        transform::{GlobalTransform, Transform},
+    },
+    ecs::{
+        prelude::{Builder, Entity, World},
+        storage::{GenericReadStorage, GenericWriteStorage},
+    },
+};
 
-use amethyst::core::nalgebra::{Point2, Vector3};
-use amethyst::core::transform::{GlobalTransform, Transform};
-use amethyst::ecs::prelude::{Builder, Entity, World};
-use amethyst::ecs::storage::{GenericReadStorage, GenericWriteStorage};
+use pathfinding::directed::bfs;
 
 use assetmanagement::util::*;
 use entities::Tile;

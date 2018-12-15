@@ -1,15 +1,17 @@
-use amethyst::assets::{AssetStorage, Loader};
-
-use amethyst::core::nalgebra::{Point2, Vector3};
-use amethyst::core::timing::Time;
-use amethyst::core::transform::{GlobalTransform, Parent, Transform};
-
-use amethyst::ecs::Entity;
-use amethyst::input::{is_close_requested, is_key_down};
-use amethyst::prelude::*;
-use amethyst::renderer::{
-    Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Rgba, ScreenDimensions, Texture,
-    TextureMetadata, VirtualKeyCode,
+use amethyst::{
+    assets::{AssetStorage, Loader},
+    core::{
+        nalgebra::{Point2, Vector3},
+        timing::Time,
+        transform::{GlobalTransform, Parent, Transform},
+    },
+    ecs::Entity,
+    input::{is_close_requested, is_key_down},
+    prelude::*,
+    renderer::{
+        Camera, Light, Mesh, ObjFormat, PngFormat, PointLight, Rgba, ScreenDimensions, Texture,
+        TextureMetadata, VirtualKeyCode,
+    },
 };
 
 use systems::{Oxygen, Path};
@@ -19,10 +21,7 @@ use entities::{buildings::Base, RockRaider, Tile};
 use game_data::CustomGameData;
 use level::LevelGrid;
 
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::path::Path as OSPath;
-use std::time::Duration;
+use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
 
 pub struct LevelState;
 

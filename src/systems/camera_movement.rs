@@ -1,11 +1,13 @@
-use amethyst::core::specs::prelude::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use amethyst::core::timing::Time;
-use amethyst::core::transform::Transform;
-
-use amethyst::core::nalgebra::{Unit, Vector3, Vector4};
-
-use amethyst::input::InputHandler;
-use amethyst::renderer::{Camera, ScreenDimensions};
+use amethyst::{
+    core::{
+        nalgebra::{Unit, Vector3, Vector4},
+        specs::prelude::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+        timing::Time,
+        transform::Transform,
+    },
+    input::InputHandler,
+    renderer::{Camera, ScreenDimensions},
+};
 
 pub struct CameraMovementSystem;
 

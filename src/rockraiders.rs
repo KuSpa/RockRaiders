@@ -1,6 +1,8 @@
-use amethyst::input::{is_close_requested, is_key_down};
-use amethyst::prelude::*;
-use amethyst::renderer::VirtualKeyCode;
+use amethyst::{
+    input::{is_close_requested, is_key_down},
+    prelude::*,
+    renderer::VirtualKeyCode,
+};
 use game_data::CustomGameData;
 
 use level::LevelState;

@@ -1,11 +1,13 @@
 // thanks to @jojolepro for his work at https://github.com/jojolepro/amethyst-extra
 // licensed under apache 2.0 shown in LICENSE file
 
-use std::collections::HashMap;
+use amethyst::{
+    assets::*,
+    ecs::*,
+    renderer::{ObjFormat, PngFormat},
+};
 
-use amethyst::assets::*;
-use amethyst::ecs::*;
-use amethyst::renderer::{ObjFormat, PngFormat};
+use std::collections::HashMap;
 
 pub trait AssetInformation {
     fn folder_name(&self) -> &'static str;
