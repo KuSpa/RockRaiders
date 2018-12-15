@@ -60,3 +60,30 @@ pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &m
     mat_storage.insert(entity, material).unwrap();
     mesh_handles.insert(entity, mesh).unwrap();
 }
+
+use ncollide3d::shape::Shape;
+use systems::HoverHandler;
+pub fn add_hover_handler<'a>(
+    entity: Entity,
+    asset_name: &str,
+    bounding_box: Box<dyn Shape<f32>>,
+    (loader, tex_manager, tex_storage, hover_storage): &mut (
+        ReadExpect<'a, Loader>,
+        Write<'a, AssetManager<Texture>>,
+        Write<'a, AssetStorage<Texture>>,
+        WriteStorage<'a, HoverHandler>,
+    ),
+) {
+    let hover_mat = tex_manager.get_asset_handle_or_load(
+        &[asset_name, "_hover"].join(""),
+        PngFormat,
+        TextureMetadata::srgb(),
+        tex_storage,
+        &loader,
+    );
+    let handler = HoverHandler {
+        hover: hover_mat,
+        bounding_box,
+    };
+    hover_storage.insert(entity, handler).unwrap();
+}

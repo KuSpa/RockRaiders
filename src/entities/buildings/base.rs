@@ -1,28 +1,29 @@
 use amethyst::{
     core::{
-        nalgebra::Point2,
+        nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
     },
-    ecs::prelude::{Builder, Component, Entities, Entity, NullStorage, World},
+    ecs::prelude::{Builder, Component, Entity, NullStorage, World},
 };
 
-use assetmanagement::util::insert_into_asset_storages;
-use entities::{RockRaider, RockRaiderStorages, Tile};
+use rand::prelude::*;
+
+use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
+use entities::{RockRaider, Tile};
+use level::LevelGrid;
 use util::amount_in;
+
+use ncollide3d::shape::{Cuboid, Shape};
 
 const MAX_RAIDERS: usize = 10;
 
 pub struct Base;
 
 impl Base {
-    pub fn spawn_rock_raider(
-        spawn_position: Point2<f32>,
-        entities: &Entities,
-        storages: &mut RockRaiderStorages,
-    ) -> Entity {
+    pub fn spawn_rock_raider(&self, own_entity: Entity, world: &World) -> Entity {
         {
-            let ((ref rr_storage, ..), ..) = storages;
-            if amount_in(rr_storage) >= MAX_RAIDERS {
+            let rr_storage = world.read_storage::<RockRaider>();
+            if amount_in(&rr_storage) >= MAX_RAIDERS {
                 panic!(
                     "Cannot spawn more Raiders. Limit of {} is already reached",
                     MAX_RAIDERS
@@ -30,7 +31,34 @@ impl Base {
             }
         }
 
-        RockRaider::instantiate(entities, spawn_position, storages)
+        let spawn_position = {
+            let parent = world
+                .read_storage::<Parent>()
+                .get(own_entity)
+                .unwrap()
+                .entity;
+            let tiles = world.read_storage::<Tile>();
+            let level_grid = world.read_resource::<LevelGrid>();
+            let transforms = world.read_storage::<Transform>();
+            let possible_spawns = level_grid.walkable_neighbors(&parent, &tiles, &transforms);
+
+            // when the spawns are empty, something went horribly wrong
+            assert!(!possible_spawns.is_empty());
+
+            let spawn_index = ((rand::thread_rng().gen::<f32>() * possible_spawns.len() as f32)
+                .floor() as usize)
+                // in case `thread_rng` returned exactly 1, we need to subtract 1 in the end
+                .min(possible_spawns.len() - 1);
+            let spawn_tile_position = transforms
+                .get(possible_spawns[spawn_index])
+                .unwrap()
+                .translation();
+            Point2::new(spawn_tile_position.x, spawn_tile_position.z)
+        };
+
+        let mut storages = world.system_data();
+        let entities = world.entities();
+        RockRaider::instantiate(&entities, spawn_position, &mut storages)
     }
 
     pub fn build(entity: &Entity, world: &mut World) {
@@ -60,12 +88,38 @@ impl Base {
             .with(Parent { entity: *entity })
             .build();
 
-        let mut storages = world.system_data();
-        insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+        {
+            let mut storages = world.system_data();
+            add_hover_handler(
+                result,
+                Base::asset_name(),
+                Base::bounding_box(),
+                &mut storages,
+            );
+        }
+
+        {
+            let mut storages = world.system_data();
+            insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+        }
+
+        //Build Click Handler
+        {
+            use eventhandling::*;
+            let tmp: Box<dyn Clickable> = Box::new(Base);
+            world
+                .write_storage::<Box<dyn Clickable>>()
+                .insert(result, tmp)
+                .unwrap();
+        }
     }
 
     fn asset_name() -> &'static str {
         "buildings/base"
+    }
+
+    fn bounding_box() -> Box<dyn Shape<f32>> {
+        Box::new(Cuboid::new(Vector3::new(0.5, 0.5, 0.5)))
     }
 }
 

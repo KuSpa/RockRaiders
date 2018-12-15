@@ -139,7 +139,7 @@ impl LevelGrid {
         insert_into_asset_storages(entity, classifier, storages);
 
         let mut transform = Transform::default();
-        transform.set_position(Vector3::<f32>::new(x as f32, 0.0, y as f32));
+        transform.set_position(Vector3::new(x as f32, 0.0, y as f32));
         transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
     }
@@ -194,7 +194,7 @@ impl LevelGrid {
         None
     }
 
-    fn walkable_neighbors<
+    pub fn walkable_neighbors<
         T: GenericReadStorage<Component = Tile>,
         TR: GenericReadStorage<Component = Transform>,
     >(

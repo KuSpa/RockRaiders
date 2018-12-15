@@ -35,7 +35,7 @@ impl RockRaider {
         ) = storages;
 
         let mut transform = Transform::default();
-        transform.set_position(Vector3::<f32>::new(position.x, 0.0, position.y));
+        transform.set_position(Vector3::new(position.x, 0.0, position.y));
 
         let entity = entities
             .build_entity()

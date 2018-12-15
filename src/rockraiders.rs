@@ -19,7 +19,9 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for RockRaiders {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 return Trans::Quit;
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
-                return Trans::Push(Box::new(LevelState));
+                return Trans::Push(Box::new(LevelState {
+                    mouse_button_was_down: false,
+                }));
             }
         }
         Trans::None

@@ -26,13 +26,13 @@ impl<'a> System<'a> for MovementSystem {
             (&entities, &mut path_storage, &mut transforms).join()
         {
             let next_destination = path[0];
-            let next_destination = Vector3::<f32>::new(next_destination.x, 0.0, next_destination.y);
+            let next_destination = Vector3::new(next_destination.x, 0.0, next_destination.y);
 
             // shouldn't this be reversed?
             // BUT IT WORKS, SO IT STAYS until there is a solution :)
             let direction = transform.translation() - next_destination;
 
-            *transform.rotation_mut() = UnitQuaternion::<f32>::from_axis_angle(
+            *transform.rotation_mut() = UnitQuaternion::from_axis_angle(
                 &Vector3::<f32>::y_axis(),
                 Real::atan2(direction.x, direction.z),
             );
