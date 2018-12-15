@@ -1,6 +1,10 @@
-use amethyst::core::nalgebra::Point2;
-use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
-use amethyst::ecs::prelude::{Builder, Component, Entities, Entity, NullStorage, World};
+use amethyst::{
+    core::{
+        nalgebra::Point2,
+        transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
+    },
+    ecs::prelude::{Builder, Component, Entities, Entity, NullStorage, World},
+};
 
 use assetmanagement::util::insert_into_asset_storages;
 use entities::{RockRaider, RockRaiderStorages, Tile};

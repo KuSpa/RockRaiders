@@ -1,11 +1,13 @@
-use amethyst::core::specs::prelude::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage};
-use amethyst::core::timing::Time;
-use amethyst::core::transform::Transform;
-
-use amethyst::core::nalgebra::{Unit, Vector3, Vector4};
-
-use amethyst::input::InputHandler;
-use amethyst::renderer::{Camera, ScreenDimensions};
+use amethyst::{
+    core::{
+        nalgebra::{Unit, Vector3, Vector4},
+        specs::prelude::{Join, Read, ReadExpect, ReadStorage, System, WriteStorage},
+        timing::Time,
+        transform::Transform,
+    },
+    input::InputHandler,
+    renderer::{Camera, ScreenDimensions},
+};
 
 pub struct CameraMovementSystem;
 
@@ -22,6 +24,10 @@ impl<'a> System<'a> for CameraMovementSystem {
         let (mut x, mut z) = (0.0, 0.0);
 
         if let Some((mouse_x, mouse_y)) = input.mouse_position() {
+            // Add the dpi factor to the calculation
+            let mouse_x = mouse_x / screen_size.hidpi_factor();
+            let mouse_y = mouse_y / screen_size.hidpi_factor();
+
             //X value of the mouse
             if mouse_x < 20.0 {
                 x -= 1.0;

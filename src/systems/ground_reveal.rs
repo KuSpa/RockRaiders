@@ -1,16 +1,15 @@
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::core::timing::Time;
-use amethyst::core::transform::Transform;
-use amethyst::ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage};
-use amethyst::renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture};
+use amethyst::{
+    assets::{AssetStorage, Loader},
+    core::{timing::Time, transform::Transform},
+    ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage},
+    renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
+};
 
 use entities::Tile;
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::time::Duration;
+use std::{cmp::Reverse, collections::BinaryHeap, time::Duration};
 
 ///
 /// This system handles the recursive process of revealing tiles

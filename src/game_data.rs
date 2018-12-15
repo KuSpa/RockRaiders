@@ -1,7 +1,9 @@
-use amethyst::core::{ArcThreadPool, SystemBundle};
-use amethyst::ecs::prelude::{Dispatcher, DispatcherBuilder, System, World};
-use amethyst::renderer::pipe::pass::Pass;
-use amethyst::{DataInit, Error, Result};
+use amethyst::{
+    core::{ArcThreadPool, SystemBundle},
+    ecs::prelude::{Dispatcher, DispatcherBuilder, System, World},
+    renderer::pipe::pass::Pass,
+    DataInit, Error, Result,
+};
 
 use std::path::Path;
 
