@@ -1,8 +1,12 @@
-use rand::prelude::*;
+use amethyst::{
+    core::{
+        nalgebra::{Point2, Vector3},
+        transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
+    },
+    ecs::prelude::{Builder, Component, Entity, NullStorage, World},
+};
 
-use amethyst::core::nalgebra::{Point2, Vector3};
-use amethyst::core::transform::{GlobalTransform, Parent, ParentHierarchy, Transform};
-use amethyst::ecs::prelude::{Builder, Component, Entity, NullStorage, World};
+use rand::prelude::*;
 
 use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
 use entities::{RockRaider, Tile};

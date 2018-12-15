@@ -1,29 +1,28 @@
-use amethyst::assets::{AssetStorage, Loader};
-
-use amethyst::core::nalgebra::Vector3;
-use amethyst::core::timing::Time;
-use amethyst::core::transform::{GlobalTransform, Parent, Transform};
-
-use amethyst::ecs::Entity;
-use amethyst::input::{is_close_requested, is_key_down, InputHandler};
-use amethyst::prelude::*;
-use amethyst::renderer::{
-    ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
-    ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
+use amethyst::{
+    assets::{AssetStorage, Loader},
+    core::{
+        nalgebra::Vector3,
+        timing::Time,
+        transform::{GlobalTransform, Parent, Transform},
+    },
+    ecs::Entity,
+    input::{is_close_requested, is_key_down, InputHandler},
+    prelude::*,
+    renderer::{
+        ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
+        ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
+    },
 };
 
-use eventhandling::Clickable;
-use systems::{HoverHandler, Hovered, Oxygen, Path};
-
 use assetmanagement::AssetManager;
+use eventhandling::Clickable;
+
 use entities::{buildings::Base, RockRaider, Tile};
 use game_data::CustomGameData;
 use level::LevelGrid;
+use systems::{HoverHandler, Hovered, Oxygen, Path};
 
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
-use std::path::Path as OSPath;
-use std::time::Duration;
+use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
 
 pub struct LevelState {
     pub mouse_button_was_down: bool,

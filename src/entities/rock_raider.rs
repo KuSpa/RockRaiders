@@ -1,7 +1,10 @@
-use amethyst::core::nalgebra::{Point2, Vector3};
-use amethyst::core::transform::{GlobalTransform, Transform};
-use amethyst::ecs::prelude::{Component, Entities, Entity, NullStorage, WriteStorage};
-
+use amethyst::{
+    core::{
+        nalgebra::{Point2, Vector3},
+        transform::{GlobalTransform, Transform},
+    },
+    ecs::prelude::{Component, Entities, Entity, NullStorage, WriteStorage},
+};
 pub use assetmanagement::util::*;
 
 #[derive(Default)]

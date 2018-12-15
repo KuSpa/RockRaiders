@@ -1,8 +1,12 @@
-use amethyst::core::nalgebra::{Point2, Real, UnitQuaternion, Vector3};
-use amethyst::core::timing::Time;
-use amethyst::core::transform::Transform;
-use amethyst::ecs::prelude::{
-    Component, DenseVecStorage, Entities, Entity, Join, Read, System, WriteStorage,
+use amethyst::{
+    core::{
+        nalgebra::{Point2, Real, UnitQuaternion, Vector3},
+        timing::Time,
+        transform::Transform,
+    },
+    ecs::prelude::{
+        Component, DenseVecStorage, Entities, Entity, Join, Read, System, WriteStorage,
+    },
 };
 
 pub struct MovementSystem;

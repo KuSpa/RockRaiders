@@ -1,7 +1,10 @@
-use amethyst::assets::{AssetStorage, Loader};
-use amethyst::ecs::{Entity, ReadExpect, Write, WriteStorage};
-use amethyst::renderer::{
-    Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture, TextureMetadata,
+use amethyst::{
+    assets::{AssetStorage, Loader},
+    ecs::{Entity, ReadExpect, Write, WriteStorage},
+    renderer::{
+        Material, MaterialDefaults, Mesh, MeshHandle, ObjFormat, PngFormat, Texture,
+        TextureMetadata,
+    },
 };
 
 use assetmanagement::AssetManager;

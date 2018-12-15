@@ -1,11 +1,11 @@
-use amethyst::core::nalgebra::geometry::Isometry3;
-use amethyst::core::nalgebra::try_convert_ref;
-use amethyst::core::GlobalTransform;
-use amethyst::ecs::prelude::{
-    Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
-    WriteStorage,
+use amethyst::{
+    core::{nalgebra::try_convert_ref, GlobalTransform},
+    ecs::prelude::{
+        Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
+        WriteStorage,
+    },
+    renderer::{Material, TextureHandle},
 };
-use amethyst::renderer::{Material, TextureHandle};
 use ncollide3d::shape::Shape;
 use systems::MouseRay;
 
@@ -37,7 +37,8 @@ impl<'a> System<'a> for HoverInteractionSystem {
                     &try_convert_ref(&transform.0).unwrap(),
                     &mouse_ray.ray,
                     true,
-                ) {
+                )
+            {
                 // Option::map_or
                 // If there is no nearest collision (the `true` part), or if the current distance is shorter than the stored one, then override nearest
                 if nearest.map_or(true, |(nearest_distance, _)| {

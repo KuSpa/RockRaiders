@@ -17,10 +17,12 @@ mod rockraiders;
 mod systems;
 mod util;
 
-use amethyst::core::transform::TransformBundle;
-use amethyst::input::InputBundle;
-use amethyst::prelude::*;
-use amethyst::renderer::{DrawShaded, PosNormTex};
+use amethyst::{
+    core::transform::TransformBundle,
+    input::InputBundle,
+    prelude::*,
+    renderer::{DrawShaded, PosNormTex},
+};
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());

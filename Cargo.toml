@@ -5,9 +5,9 @@ authors = []
 
 [dependencies]
 amethyst = "0.10.0"#{version = "0.9.0" , features = ["nightly"] }
-log = "0.4.4"
-serde = "1.0.76"
-serde_derive = "1.0.76"
+log = "0.4.6"
+serde = "1.0.82"
+serde_derive = "1.0.82"
 ncollide3d = "0.17.0"
-pathfinding = "1.1.0"
+pathfinding = "1.1.4"
 rand = "0.6.1"
