@@ -25,7 +25,8 @@ impl<'a> System<'a> for HoverInteractionSystem {
         &mut self,
         (entities, mouse_ray, transforms, mut hover_handlers, mut materials, mut hovered): Self::SystemData,
     ) {
-        let mut nearest = None;
+        let mut nearest_dist = None;
+        let mut nearest_entity = None;
         for (entity, hover_handler, transform) in
             (&*entities, &mut hover_handlers, &transforms).join()
         {
@@ -39,17 +40,19 @@ impl<'a> System<'a> for HoverInteractionSystem {
                     true,
                 )
             {
-                // Option::map_or
-                // If there is no nearest collision (the `true` part), or if the current distance is shorter than the stored one, then override nearest
-                if nearest.map_or(true, |(nearest_distance, _)| {
-                    collision_distance < nearest_distance
-                }) {
-                    nearest = Some((collision_distance, entity))
+                if let Some(ref mut dist) = nearest_dist {
+                    if collision_distance < *dist {
+                        *dist = collision_distance;
+                        nearest_entity = Some(entity);
+                    }
+                } else {
+                    nearest_dist = Some(collision_distance);
+                    nearest_entity = Some(entity);
                 }
             }
         }
+
         let old_hovered_entity = (*hovered).take();
-        *hovered = nearest.map(|(_, entity)| Hovered { entity });
         old_hovered_entity.map(|hovered| {
             hover_handlers
                 .get_mut(hovered.entity)
@@ -57,12 +60,14 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 .change_materials(&hovered.entity, &mut materials)
         });
         // we cannot use `map()` here, because map would move `hovered` while only only borrowed it from the world
-        if let Some(Hovered { entity: e, .. }) = *hovered {
+
+        *hovered = nearest_entity.map(|entity| {
             hover_handlers
-                .get_mut(e)
+                .get_mut(entity)
                 .unwrap()
-                .change_materials(&e, &mut materials)
-        }
+                .change_materials(&entity, &mut materials);
+            Hovered { entity }
+        });
     }
 }
 
