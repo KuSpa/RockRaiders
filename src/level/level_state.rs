@@ -211,6 +211,7 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
                 return Trans::Quit;
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 debug!("Leaving Level State");
+                data.world.delete_all();
                 return Trans::Pop;
             } else if is_key_down(&event, VirtualKeyCode::Space) {
                 do_test_method(data);
