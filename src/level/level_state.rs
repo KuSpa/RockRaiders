@@ -246,6 +246,10 @@ impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for LevelState {
         data.data.update(&data.world, true);
         Trans::None
     }
+
+    fn on_stop(&mut self, data: StateData<CustomGameData>) {
+        data.world.delete_all();
+    }
 }
 
 fn do_test_method(data: StateData<CustomGameData>) {
