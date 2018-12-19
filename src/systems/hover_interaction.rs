@@ -1,5 +1,5 @@
 use amethyst::{
-    core::{nalgebra::try_convert_ref, GlobalTransform},
+    core::{nalgebra::{try_convert, Translation3, Isometry3, Isometry}, GlobalTransform},
     ecs::prelude::{
         Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
         WriteStorage,
@@ -29,28 +29,37 @@ impl<'a> System<'a> for HoverInteractionSystem {
         let mut nearest_entity = None;
         for (entity, hover_handler, transform) in
             (&*entities, &mut hover_handlers, &transforms).join()
-        {
-            if let Some(collision_distance) = hover_handler
-                .bounding_box
-                .as_ray_cast()
-                .unwrap()
-                .toi_with_ray(
-                    &try_convert_ref(&transform.0).unwrap(),
-                    &mouse_ray.ray,
-                    true,
-                )
             {
-                if let Some(ref mut dist) = nearest_dist {
-                    if collision_distance < *dist {
-                        *dist = collision_distance;
-                        nearest_entity = Some(entity);
-                    }
-                } else {
-                    nearest_dist = Some(collision_distance);
-                    nearest_entity = Some(entity);
+                if let Some(collision_distance) = {
+
+                    // the mesh model has its pivot point on the bottom, the collider have their pivots in the middle.
+                    // to adjust the position we need to move the collision shapes a bit up
+                    let offset:Translation3<f32>= Translation3::new(0.0, hover_handler.bounding_box.aabb(&Isometry::identity()).half_extents().y,0.0 );
+                    let mut translation: Isometry3<f32> = try_convert(transform.0).unwrap();
+                    translation.append_translation_mut(&offset);
+
+                    hover_handler
+                        .bounding_box
+                        .as_ray_cast()
+                        .unwrap()
+                        .toi_with_ray(
+                            &translation,
+                            &mouse_ray.ray,
+                            true,
+                        )
                 }
+                    {
+                        if let Some(ref mut dist) = nearest_dist {
+                            if collision_distance < *dist {
+                                *dist = collision_distance;
+                                nearest_entity = Some(entity);
+                            }
+                        } else {
+                            nearest_dist = Some(collision_distance);
+                            nearest_entity = Some(entity);
+                        }
+                    }
             }
-        }
 
         let old_hovered_entity = (*hovered).take();
         old_hovered_entity.map(|hovered| {

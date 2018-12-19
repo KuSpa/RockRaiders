@@ -119,7 +119,7 @@ impl Base {
     }
 
     fn bounding_box() -> Box<dyn Shape<f32>> {
-        Box::new(Cuboid::new(Vector3::new(0.5, 0.5, 0.5)))
+        Box::new(Cuboid::new(Vector3::new(0.33, 0.33, 0.38)))
     }
 }
 
