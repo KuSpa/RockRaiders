@@ -26,6 +26,7 @@ use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Dur
 
 /// The `State` that is active, when a level runs
 pub struct LevelState {
+    /// pretty self explanatory
     pub mouse_button_was_down: bool,
 }
 
@@ -44,6 +45,7 @@ pub struct LevelState {
 pub type TilePatternMap = Vec<([[Tile; 3]; 3], String)>;
 
 impl LevelState {
+    /// Loads the `TilePatternMap` from disk.
     fn load_tile_pattern_config() -> TilePatternMap {
         let result = TilePatternMap::load(OSPath::new(&format!(
             "{}/resources/tile_config.ron",
@@ -54,6 +56,7 @@ impl LevelState {
         result
     }
 
+    /// Loads the cave's model from disk.
     fn load_tile_grid() -> Vec<Vec<Tile>> {
         let tile_grid = Vec::<Vec<Tile>>::load(OSPath::new(&format!(
             "{}/assets/levels/1.ron",
@@ -64,6 +67,7 @@ impl LevelState {
         tile_grid
     }
 
+    /// Converts the cave's model into a `LevelGrid` and adds it to the world.
     fn initialize_level_grid(world: &mut World, tile_grid: Vec<Vec<Tile>>) {
         let level_grid = LevelGrid::from_grid(tile_grid, world);
         let max_x = level_grid.x_len();
@@ -90,6 +94,7 @@ impl LevelState {
         world.add_resource(level_grid);
     }
 
+    /// Loads all assets that will presumably be used in the level into memory and `AssetManager`.
     fn load_initial_assets(world: &World) {
         let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
@@ -116,7 +121,7 @@ impl LevelState {
         }
     }
 
-    /// initialize the camera.
+    /// Creates an camera entity and sets it as `Activecamera`.
     fn initialize_camera(world: &mut World) -> Entity {
         {
             let mut storage = world.write_storage::<Camera>();
@@ -143,6 +148,7 @@ impl LevelState {
         entity
     }
 
+    /// Adds a light as child to the given entity. Assumes that the given Entity is the `ActiveCamera` of the Level.
     fn initialize_light(world: &mut World, parent: Entity) {
         let light = PointLight {
             color: Rgba::white(),
@@ -159,6 +165,7 @@ impl LevelState {
             .build();
     }
 
+    /// Creates a `Base` for the Level.
     fn initialize_base(world: &mut World) {
         let entity = world.read_resource::<LevelGrid>().get(2, 0).unwrap();
         {

@@ -7,6 +7,7 @@ use game_data::CustomGameData;
 
 use level::LevelState;
 
+/// The main state of the Game. When started, this will be the first state on the stack.
 pub struct MainState;
 
 impl<'a, 'b> State<CustomGameData<'a, 'b>, StateEvent> for MainState {

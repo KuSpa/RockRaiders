@@ -1,4 +1,4 @@
-/// rotates the array clockwise
+/// Rotates the array clockwise.
 pub fn rotate_3x3<T: Clone>(input: &[[T; 3]; 3]) -> [[T; 3]; 3] {
     let mut result = input.clone();
 
@@ -11,6 +11,7 @@ pub fn rotate_3x3<T: Clone>(input: &[[T; 3]; 3]) -> [[T; 3]; 3] {
 }
 
 use amethyst::ecs::{storage::GenericReadStorage, Join};
+/// Returns the amount of `Components` in a `Storage`.
 pub fn amount_in<T: Join + GenericReadStorage>(storage: T) -> usize {
     storage.join().count()
 }

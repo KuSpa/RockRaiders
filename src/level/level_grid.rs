@@ -19,14 +19,16 @@ use level::TilePatternMap;
 use systems::Path;
 use util;
 
-/// The `Resource` that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
+/// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
 pub struct LevelGrid {
+    /// A two-dimensional array of the cave's geography.
     grid: Vec<Vec<Entity>>,
 }
 
 impl LevelGrid {
-    /// Instantiates the grid with `Entity`s that have a `Tile` component regarding to the given specification
-    /// Note, that this does not add `MeshHandles` or `Material` to the `Entity`, so they won't get rendered yet.
+    /// Instantiates the grid with `Entity`s that have a `Tile` component regarding to the given specification.
+    ///
+    /// Note, that this does not add `MeshHandles` or `Material` to the `Entity`, so the Entities won't get rendered yet.
     pub fn from_grid(mut tile_grid: Vec<Vec<Tile>>, world: &mut World) -> LevelGrid {
         let level_grid: Vec<Vec<Entity>> = tile_grid
             .iter_mut()
@@ -47,6 +49,10 @@ impl LevelGrid {
         LevelGrid { grid: level_grid }
     }
 
+    /// Returns the following tiles(marked as X), if existing:
+    /// ```-X-
+    /// XOX
+    /// -X-```
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = Vec::with_capacity(4);
 
@@ -58,6 +64,10 @@ impl LevelGrid {
         result
     }
 
+    /// Returns the following tiles(marked as X), if existing:
+    /// ```X-X
+    /// -O-
+    /// X-X```
     pub fn diagonal_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = Vec::with_capacity(4);
 
@@ -126,7 +136,7 @@ impl LevelGrid {
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
-    /// determines and attaches the assets fitting the requested position the `Entity` at this position
+    /// determines and attaches the assets fitting the requested position the `Entity` at this position.
     /// From this point on, the entity should be rendered
     pub fn update_tile<
         T: GenericReadStorage<Component = Tile>,
@@ -233,6 +243,7 @@ impl LevelGrid {
         result
     }
 
+    /// Returns the position of the requested entity. Panics if the Entity is not part of the Grid
     fn grid_position_of<T: GenericReadStorage<Component = Transform>>(
         &self,
         entity: &Entity,
@@ -244,6 +255,7 @@ impl LevelGrid {
                 transform.translation().z as i32,
             );
         };
+        // TODO check for correctness
         panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }

@@ -33,11 +33,12 @@ impl AssetInformation for PngFormat {
 ///
 /// Furthermore, when loosing a handle to an asset in Amethyst, it is required to load the asset once again to get another handle. So one's basically the exact same asset loaded twice.
 ///
-/// To avoid both, this struct exists once per type `T` and holds a handle to every existing asset of type `T` and returns a copy of the requested handle. If the asset handle does not exist already, the asset is loaded from disk.
+/// To avoid both, this struct exists once per asset type `T` and holds a handle to every existing asset of type `T` and returns a copy of the requested handle. If the asset handle does not exist already, the asset is loaded from disk.
 ///
-/// Note, that this disables automated asset dropping completely, because, there will allways be a valid handle to an asset, the one which is stored in this manager
+/// Note, that this disables automated asset dropping completely, because there will always be a valid handle to an asset, the one which is stored in this manager.
 pub struct AssetManager<T> {
-    pub assets: HashMap<String, Handle<T>>,
+    /// A map of identifiers (the Path to the asset as `String`) to the asset handles
+    assets: HashMap<String, Handle<T>>,
 }
 
 impl<T> Default for AssetManager<T>
@@ -59,6 +60,7 @@ where
         }
     }
 
+    /// returns the requested handle or, if non existent, load from disk vie the amethyst loader and return the newly gained handle.
     pub fn get_asset_handle_or_load<'a, F>(
         &mut self,
         path: &str,
