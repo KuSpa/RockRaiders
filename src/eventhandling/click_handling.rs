@@ -2,9 +2,10 @@ use amethyst::ecs::World;
 use amethyst::ecs::{Component, DenseVecStorage, Entity};
 use entities::buildings::Base;
 
-/// This trait is meant to be used as TraitObject to enable encapsulated implementation for every possible clickable Entity
-/// Note, that this does nothing, if the entity has no `HoverHandler` Component
-/// Note, that the for example `Base>>TraitObject` is an other Instance of `Base` than the Base Component of an entity itself. So if there is any state, that Clickable needs to access, the preferred way would be to add a dedicated Component to the entity, which implements this Trait
+/// This trait is meant to be used as TraitObject to enable encapsulated implementation for every possible clickable Entity.
+///
+/// Note, that this does nothing, if the entity has no `HoverHandler` Component.
+/// Note, that the for example `Base>>TraitObject` is an other Instance of `Base` than the Base Component of an entity itself. So if there is any state, that Clickable needs to access, the preferred way would be to add a dedicated Component to the entity, which implements this Trait.
 ///
 /// Note, that that `HoverHandler` is implemented as Component, which makes it harder to make Hoverable a supertrait of Clickable
 /// This can be adapted as soon as the is the need to do so @karyon <3<3<3
@@ -17,6 +18,7 @@ impl Component for Box<dyn Clickable> {
 }
 
 impl Clickable for Base {
+    /// This method is called, whenever the mouse hovers the entity of this component. It only is triggered on the nearest entity, that has a `Hoverable` Comonent as well.
     fn on_click(&self, entity: &Entity, world: &World) {
         self.spawn_rock_raider(*entity, world);
     }

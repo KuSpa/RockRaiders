@@ -7,6 +7,8 @@ use amethyst::{
 };
 pub use assetmanagement::util::*;
 
+/// A Tag to indicate the entity as `RockRader`
+/// `RockRaider`a are the little moving people, that the player can control to do certain tasks ;).
 #[derive(Default)]
 pub struct RockRaider;
 

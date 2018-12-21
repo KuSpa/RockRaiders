@@ -19,11 +19,16 @@ use level::TilePatternMap;
 use systems::Path;
 use util;
 
+/// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
 pub struct LevelGrid {
+    /// A two-dimensional array of the cave's geography.
     grid: Vec<Vec<Entity>>,
 }
 
 impl LevelGrid {
+    /// Instantiates the grid with `Entity`s that have a `Tile` component regarding to the given specification.
+    ///
+    /// Note, that this does not add `MeshHandles` or `Material` to the `Entity`, so the Entities won't get rendered yet.
     pub fn from_grid(mut tile_grid: Vec<Vec<Tile>>, world: &mut World) -> LevelGrid {
         let level_grid: Vec<Vec<Entity>> = tile_grid
             .iter_mut()
@@ -44,6 +49,10 @@ impl LevelGrid {
         LevelGrid { grid: level_grid }
     }
 
+    /// Returns the following tiles(marked as X), if existing:
+    /// ```-X-
+    /// XOX
+    /// -X-```
     pub fn direct_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = Vec::with_capacity(4);
 
@@ -55,6 +64,10 @@ impl LevelGrid {
         result
     }
 
+    /// Returns the following tiles(marked as X), if existing:
+    /// ```X-X
+    /// -O-
+    /// X-X```
     pub fn diagonal_neighbors(&self, x: i32, y: i32) -> Vec<Entity> {
         let mut result = Vec::with_capacity(4);
 
@@ -74,6 +87,7 @@ impl LevelGrid {
         self.grid[0].len()
     }
 
+    /// Uses the surrounding of a `TIle` to determine the `Mesh` that  fits into. For more information see `TilePatternConfig`
     pub fn determine_sprite_for<'a, T: GenericReadStorage<Component = Tile>>(
         &self,
         x: i32,
@@ -122,6 +136,8 @@ impl LevelGrid {
         panic!("Cannot determine sprite for: {:?}", util::rotate_3x3(&key));
     }
 
+    /// determines and attaches the assets fitting the requested position the `Entity` at this position.
+    /// From this point on, the entity should be rendered
     pub fn update_tile<
         T: GenericReadStorage<Component = Tile>,
         R: GenericWriteStorage<Component = Transform>,
@@ -165,6 +181,7 @@ impl LevelGrid {
             .map(|entity| *entity)
     }
 
+    /// Determines a `Path` from the start to the end Entity. Returns `None` if there is no Path.
     pub fn find_path<
         T: GenericReadStorage<Component = Tile>,
         TR: GenericReadStorage<Component = Transform>,
@@ -194,6 +211,7 @@ impl LevelGrid {
         None
     }
 
+    /// Returns all direct neighbors that can be walked on
     pub fn walkable_neighbors<
         T: GenericReadStorage<Component = Tile>,
         TR: GenericReadStorage<Component = Transform>,
@@ -225,6 +243,7 @@ impl LevelGrid {
         result
     }
 
+    /// Returns the position of the requested entity. Panics if the Entity is not part of the Grid
     fn grid_position_of<T: GenericReadStorage<Component = Transform>>(
         &self,
         entity: &Entity,
@@ -236,6 +255,7 @@ impl LevelGrid {
                 transform.translation().z as i32,
             );
         };
+        // TODO check for correctness
         panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }

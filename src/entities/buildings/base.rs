@@ -17,6 +17,8 @@ use ncollide3d::shape::{Cuboid, Shape};
 
 const MAX_RAIDERS: usize = 10;
 
+/// A tag to indicate the entity as `Base`
+/// The `Base` is the main building of each Level with which you start with and where you can spawn additional `RockRaider`
 pub struct Base;
 
 impl Base {
@@ -61,6 +63,7 @@ impl Base {
         RockRaider::instantiate(&entities, spawn_position, &mut storages)
     }
 
+    /// Create a new Base. The given entity has to have a `Tile::Ground` Component, which then is used as Parent to determine the Position
     pub fn build(entity: &Entity, world: &mut World) {
         {
             // if the entity has children, they have to be buildings so far.
