@@ -25,8 +25,8 @@ impl<'a> System<'a> for CameraMovementSystem {
 
         if let Some((mouse_x, mouse_y)) = input.mouse_position() {
             // Add the dpi factor to the calculation
-            let mouse_x = mouse_x / screen_size.hidpi_factor();
-            let mouse_y = mouse_y / screen_size.hidpi_factor();
+            let mouse_x = mouse_x;
+            let mouse_y = mouse_y;
 
             //X value of the mouse
             if mouse_x < 20.0 {

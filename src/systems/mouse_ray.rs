@@ -29,12 +29,11 @@ impl<'s> System<'s> for MouseRaySystem {
             transform.get(active_cam.entity),
         ) {
             (Some((x, y)), Some(camera), Some(transform)) => {
-                let dpi_factor = dims.hidpi_factor() as f32;
                 // May break, when camera should ever be child of an other transform.
                 mouse_ray.ray.origin = Point3::from(transform.translation().clone());
                 mouse_ray.ray.dir = from_window_space(
                     (x as f32, y as f32),
-                    (dims.width() * dpi_factor, dims.height() * dpi_factor),
+                    (dims.width(), dims.height()),
                     camera.proj,
                     transform.matrix(),
                 );
