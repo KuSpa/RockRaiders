@@ -3,10 +3,15 @@ use amethyst::ecs::prelude::{Component, DenseVecStorage};
 /// A Component which indicates the entity as a `Tile`, meaning it represents one part of the grid that stores the information of the cave's geography
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
 pub enum Tile {
-    Wall { breaks: bool, ore: u8 },
-    Ground { concealed: bool },
+    Wall {
+        breaks: bool,
+        ore: u8,
+    },
+    Ground {
+        concealed: bool,
+    },
 
-    // Convenience Tile, Should never see be seen in actual grids... only exist for comparison
+    /// Convenience Tile, Should never see be seen in actual grids... only exist for comparison
     Any,
 }
 

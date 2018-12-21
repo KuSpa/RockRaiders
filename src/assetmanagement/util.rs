@@ -63,18 +63,20 @@ pub fn insert_into_asset_storages(entity: Entity, asset_name: &str, storages: &m
     mesh_handles.insert(entity, mesh).unwrap();
 }
 
+pub type HoverStorages<'a> = (
+    ReadExpect<'a, Loader>,
+    Write<'a, AssetManager<Texture>>,
+    Write<'a, AssetStorage<Texture>>,
+    WriteStorage<'a, HoverHandler>,
+);
+
 use ncollide3d::shape::Shape;
 use systems::HoverHandler;
 pub fn add_hover_handler<'a>(
     entity: Entity,
     asset_name: &str,
     bounding_box: Box<dyn Shape<f32>>,
-    (loader, tex_manager, tex_storage, hover_storage): &mut (
-        ReadExpect<'a, Loader>,
-        Write<'a, AssetManager<Texture>>,
-        Write<'a, AssetStorage<Texture>>,
-        WriteStorage<'a, HoverHandler>,
-    ),
+    (loader, tex_manager, tex_storage, hover_storage): &mut HoverStorages<'a>,
 ) {
     let hover_mat = tex_manager.get_asset_handle_or_load(
         &[asset_name, "_hover"].join(""),

@@ -26,7 +26,23 @@ use systems::{HoverHandler, Hovered, Oxygen, Path};
 use util::add_resource_soft;
 use GameScene;
 
-use std::{cmp::Reverse, path::Path as OSPath};
+use std::{cmp::Reverse, ops::{Deref, DerefMut}, path::Path as OSPath};
+
+pub struct SelectedRockRaider(pub Entity);
+
+impl Deref for SelectedRockRaider {
+    type Target = Entity;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for SelectedRockRaider {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// The `State` that is active, when a level runs
 pub struct LevelState {
@@ -207,12 +223,11 @@ impl SimpleState for LevelState {
 
         world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
 
-        /* more resources, that are initialized as default:
-        Option<Hovered>     with:   None
-        Option<OxygenBar>   with:   None
-        */
         world.add_resource(Some(RevealQueue::new()));
         world.add_resource(Some(oxygen));
+        world.add_resource::<Option<Hovered>>(None);
+        world.add_resource::<Option<OxygenBar>>(None);
+        world.add_resource::<Option<SelectedRockRaider>>(None);
 
         add_resource_soft(world, mesh_manager);
         add_resource_soft(world, texture_manager);
@@ -256,7 +271,7 @@ impl SimpleState for LevelState {
                 data.world
                     .read_storage::<Box<dyn Clickable>>()
                     .get(entity)
-                    .map(|handler| handler.on_click(&entity, data.world));
+                    .map(|handler| handler.on_click(entity, data.world));
             }
         }
 
@@ -269,6 +284,8 @@ impl SimpleState for LevelState {
         let world = data.world;
         world.delete_all();
 
+        *world.write_resource::<Option<SelectedRockRaider>>() = None;
+        *world.write_resource::<Option<Hovered>>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;
         *world.write_resource::<Option<RevealQueue>>() = None;

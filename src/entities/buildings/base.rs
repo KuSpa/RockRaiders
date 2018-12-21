@@ -10,6 +10,7 @@ use rand::prelude::*;
 
 use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
 use entities::{RockRaider, Tile};
+use eventhandling::Clickable;
 use level::LevelGrid;
 use util::amount_in;
 
@@ -58,9 +59,10 @@ impl Base {
             Point2::new(spawn_tile_position.x, spawn_tile_position.z)
         };
 
-        let mut storages = world.system_data();
+        let storages = world.system_data();
+        let hover_storage = world.system_data();
         let entities = world.entities();
-        RockRaider::instantiate(&entities, spawn_position, &mut storages)
+        RockRaider::instantiate(&entities, spawn_position, storages, hover_storage)
     }
 
     /// Create a new Base. The given entity has to have a `Tile::Ground` Component, which then is used as Parent to determine the Position
@@ -133,5 +135,12 @@ impl Component for Base {
 impl Default for Base {
     fn default() -> Self {
         Base
+    }
+}
+
+impl Clickable for Base {
+    /// This method is called, whenever the mouse hovers the entity of this component. It only is triggered on the nearest entity, that has a `Hoverable` Comonent as well.
+    fn on_click(&self, entity: Entity, world: &World) {
+        self.spawn_rock_raider(entity, world);
     }
 }
