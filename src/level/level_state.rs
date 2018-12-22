@@ -274,8 +274,15 @@ impl SimpleState for LevelState {
                     .map(|handler| handler.on_click(entity, data.world));
             }
         }
-
         self.mouse_button_was_down = mouse_button;
+
+        // reset selection on right click
+        if data
+            .world
+            .read_resource::<InputHandler<String, String>>()
+            .mouse_button_is_down(MouseButton::Right) {
+            *data.world.write_resource::<Option<Hovered>>() = None;
+        }
 
         Trans::None
     }
