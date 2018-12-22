@@ -93,6 +93,7 @@ pub struct HoverHandler {
 }
 
 impl HoverHandler {
+    //TODO breaks if entity is hovered on instantiation of self and hoverhandler
     fn change_materials(&mut self, entity: &Entity, materials: &mut WriteStorage<Material>) {
         let mat = materials.get_mut(*entity).unwrap();
         let texture_handle = mat.albedo.clone();

@@ -1,4 +1,8 @@
-use amethyst::ecs::prelude::{Component, DenseVecStorage};
+use amethyst::{
+    core::nalgebra::Vector3,
+    ecs::prelude::{Component, DenseVecStorage},
+};
+use ncollide3d::shape::{Cuboid, Shape};
 
 /// A Component which indicates the entity as a `Tile`, meaning it represents one part of the grid that stores the information of the cave's geography
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
@@ -46,6 +50,10 @@ impl Tile {
             Tile::Ground { concealed: false } => true,
             _ => false,
         }
+    }
+
+    pub fn bounding_box() -> Box<dyn Shape<f32>> {
+        Box::new(Cuboid::new(Vector3::new(0.5, 0.01, 0.5)))
     }
 }
 

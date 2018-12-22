@@ -5,6 +5,8 @@ use amethyst::{
     renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
 };
 
+use systems::HoverHandler;
+
 use entities::Tile;
 use level::{LevelGrid, TilePatternMap};
 
@@ -22,6 +24,7 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        WriteStorage<'a, HoverHandler>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, Option<RevealQueue>>,
@@ -41,7 +44,16 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, level_grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (
+            time,
+            mut hovers,
+            dict,
+            level_grid,
+            mut ground_reveal_queue,
+            mut transforms,
+            mut tiles,
+            mut storages,
+        ): Self::SystemData,
     ) {
         if let Some(ref mut ground_reveal_queue) = *ground_reveal_queue {
             while !ground_reveal_queue.is_empty()
@@ -98,6 +110,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 &mut transforms,
                                 &tiles,
                                 &mut storages,
+                                &mut hovers,
                             );
                         }
                     }

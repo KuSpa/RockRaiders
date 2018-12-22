@@ -5,7 +5,7 @@ use amethyst::{
         timing::Time,
         transform::{GlobalTransform, Parent, Transform},
     },
-    ecs::Entity,
+    ecs::{Entity, WriteStorage},
     input::{is_close_requested, is_key_down, InputHandler},
     prelude::*,
     renderer::{
@@ -26,7 +26,11 @@ use systems::{HoverHandler, Hovered, Oxygen, Path};
 use util::add_resource_soft;
 use GameScene;
 
-use std::{cmp::Reverse, ops::{Deref, DerefMut}, path::Path as OSPath};
+use std::{
+    cmp::Reverse,
+    ops::{Deref, DerefMut},
+    path::Path as OSPath,
+};
 
 pub struct SelectedRockRaider(pub Entity);
 
@@ -97,6 +101,7 @@ impl LevelState {
             let mut transforms = world.write_storage::<Transform>();
             let dict = world.read_resource::<TilePatternMap>();
             let mut storages = world.system_data();
+            let mut hover_storage = world.system_data::<WriteStorage<HoverHandler>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -107,6 +112,7 @@ impl LevelState {
                         &mut transforms,
                         &tiles,
                         &mut storages,
+                        &mut hover_storage,
                     );
                 }
             }
@@ -280,7 +286,8 @@ impl SimpleState for LevelState {
         if data
             .world
             .read_resource::<InputHandler<String, String>>()
-            .mouse_button_is_down(MouseButton::Right) {
+            .mouse_button_is_down(MouseButton::Right)
+        {
             *data.world.write_resource::<Option<Hovered>>() = None;
         }
 

@@ -9,14 +9,14 @@ use amethyst::{
         prelude::{Builder, Entity, World},
         storage::{GenericReadStorage, GenericWriteStorage},
     },
+    renderer::{PngFormat, TextureMetadata},
 };
-
-use pathfinding::directed::bfs;
 
 use assetmanagement::util::*;
 use entities::Tile;
 use level::TilePatternMap;
-use systems::Path;
+use pathfinding::directed::bfs;
+use systems::{HoverHandler, Path};
 use util;
 
 /// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
@@ -141,6 +141,7 @@ impl LevelGrid {
     pub fn update_tile<
         T: GenericReadStorage<Component = Tile>,
         R: GenericWriteStorage<Component = Transform>,
+        H: GenericWriteStorage<Component = HoverHandler>,
     >(
         &self,
         x: i32,
@@ -149,6 +150,7 @@ impl LevelGrid {
         transforms: &mut R,
         tiles: &T,
         storages: &mut AssetStorages,
+        hover_storage: &mut H,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
@@ -158,6 +160,32 @@ impl LevelGrid {
         transform.set_position(Vector3::new(x as f32, 0.0, y as f32));
         transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
+
+        //Add hover handler for the Tile
+        if self.get_tile(x, y, tiles).unwrap().is_walkable() {
+            let (
+                ref loader,
+                ref _mesh_manager,
+                ref _mesh_handles,
+                ref _mesh_storage,
+                ref mut tex_manager,
+                ref _mat_storage,
+                ref mut tex_storage,
+                ref _default_mat,
+            ) = storages;
+            let hover_mat = tex_manager.get_asset_handle_or_load(
+                "ground_hover",
+                PngFormat,
+                TextureMetadata::srgb(),
+                tex_storage,
+                &loader,
+            );
+            let handler = HoverHandler {
+                hover: hover_mat,
+                bounding_box: Tile::bounding_box(),
+            };
+            hover_storage.insert(entity, handler).unwrap();
+        }
     }
 
     pub fn get_tile<'a, T: GenericReadStorage<Component = Tile>>(

@@ -72,6 +72,7 @@ pub type HoverStorages<'a> = (
 
 use ncollide3d::shape::Shape;
 use systems::HoverHandler;
+// TODO remove this horrible thingy from my eyes xD
 pub fn add_hover_handler<'a>(
     entity: Entity,
     asset_name: &str,
