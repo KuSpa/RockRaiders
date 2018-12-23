@@ -1,16 +1,18 @@
 use amethyst::{
+    assets::Loader,
     core::{
         nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
     },
     ecs::prelude::{Builder, Component, Entity, NullStorage, World},
+    renderer::{PngFormat, Texture, TextureMetadata},
 };
 
 use rand::prelude::*;
 
-use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
+use assetmanagement::{util::insert_into_asset_storages, AssetManager};
 use entities::{RockRaider, Tile};
-use eventhandling::Clickable;
+use eventhandling::{Clickable, HoverHandler};
 use level::LevelGrid;
 use util::amount_in;
 
@@ -101,13 +103,25 @@ impl Base {
             .build();
 
         {
-            let mut storages = world.system_data();
-            add_hover_handler(
-                result,
-                Base::asset_name(),
-                Base::bounding_box(),
-                &mut storages,
+            let loader = world.read_resource::<Loader>();
+            let mut tex_manager = world.write_resource::<AssetManager<Texture>>();
+            let mut tex_storage = world.write_resource();
+            let mut hover_storage = world.write_storage::<HoverHandler>();
+
+            // TODO refector back ;)
+            let hover_mat = tex_manager.get_asset_handle_or_load(
+                &[Self::asset_name(), "_hover"].join(""),
+                PngFormat,
+                TextureMetadata::srgb(),
+                &mut tex_storage,
+                &loader,
             );
+            let handler = HoverHandler {
+                hover: hover_mat,
+                bounding_box: Self::bounding_box(),
+            };
+
+            hover_storage.insert(result, handler).unwrap();
         }
 
         {

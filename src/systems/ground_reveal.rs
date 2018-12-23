@@ -5,10 +5,8 @@ use amethyst::{
     renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
 };
 
-use systems::HoverHandler;
-
 use entities::Tile;
-use eventhandling::Clickable;
+use eventhandling::{Clickable, HoverHandler};
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;

@@ -9,8 +9,8 @@ use amethyst::{
     },
     renderer::{Material, TextureHandle},
 };
+use eventhandling::MouseRay;
 use ncollide3d::shape::Shape;
-use systems::MouseRay;
 
 pub struct HoverInteractionSystem;
 

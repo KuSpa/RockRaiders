@@ -4,12 +4,13 @@ use amethyst::{
         transform::{GlobalTransform, Transform},
     },
     ecs::prelude::{Component, Entities, Entity, NullStorage, World, WriteStorage},
+    renderer::{PngFormat, TextureMetadata},
 };
 use assetmanagement::util::*;
 use eventhandling::Clickable;
+use eventhandling::HoverHandler;
 use level::SelectedRockRaider;
 use ncollide3d::shape::{Cuboid, Shape};
-use systems::HoverHandler;
 
 /// A Tag to indicate the entity as `RockRader`
 /// `RockRaider`a are the little moving people, that the player can control to do certain tasks ;).
@@ -30,7 +31,7 @@ impl RockRaider {
         entities: &Entities, //note: this is a type alias for Read<'a, EntityRes>
         position: Point2<f32>,
         rr_storages: RockRaiderStorages,
-        hover_storage: WriteStorage<HoverHandler>,
+        mut hover_storage: WriteStorage<HoverHandler>,
         mut click_storage: WriteStorage<Box<dyn Clickable>>,
     ) -> Entity {
         let (
@@ -55,18 +56,28 @@ impl RockRaider {
             _mesh_manager,
             _mesh_handles,
             _mesh_storage,
-            tex_manager,
+            mut tex_manager,
             _mat_storage,
-            tex_storage,
+            mut tex_storage,
             _default_mat,
         ) = asset_storages;
 
-        add_hover_handler(
-            entity,
-            Self::asset_name(),
-            Box::new(Cuboid::new(Vector3::<f32>::new(0.21, 0.18, 0.1))) as Box<dyn Shape<f32>>,
-            &mut (loader, tex_manager, tex_storage, hover_storage),
+        // TODO refactor Back!
+        let hover_mat = tex_manager.get_asset_handle_or_load(
+            &[Self::asset_name(), "_hover"].join(""),
+            PngFormat,
+            TextureMetadata::srgb(),
+            &mut tex_storage,
+            &loader,
         );
+        let handler = HoverHandler {
+            hover: hover_mat,
+            bounding_box: Box::new(Cuboid::new(Vector3::<f32>::new(0.21, 0.18, 0.1)))
+                as Box<dyn Shape<f32>>,
+        };
+
+        hover_storage.insert(entity, handler).unwrap();
+
         let handler = Box::new(RockRaider) as Box<dyn Clickable>;
         click_storage.insert(entity, handler).unwrap();
 

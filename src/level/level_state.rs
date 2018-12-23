@@ -15,14 +15,11 @@ use amethyst::{
     ui::*,
 };
 
-use systems::OxygenBar;
-
 use assetmanagement::AssetManager;
+use eventhandling::{Clickable, HoverHandler, Hovered};
 use entities::{buildings::Base, RockRaider, Tile};
-use eventhandling::Clickable;
 use level::LevelGrid;
-use systems::RevealQueue;
-use systems::{HoverHandler, Hovered, Oxygen, Path};
+use systems::{RevealQueue, OxygenBar, Oxygen, Path};
 use util::add_resource_soft;
 use GameScene;
 

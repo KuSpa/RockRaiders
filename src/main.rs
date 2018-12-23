@@ -12,7 +12,7 @@ mod assetmanagement;
 mod entities;
 mod eventhandling;
 mod level;
-mod rockraiders;
+mod main_state;
 mod systems;
 mod util;
 
@@ -26,7 +26,7 @@ use amethyst::{
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
-    use rockraiders::MainState;
+    use main_state::MainState;
 
     let path = format!("{}/resources/display.ron", env!("CARGO_MANIFEST_DIR"));
 
@@ -47,18 +47,15 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(RenderBundle::new(pipe, Some(config)))?
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<String, String>::new())?
-        .with(
-            systems::MouseRaySystem.pausable(GameScene::Level),
-            "mouse_ray_system",
-            &[],
-        )
+        .with(eventhandling::MouseRaySystem.pausable(GameScene::Level),
+              "mouse_ray_system", &[])
         .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
             &["transform_system"],
         )
         .with(
-            systems::CameraMovementSystem.pausable(GameScene::Level),
+            eventhandling::CameraMovementSystem.pausable(GameScene::Level),
             "camera_movement_system",
             &[],
         )
@@ -69,14 +66,12 @@ fn main() -> amethyst::Result<()> {
         )
         .with(
             systems::OxygenSystem.pausable(GameScene::Level),
-            "oxygen_system",
-            &["ui_transform"],
-        )
-        .with(
-            systems::HoverInteractionSystem.pausable(GameScene::Level),
-            "mouse_input_system",
-            &["mouse_ray_system"],
-        );
+            "oxygen_system",&["ui_transform"],)
+
+        .with(eventhandling::HoverInteractionSystem.pausable(GameScene::Level),
+              "mouse_input_system",
+              &["mouse_ray_system"],);
+
     let mut game = Application::new(assets_dir, MainState, game_data)?;
     game.run();
     Ok(())

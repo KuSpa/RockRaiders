@@ -14,10 +14,10 @@ use amethyst::{
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::Clickable;
+use eventhandling::{Clickable, HoverHandler};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
-use systems::{HoverHandler, Path};
+use systems::Path;
 use util;
 
 /// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
@@ -176,6 +176,7 @@ impl LevelGrid {
                 ref mut tex_storage,
                 ref _default_mat,
             ) = storages;
+            //TODO refactor back
             let hover_mat = tex_manager.get_asset_handle_or_load(
                 "ground_hover",
                 PngFormat,
