@@ -12,7 +12,7 @@ use rand::prelude::*;
 
 use assetmanagement::{util::insert_into_asset_storages, AssetManager};
 use entities::{RockRaider, Tile};
-use eventhandling::{Clickable, HoverHandler};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandler};
 use level::LevelGrid;
 use util::amount_in;
 
@@ -129,15 +129,8 @@ impl Base {
             insert_into_asset_storages(result, Base::asset_name(), &mut storages);
         }
 
-        //Build Click Handler
-        {
-            use eventhandling::*;
-            let tmp: Box<dyn Clickable> = Box::new(Base);
-            world
-                .write_storage::<Box<dyn Clickable>>()
-                .insert(result, tmp)
-                .unwrap();
-        }
+        let mut click_storage = world.write_storage::<ClickHandlerComponent>();
+        Base.attach_click_handler(result, &mut click_storage);
     }
 
     fn asset_name() -> &'static str {
@@ -160,8 +153,11 @@ impl Default for Base {
 }
 
 impl Clickable for Base {
-    /// This method is called, whenever the mouse hovers the entity of this component. It only is triggered on the nearest entity, that has a `Hoverable` Comonent as well.
     fn on_click(&self, entity: Entity, world: &World) {
         self.spawn_rock_raider(entity, world);
+    }
+
+    fn new_click_handler(&self) -> ClickHandlerComponent {
+        Box::new(Base) as ClickHandlerComponent
     }
 }

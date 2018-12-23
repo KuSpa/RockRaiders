@@ -2,7 +2,7 @@ use amethyst::{
     core::{nalgebra::Vector3, transform::Transform},
     ecs::prelude::{Component, DenseVecStorage, Entity, World},
 };
-use eventhandling::Clickable;
+use eventhandling::{ClickHandlerComponent, Clickable};
 use level::{LevelGrid, SelectedRockRaider};
 use ncollide3d::shape::{Cuboid, Shape};
 
@@ -57,14 +57,6 @@ impl Tile {
     pub fn bounding_box() -> Box<dyn Shape<f32>> {
         Box::new(Cuboid::new(Vector3::new(0.5, 0.01, 0.5)))
     }
-
-    pub fn click_handler() -> Box<dyn Clickable> {
-        // TODO Refactor
-        // This is working, because there are currently no different clickhandler for different Tiles.
-        // A rr does not move to a Wall, because there will be no Path to the Wall(the destination is not `walkable()`)
-        // is updated as soon as different ClickHandler are required
-        Box::new(Tile::Any) as Box<dyn Clickable>
-    }
 }
 
 impl Default for Tile {
@@ -100,5 +92,13 @@ impl Clickable for Tile {
             }
         }
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
+    }
+
+    fn new_click_handler(&self) -> ClickHandlerComponent {
+        // TODO Refactor
+        // This is working, because there are currently no different clickhandler for different Tiles.
+        // A rr does not move to a Wall, because there will be no Path to the Wall(the destination is not `walkable()`)
+        // is updated as soon as different ClickHandler are required
+        Box::new(Tile::Any) as Box<dyn Clickable>
     }
 }

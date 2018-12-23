@@ -7,14 +7,14 @@ use amethyst::{
     },
     ecs::{
         prelude::{Builder, Entity, World},
-        storage::{GenericReadStorage, GenericWriteStorage},
+        storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
     renderer::{PngFormat, TextureMetadata},
 };
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::{Clickable, HoverHandler};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandler};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::Path;
@@ -143,7 +143,6 @@ impl LevelGrid {
         T: GenericReadStorage<Component = Tile>,
         R: GenericWriteStorage<Component = Transform>,
         H: GenericWriteStorage<Component = HoverHandler>,
-        C: GenericWriteStorage<Component = Box<dyn Clickable>>,
     >(
         &self,
         x: i32,
@@ -153,7 +152,7 @@ impl LevelGrid {
         tiles: &T,
         storages: &mut AssetStorages,
         hover_storage: &mut H,
-        click_storage: &mut C,
+        mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
@@ -165,7 +164,7 @@ impl LevelGrid {
         transforms.insert(entity, transform).unwrap();
 
         //Add hover handler for the Tile
-        if self.get_tile(x, y, tiles).unwrap().is_walkable() {
+        if let Some(tile) = self.get_tile(x, y, tiles) {
             let (
                 ref loader,
                 ref _mesh_manager,
@@ -189,7 +188,8 @@ impl LevelGrid {
                 bounding_box: Tile::bounding_box(),
             };
             hover_storage.insert(entity, handler).unwrap();
-            click_storage.insert(entity, Tile::click_handler()).unwrap();
+
+            tile.attach_click_handler(entity, &mut click_storage);
         }
     }
 

@@ -7,8 +7,8 @@ use amethyst::{
     renderer::{PngFormat, TextureMetadata},
 };
 use assetmanagement::util::*;
-use eventhandling::Clickable;
 use eventhandling::HoverHandler;
+use eventhandling::{ClickHandlerComponent, Clickable};
 use level::SelectedRockRaider;
 use ncollide3d::shape::{Cuboid, Shape};
 
@@ -78,8 +78,7 @@ impl RockRaider {
 
         hover_storage.insert(entity, handler).unwrap();
 
-        let handler = Box::new(RockRaider) as Box<dyn Clickable>;
-        click_storage.insert(entity, handler).unwrap();
+        RockRaider.attach_click_handler(entity, &mut click_storage);
 
         entity
     }
@@ -96,5 +95,9 @@ impl Component for RockRaider {
 impl Clickable for RockRaider {
     fn on_click(&self, entity: Entity, world: &World) {
         *world.write_resource::<Option<SelectedRockRaider>>() = Some(SelectedRockRaider(entity));
+    }
+
+    fn new_click_handler(&self) -> ClickHandlerComponent {
+        Box::new(RockRaider) as ClickHandlerComponent
     }
 }
