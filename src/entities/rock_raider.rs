@@ -31,6 +31,7 @@ impl RockRaider {
         position: Point2<f32>,
         rr_storages: RockRaiderStorages,
         hover_storage: WriteStorage<HoverHandler>,
+        mut click_storage: WriteStorage<Box<dyn Clickable>>,
     ) -> Entity {
         let (
             (mut rock_raider_storage, mut transform_storage, mut global_transform_storage),
@@ -66,6 +67,9 @@ impl RockRaider {
             Box::new(Cuboid::new(Vector3::<f32>::new(0.21, 0.18, 0.1))) as Box<dyn Shape<f32>>,
             &mut (loader, tex_manager, tex_storage, hover_storage),
         );
+        let handler = Box::new(RockRaider) as Box<dyn Clickable>;
+        click_storage.insert(entity, handler).unwrap();
+
         entity
     }
 
@@ -80,6 +84,6 @@ impl Component for RockRaider {
 
 impl Clickable for RockRaider {
     fn on_click(&self, entity: Entity, world: &World) {
-        *(world.write_resource::<Option<SelectedRockRaider>>()) = Some(SelectedRockRaider(entity));
+        *world.write_resource::<Option<SelectedRockRaider>>() = Some(SelectedRockRaider(entity));
     }
 }

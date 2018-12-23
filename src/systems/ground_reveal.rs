@@ -8,6 +8,7 @@ use amethyst::{
 use systems::HoverHandler;
 
 use entities::Tile;
+use eventhandling::Clickable;
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
@@ -25,6 +26,7 @@ impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
         WriteStorage<'a, HoverHandler>,
+        WriteStorage<'a, Box<dyn Clickable>>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, Option<RevealQueue>>,
@@ -47,6 +49,7 @@ impl<'a> System<'a> for GroundRevealSystem {
         (
             time,
             mut hovers,
+            mut clickers,
             dict,
             level_grid,
             mut ground_reveal_queue,
@@ -111,6 +114,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 &tiles,
                                 &mut storages,
                                 &mut hovers,
+                                &mut clickers,
                             );
                         }
                     }

@@ -61,8 +61,15 @@ impl Base {
 
         let storages = world.system_data();
         let hover_storage = world.system_data();
+        let click_storage = world.system_data();
         let entities = world.entities();
-        RockRaider::instantiate(&entities, spawn_position, storages, hover_storage)
+        RockRaider::instantiate(
+            &entities,
+            spawn_position,
+            storages,
+            hover_storage,
+            click_storage,
+        )
     }
 
     /// Create a new Base. The given entity has to have a `Tile::Ground` Component, which then is used as Parent to determine the Position

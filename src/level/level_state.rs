@@ -102,6 +102,7 @@ impl LevelState {
             let dict = world.read_resource::<TilePatternMap>();
             let mut storages = world.system_data();
             let mut hover_storage = world.system_data::<WriteStorage<HoverHandler>>();
+            let mut click_storage = world.system_data::<WriteStorage<Box<dyn Clickable>>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -113,6 +114,7 @@ impl LevelState {
                         &tiles,
                         &mut storages,
                         &mut hover_storage,
+                        &mut click_storage,
                     );
                 }
             }
@@ -274,10 +276,24 @@ impl SimpleState for LevelState {
         if !self.mouse_button_was_down & &mouse_button {
             if let Some(hovered) = &*data.world.read_resource::<Option<Hovered>>() {
                 let entity = hovered.entity;
-                data.world
-                    .read_storage::<Box<dyn Clickable>>()
-                    .get(entity)
-                    .map(|handler| handler.on_click(entity, data.world));
+
+                // the following code may be a bit unintuitive:
+                // # remove handler
+                // # execute handler
+                // # add handler again
+                // This is required, because the handler itself may fetch the clickhandler storage on execution, what would lead to a new borrow, while this method still borrows the storage to execute the handler.
+                // To bypass this, we remove the handler for the time of execution, so that no resource of the world is borrowed and there are no possible `Invalid Borrow` clashes from this side of the code.
+                let opt_handler = data
+                    .world
+                    .write_storage::<Box<dyn Clickable>>()
+                    .remove(entity);
+
+                opt_handler.map(|handler| {
+                    handler.on_click(entity, data.world);
+                    data.world
+                        .write_storage::<Box<dyn Clickable>>()
+                        .insert(entity, handler)
+                });
             }
         }
         self.mouse_button_was_down = mouse_button;
@@ -288,7 +304,7 @@ impl SimpleState for LevelState {
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Right)
         {
-            *data.world.write_resource::<Option<Hovered>>() = None;
+            *data.world.write_resource::<Option<SelectedRockRaider>>() = None;
         }
 
         Trans::None
@@ -309,5 +325,12 @@ impl SimpleState for LevelState {
 
 fn do_test_method(data: StateData<GameData>) {
     let world = data.world;
+
+    use amethyst::ecs::Join;
+    for (base, entity) in (&world.read_storage::<Base>(), &world.entities()).join() {
+        base.spawn_rock_raider(entity, world);
+        return;
+    }
+
     LevelState::initialize_base(world);
 }

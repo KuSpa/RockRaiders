@@ -14,6 +14,7 @@ use amethyst::{
 
 use assetmanagement::util::*;
 use entities::Tile;
+use eventhandling::Clickable;
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::{HoverHandler, Path};
@@ -142,6 +143,7 @@ impl LevelGrid {
         T: GenericReadStorage<Component = Tile>,
         R: GenericWriteStorage<Component = Transform>,
         H: GenericWriteStorage<Component = HoverHandler>,
+        C: GenericWriteStorage<Component = Box<dyn Clickable>>,
     >(
         &self,
         x: i32,
@@ -151,6 +153,7 @@ impl LevelGrid {
         tiles: &T,
         storages: &mut AssetStorages,
         hover_storage: &mut H,
+        click_storage: &mut C,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
@@ -185,6 +188,7 @@ impl LevelGrid {
                 bounding_box: Tile::bounding_box(),
             };
             hover_storage.insert(entity, handler).unwrap();
+            click_storage.insert(entity, Tile::click_handler()).unwrap();
         }
     }
 
