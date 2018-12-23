@@ -282,12 +282,12 @@ impl LevelGrid {
         storage: &T,
     ) -> (i32, i32) {
         if let Some(transform) = storage.get(*entity) {
-            return (
-                transform.translation().x as i32,
-                transform.translation().z as i32,
-            );
+            let x = transform.translation().x as i32;
+            let y = transform.translation().z as i32;
+            // Test if the entity is part of the Grid at all. `unwrap()` is okay, because if it not part of the grid, we panic anyway
+            assert_eq!(*entity, self.get(x, y).unwrap());
+            return (x, y);
         };
-        // TODO check for correctness
         panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }
