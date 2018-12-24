@@ -6,7 +6,7 @@ use amethyst::{
 };
 
 use entities::Tile;
-use eventhandling::{Clickable, HoverHandler};
+use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
@@ -23,8 +23,9 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
-        WriteStorage<'a, HoverHandler>,
-        WriteStorage<'a, Box<dyn Clickable>>,
+        Write<'a, Option<Hovered>>,
+        WriteStorage<'a, HoverHandlerComponent>,
+        WriteStorage<'a, ClickHandlerComponent>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, Option<RevealQueue>>,
@@ -46,6 +47,7 @@ impl<'a> System<'a> for GroundRevealSystem {
         &mut self,
         (
             time,
+            mut hover,
             mut hovers,
             mut clickers,
             dict,
@@ -104,22 +106,23 @@ impl<'a> System<'a> for GroundRevealSystem {
                             let x = transform.translation().x as i32;
                             let y = transform.translation().z as i32;
 
-                            level_grid.update_tile(
-                                x,
-                                y,
-                                &dict,
-                                &mut transforms,
-                                &tiles,
-                                &mut storages,
-                                &mut hovers,
-                                &mut clickers,
-                            );
-                        }
+
+                        level_grid.update_tile(
+                            x,
+                            y,
+                            &dict,
+                            &mut transforms,
+                            &tiles,
+                            &mut storages,
+                            &mut hover,
+                            &mut hovers,
+                            &mut clickers,
+                        );
                     }
                 }
             }
-        } else {
+        }} else {
             error!("reveal_system is running without a valid reveal queue!");
-        }
+
     }
-}
+}}

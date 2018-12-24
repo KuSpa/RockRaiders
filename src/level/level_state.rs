@@ -16,7 +16,7 @@ use amethyst::{
 };
 
 use assetmanagement::AssetManager;
-use eventhandling::{Clickable, HoverHandler, Hovered};
+use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
 use entities::{buildings::Base, RockRaider, Tile};
 use level::LevelGrid;
 use systems::{RevealQueue, OxygenBar, Oxygen, Path};
@@ -49,6 +49,7 @@ impl DerefMut for SelectedRockRaider {
 pub struct LevelState {
     /// pretty self explanatory
     pub mouse_button_was_down: bool,
+    pub last_hovered: Option<Entity>,
 }
 
 /// This is a Map referencing from a 3x3 Tile matrix to a String.
@@ -98,8 +99,9 @@ impl LevelState {
             let mut transforms = world.write_storage::<Transform>();
             let dict = world.read_resource::<TilePatternMap>();
             let mut storages = world.system_data();
-            let mut hover_storage = world.system_data::<WriteStorage<HoverHandler>>();
-            let mut click_storage = world.system_data::<WriteStorage<Box<dyn Clickable>>>();
+            let mut hover_storage = world.system_data::<WriteStorage<HoverHandlerComponent>>();
+            let mut click_storage = world.system_data::<WriteStorage<ClickHandlerComponent>>();
+            let mut hovered = world.write_resource::<Option<Hovered>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -110,6 +112,7 @@ impl LevelState {
                         &mut transforms,
                         &tiles,
                         &mut storages,
+                        &mut hovered,
                         &mut hover_storage,
                         &mut click_storage,
                     );
@@ -216,8 +219,9 @@ impl SimpleState for LevelState {
         world.register::<Tile>();
         world.register::<Light>();
         world.register::<Base>();
-        world.register::<HoverHandler>();
-        world.register::<Box<dyn Clickable>>();
+        world.register::<HoverHandlerComponent>();
+        world.register::<ClickHandlerComponent>();
+
         world.register::<RockRaider>();
         world.register::<Path>();
 
@@ -265,30 +269,61 @@ impl SimpleState for LevelState {
             }
         }
 
-        let mouse_button = data
-            .world
+        let world = data.world;
+
+        let hovered = world
+            .read_resource::<Option<Hovered>>()
+            .clone()
+            .map(|e| e.entity);
+        match (&hovered, &self.last_hovered) {
+            (Some(act), Some(last)) if act != last => {
+                world
+                    .write_storage::<HoverHandlerComponent>()
+                    .get_mut(*act)
+                    .map(|e| e.on_hover_start(*act, &world));
+                world
+                    .write_storage::<HoverHandlerComponent>()
+                    .get_mut(*last)
+                    .map(|e| e.on_hover_stop(*last, &world));
+            }
+            (None, Some(last)) => {
+                world
+                    .write_storage::<HoverHandlerComponent>()
+                    .get_mut(*last)
+                    .map(|e| e.on_hover_stop(*last, &world));
+            }
+            (Some(act), None) => {
+                world
+                    .write_storage::<HoverHandlerComponent>()
+                    .get_mut(*act)
+                    .map(|e| e.on_hover_start(*act, &world));
+            }
+            _ => (),
+        };
+
+        self.last_hovered = hovered;
+
+        let mouse_button = world
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Left);
 
-        if !self.mouse_button_was_down & &mouse_button {
-            if let Some(hovered) = &*data.world.read_resource::<Option<Hovered>>() {
+        if !self.mouse_button_was_down && mouse_button {
+            if let Some(hovered) = &*world.read_resource::<Option<Hovered>>() {
                 let entity = hovered.entity;
-
                 // the following code may be a bit unintuitive:
                 // # remove handler
                 // # execute handler
                 // # add handler again
                 // This is required, because the handler itself may fetch the clickhandler storage on execution, what would lead to a new borrow, while this method still borrows the storage to execute the handler.
                 // To bypass this, we remove the handler for the time of execution, so that no resource of the world is borrowed and there are no possible `Invalid Borrow` clashes from this side of the code.
-                let opt_handler = data
-                    .world
-                    .write_storage::<Box<dyn Clickable>>()
+                let opt_handler = world
+                    .write_storage::<ClickHandlerComponent>()
                     .remove(entity);
 
                 opt_handler.map(|handler| {
-                    handler.on_click(entity, data.world);
-                    data.world
-                        .write_storage::<Box<dyn Clickable>>()
+                    handler.on_click(entity, world);
+                    world
+                        .write_storage::<ClickHandlerComponent>()
                         .insert(entity, handler)
                 });
             }
@@ -296,12 +331,11 @@ impl SimpleState for LevelState {
         self.mouse_button_was_down = mouse_button;
 
         // reset selection on right click
-        if data
-            .world
+        if world
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Right)
         {
-            *data.world.write_resource::<Option<SelectedRockRaider>>() = None;
+            *world.write_resource::<Option<SelectedRockRaider>>() = None;
         }
 
         Trans::None
@@ -321,13 +355,5 @@ impl SimpleState for LevelState {
 }
 
 fn do_test_method(data: StateData<GameData>) {
-    let world = data.world;
-
-    use amethyst::ecs::Join;
-    for (base, entity) in (&world.read_storage::<Base>(), &world.entities()).join() {
-        base.spawn_rock_raider(entity, world);
-        return;
-    }
-
-    LevelState::initialize_base(world);
+    LevelState::initialize_base(data.world);
 }

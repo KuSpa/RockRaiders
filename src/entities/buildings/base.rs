@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::Loader,
+    assets::{AssetStorage, Loader},
     core::{
         nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
@@ -12,11 +12,11 @@ use rand::prelude::*;
 
 use assetmanagement::{util::insert_into_asset_storages, AssetManager};
 use entities::{RockRaider, Tile};
-use eventhandling::{ClickHandlerComponent, Clickable, HoverHandler};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::LevelGrid;
 use util::amount_in;
 
-use ncollide3d::shape::{Cuboid, Shape};
+use ncollide3d::shape::Cuboid;
 
 const MAX_RAIDERS: usize = 10;
 
@@ -103,25 +103,12 @@ impl Base {
             .build();
 
         {
-            let loader = world.read_resource::<Loader>();
-            let mut tex_manager = world.write_resource::<AssetManager<Texture>>();
+            // add a HoverHandler to the Entity
+            let loader = world.read_resource();
+            let mut tex_manager = world.write_resource();
             let mut tex_storage = world.write_resource();
-            let mut hover_storage = world.write_storage::<HoverHandler>();
-
-            // TODO refector back ;)
-            let hover_mat = tex_manager.get_asset_handle_or_load(
-                &[Self::asset_name(), "_hover"].join(""),
-                PngFormat,
-                TextureMetadata::srgb(),
-                &mut tex_storage,
-                &loader,
-            );
-            let handler = HoverHandler {
-                hover: hover_mat,
-                bounding_box: Self::bounding_box(),
-            };
-
-            hover_storage.insert(result, handler).unwrap();
+            let handler = Base::new_hover_handler(&loader, &mut tex_manager, &mut tex_storage);
+            world.write_storage().insert(result, handler).unwrap();
         }
 
         {
@@ -137,8 +124,21 @@ impl Base {
         "buildings/base"
     }
 
-    fn bounding_box() -> Box<dyn Shape<f32>> {
-        Box::new(Cuboid::new(Vector3::new(0.33, 0.33, 0.38)))
+    pub fn new_hover_handler(
+        loader: &Loader,
+        tex_manager: &mut AssetManager<Texture>,
+        mut tex_storage: &mut AssetStorage<Texture>,
+    ) -> HoverHandlerComponent {
+        let hover_mat = tex_manager.get_asset_handle_or_load(
+            "buildings/base_hover",
+            PngFormat,
+            TextureMetadata::srgb(),
+            &mut tex_storage,
+            &loader,
+        );
+
+        let bounding_box = Cuboid::new(Vector3::new(0.33, 0.33, 0.39));
+        Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
 }
 

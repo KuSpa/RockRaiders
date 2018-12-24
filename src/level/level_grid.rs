@@ -9,12 +9,11 @@ use amethyst::{
         prelude::{Builder, Entity, World},
         storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
-    renderer::{PngFormat, TextureMetadata},
 };
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::{ClickHandlerComponent, Clickable, HoverHandler};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::Path;
@@ -142,7 +141,6 @@ impl LevelGrid {
     pub fn update_tile<
         T: GenericReadStorage<Component = Tile>,
         R: GenericWriteStorage<Component = Transform>,
-        H: GenericWriteStorage<Component = HoverHandler>,
     >(
         &self,
         x: i32,
@@ -151,7 +149,8 @@ impl LevelGrid {
         transforms: &mut R,
         tiles: &T,
         storages: &mut AssetStorages,
-        hover_storage: &mut H,
+        hovered: &mut Option<Hovered>,
+        hover_storage: &mut WriteStorage<HoverHandlerComponent>,
         mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
@@ -175,21 +174,22 @@ impl LevelGrid {
                 ref mut tex_storage,
                 ref _default_mat,
             ) = storages;
-            //TODO refactor back
-            let hover_mat = tex_manager.get_asset_handle_or_load(
-                "ground_hover",
-                PngFormat,
-                TextureMetadata::srgb(),
-                tex_storage,
-                &loader,
-            );
-            let handler = HoverHandler {
-                hover: hover_mat,
-                bounding_box: Tile::bounding_box(),
-            };
+
+            let handler = Tile::new_hover_handler(&loader, tex_manager, tex_storage);
+
             hover_storage.insert(entity, handler).unwrap();
 
             tile.attach_click_handler(entity, &mut click_storage);
+
+            if let Some(hov) = hovered.clone() {
+                if hov.entity == entity {
+                    // If the entity was already hovered, we remove it to call `on_hover_start` at the next `level_state.handle_event`
+                    // This is necessary, because when the Handler is switched the new one does not know, that the Tile is already hovered, so we need to reset the Resource as easy way to call `on_hover_start` for the handler
+
+                    // TODO this needs to be lasth_overed of the levelstate lul
+                    *hovered = None
+                }
+            }
         }
     }
 

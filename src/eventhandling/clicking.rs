@@ -10,7 +10,7 @@ pub type ClickHandlerComponent = Box<dyn Clickable>;
 /// Note, that that `HoverHandler` is implemented as Component, which makes it harder to make Hoverable a supertrait of Clickable
 /// This can be adapted as soon as the is the need to do so @karyon <3<3<3
 pub trait Clickable: Sync + Send {
-    /// This method is called, whenever the mouse hovers the entity of this component. It only is triggered on the nearest entity, that has a `Hoverable` Comonent as well.
+    /// This method is called, whenever the mouse hovers the entity of this component and clicks. It only is triggered on the nearest entity, that has a `Hoverable` Component as well.
     fn on_click(&self, Entity, &World);
 
     /// Creates a new ClickHandler, which can be stored

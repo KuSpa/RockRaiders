@@ -1,10 +1,14 @@
 use amethyst::{
+    assets::{AssetStorage, Loader},
     core::{nalgebra::Vector3, transform::Transform},
     ecs::prelude::{Component, DenseVecStorage, Entity, World},
+    renderer::{PngFormat, Texture, TextureMetadata},
 };
-use eventhandling::{ClickHandlerComponent, Clickable};
+
+use assetmanagement::AssetManager;
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::{LevelGrid, SelectedRockRaider};
-use ncollide3d::shape::{Cuboid, Shape};
+use ncollide3d::shape::Cuboid;
 
 /// A Component which indicates the entity as a `Tile`, meaning it represents one part of the grid that stores the information of the cave's geography
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq)]
@@ -54,8 +58,21 @@ impl Tile {
         }
     }
 
-    pub fn bounding_box() -> Box<dyn Shape<f32>> {
-        Box::new(Cuboid::new(Vector3::new(0.5, 0.01, 0.5)))
+    pub fn new_hover_handler(
+        loader: &Loader,
+        tex_manager: &mut AssetManager<Texture>,
+        mut tex_storage: &mut AssetStorage<Texture>,
+    ) -> HoverHandlerComponent {
+        let hover_mat = tex_manager.get_asset_handle_or_load(
+            "ground_hover",
+            PngFormat,
+            TextureMetadata::srgb(),
+            &mut tex_storage,
+            &loader,
+        );
+
+        let bounding_box = Cuboid::new(Vector3::new(0.5, 0.01, 0.5));
+        Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
 }
 

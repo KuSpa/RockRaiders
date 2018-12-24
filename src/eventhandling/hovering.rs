@@ -4,11 +4,12 @@ use amethyst::{
         GlobalTransform,
     },
     ecs::prelude::{
-        Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, Write,
-        WriteStorage,
+        Component, DenseVecStorage, Entities, Entity, Join, Read, ReadStorage, System, World,
+        Write, WriteStorage,
     },
     renderer::{Material, TextureHandle},
 };
+
 use eventhandling::MouseRay;
 use ncollide3d::shape::Shape;
 
@@ -19,14 +20,13 @@ impl<'a> System<'a> for HoverInteractionSystem {
         Entities<'a>,
         Read<'a, MouseRay>,
         ReadStorage<'a, GlobalTransform>,
-        WriteStorage<'a, HoverHandler>,
-        WriteStorage<'a, Material>,
+        WriteStorage<'a, HoverHandlerComponent>,
         Write<'a, Option<Hovered>>,
     );
 
     fn run(
         &mut self,
-        (entities, mouse_ray, transforms, mut hover_handlers, mut materials, mut hovered): Self::SystemData,
+        (entities, mouse_ray, transforms, mut hover_handlers, mut hovered): Self::SystemData,
     ) {
         let mut nearest_dist = None;
         let mut nearest_entity = None;
@@ -39,7 +39,7 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 let offset: Translation3<f32> = Translation3::new(
                     0.0,
                     hover_handler
-                        .bounding_box
+                        .bounding_box()
                         .aabb(&Isometry::identity())
                         .half_extents()
                         .y,
@@ -49,7 +49,7 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 translation.append_translation_mut(&offset);
 
                 hover_handler
-                    .bounding_box
+                    .bounding_box()
                     .as_ray_cast()
                     .unwrap()
                     .toi_with_ray(&translation, &mouse_ray.ray, true)
@@ -65,48 +65,92 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 }
             }
         }
-
-        let old_hovered_entity = (*hovered).take();
-        old_hovered_entity.map(|hovered| {
-            hover_handlers
-                .get_mut(hovered.entity)
-                .unwrap()
-                .change_materials(&hovered.entity, &mut materials)
-        });
-        // we cannot use `map()` here, because map would move `hovered` while only only borrowed it from the world
-
-        *hovered = nearest_entity.map(|entity| {
-            hover_handlers
-                .get_mut(entity)
-                .unwrap()
-                .change_materials(&entity, &mut materials);
-            Hovered { entity }
-        });
+        *hovered = nearest_entity.map(|entity| Hovered { entity });
     }
-}
-
-// Only entities with this Component can be hovered. Other Entities will be ignored
-pub struct HoverHandler {
-    pub bounding_box: Box<dyn Shape<f32>>,
-    // when hovered, the original `TextureHandle` will be stored here.
-    pub hover: TextureHandle,
-}
-
-impl HoverHandler {
-    //TODO breaks if entity is hovered on instantiation of self and hoverhandler
-    fn change_materials(&mut self, entity: &Entity, materials: &mut WriteStorage<Material>) {
-        let mat = materials.get_mut(*entity).unwrap();
-        let texture_handle = mat.albedo.clone();
-        mat.albedo = self.hover.clone();
-        self.hover = texture_handle;
-    }
-}
-
-impl Component for HoverHandler {
-    type Storage = DenseVecStorage<Self>;
 }
 
 #[derive(Clone)]
 pub struct Hovered {
     pub entity: Entity,
+}
+
+pub type HoverHandlerComponent = Box<dyn Hoverable>;
+
+/// This trait is meant to be used as TraitObject to enable encapsulated implementation for every possible hoverable Entity.
+/// The TraitObjects will mark enties that are hoverable.
+///
+/// Note that only hoverable entities are `Clickable`,
+pub trait Hoverable: Sync + Send {
+    /// This method is called, whenever the mouse hovers the entity of this component. It only is triggered on the nearest entity, that has a `Hoverable` Comonent as well.
+    fn on_hover_start(&mut self, _: Entity, _: &World) {}
+
+    /// This method os called, when the hovering stops :)
+    fn on_hover_stop(&mut self, _: Entity, _: &World) {}
+
+    fn bounding_box(&self) -> &Box<dyn Shape<f32>>;
+}
+
+impl Component for HoverHandlerComponent {
+    type Storage = DenseVecStorage<HoverHandlerComponent>;
+}
+
+/// A Hoverhandler that does nothing on hover. Used to enable clicking for the Entity
+pub struct NoEffectHoverHandler {
+    /// The bounding box, that needs to collide with the `MouseRay` on order to be considered as hovered
+    bounding_box: Box<dyn Shape<f32>>,
+}
+
+impl NoEffectHoverHandler {
+    /// Creates a new Handler with a given bounding box
+    pub fn new<T: Shape<f32>>(bounding_box: T) -> Self {
+        Self {
+            bounding_box: Box::new(bounding_box) as Box<dyn Shape<f32>>,
+        }
+    }
+}
+
+impl Hoverable for NoEffectHoverHandler {
+    fn bounding_box(&self) -> &Box<dyn Shape<f32>> {
+        &self.bounding_box
+    }
+}
+
+/// A Hoverhandler that switches materials on hover.
+pub struct SimpleHoverHandler {
+    /// The bounding box, that needs to collide with the `MouseRay` on order to be considered as hovered
+    bounding_box: Box<dyn Shape<f32>>,
+    /// The hover texture of the entity. When hovered, the default texturehandle is stored here instead.
+    texture: TextureHandle,
+}
+
+impl SimpleHoverHandler {
+    /// Creates a new Handler with a given bounding box and swap textures
+    pub fn new<T: Shape<f32>>(bounding_box: T, handle: TextureHandle) -> Self {
+        Self {
+            bounding_box: Box::new(bounding_box) as Box<dyn Shape<f32>>,
+            texture: handle,
+        }
+    }
+}
+
+impl Hoverable for SimpleHoverHandler {
+    fn bounding_box(&self) -> &Box<dyn Shape<f32>> {
+        &self.bounding_box
+    }
+
+    fn on_hover_start(&mut self, entity: Entity, world: &World) {
+        let mut materials = world.write_storage::<Material>();
+        let mat = materials.get_mut(entity).unwrap();
+        let texture_handle = mat.albedo.clone();
+        mat.albedo = self.texture.clone();
+        self.texture = texture_handle;
+    }
+
+    fn on_hover_stop(&mut self, entity: Entity, world: &World) {
+        let mut materials = world.write_storage::<Material>();
+        let mat = materials.get_mut(entity).unwrap();
+        let texture_handle = mat.albedo.clone();
+        mat.albedo = self.texture.clone();
+        self.texture = texture_handle;
+    }
 }

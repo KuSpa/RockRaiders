@@ -32,6 +32,7 @@ impl SimpleState for MainState {
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 return Trans::Push(Box::new(LevelState {
                     mouse_button_was_down: false,
+                    last_hovered: None,
                 }));
             }
         }
