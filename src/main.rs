@@ -47,8 +47,11 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(RenderBundle::new(pipe, Some(config)))?
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<String, String>::new())?
-        .with(systems::MouseRaySystem.pausable(GameScene::Level),
-              "mouse_ray_system", &[])
+        .with(
+            systems::MouseRaySystem.pausable(GameScene::Level),
+            "mouse_ray_system",
+            &[],
+        )
         .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
@@ -66,11 +69,14 @@ fn main() -> amethyst::Result<()> {
         )
         .with(
             systems::OxygenSystem.pausable(GameScene::Level),
-            "oxygen_system",&["ui_transform"],)
-
-        .with(systems::HoverInteractionSystem.pausable(GameScene::Level),
-              "mouse_input_system",
-              &["mouse_ray_system"],);
+            "oxygen_system",
+            &["ui_transform"],
+        )
+        .with(
+            systems::HoverInteractionSystem.pausable(GameScene::Level),
+            "mouse_input_system",
+            &["mouse_ray_system"],
+        );
     let mut game = Application::new(assets_dir, MainState, game_data)?;
     game.run();
     Ok(())

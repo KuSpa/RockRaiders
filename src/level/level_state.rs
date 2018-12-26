@@ -18,14 +18,15 @@ use amethyst::{
 use systems::OxygenBar;
 
 use assetmanagement::AssetManager;
-use eventhandling::Clickable;
-
 use entities::{buildings::Base, RockRaider, Tile};
+use eventhandling::Clickable;
 use level::LevelGrid;
+use systems::RevealQueue;
 use systems::{HoverHandler, Hovered, Oxygen, Path};
+use util::add_resource_soft;
 use GameScene;
 
-use std::{cmp::Reverse, collections::BinaryHeap, path::Path as OSPath, time::Duration};
+use std::{cmp::Reverse, path::Path as OSPath};
 
 /// The `State` that is active, when a level runs
 pub struct LevelState {
@@ -172,14 +173,14 @@ impl LevelState {
     fn initialize_base(world: &mut World) {
         let entity = world.read_resource::<LevelGrid>().get(2, 0).unwrap();
         {
-            let mut ground_reveal_queue =
-                world.write_resource::<BinaryHeap<Reverse<(Duration, Entity)>>>();
-            ground_reveal_queue.push(Reverse((
-                world.read_resource::<Time>().absolute_time(),
-                entity,
-            )));
+            if let Some(ref mut queue) = *world.write_resource::<Option<RevealQueue>>() {
+                queue.push(Reverse((
+                    world.read_resource::<Time>().absolute_time(),
+                    entity,
+                )));
+            }
+            Base::build(&entity, world);
         }
-        Base::build(&entity, world);
     }
 
     fn scene() -> GameScene {
@@ -189,7 +190,6 @@ impl LevelState {
 
 impl SimpleState for LevelState {
     fn on_start(&mut self, data: StateData<GameData>) {
-        *data.world.write_resource() = LevelState::scene();
         let world = data.world;
 
         world.register::<Tile>();
@@ -197,34 +197,33 @@ impl SimpleState for LevelState {
         world.register::<Base>();
         world.register::<HoverHandler>();
         world.register::<Box<dyn Clickable>>();
-
-        world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
-        world.add_resource::<Option<Hovered>>(None);
-
         world.register::<RockRaider>();
         world.register::<Path>();
 
         let mesh_manager = AssetManager::<Mesh>::default();
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
-
         let oxygen = Oxygen::new(100.);
 
         world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
 
-        world.add_resource::<Option<OxygenBar>>(None);
-        world.add_resource(oxygen);
-        world.add_resource(mesh_manager);
-        world.add_resource(texture_manager);
-        world.add_resource(tile_pattern_config);
-        world.add_resource(BinaryHeap::<(Duration, Entity)>::new());
+        /* more resources, that are initialized as default:
+        Option<Hovered>     with:   None
+        Option<OxygenBar>   with:   None
+        */
+        world.add_resource(Some(RevealQueue::new()));
+        world.add_resource(Some(oxygen));
+
+        add_resource_soft(world, mesh_manager);
+        add_resource_soft(world, texture_manager);
+        add_resource_soft(world, tile_pattern_config);
 
         LevelState::load_initial_assets(world);
-
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
-
         LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
+
+        *world.write_resource() = LevelState::scene();
     }
 
     fn on_resume(&mut self, data: StateData<GameData>) {
@@ -251,7 +250,7 @@ impl SimpleState for LevelState {
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Left);
 
-        if !self.mouse_button_was_down && mouse_button {
+        if !self.mouse_button_was_down & &mouse_button {
             if let Some(hovered) = &*data.world.read_resource::<Option<Hovered>>() {
                 let entity = hovered.entity;
                 data.world
@@ -267,7 +266,13 @@ impl SimpleState for LevelState {
     }
 
     fn on_stop(&mut self, data: StateData<GameData>) {
-        data.world.delete_all();
+        let world = data.world;
+        world.delete_all();
+
+        *world.write_resource::<Option<OxygenBar>>() = None;
+        *world.write_resource::<Option<Oxygen>>() = None;
+        *world.write_resource::<Option<RevealQueue>>() = None;
+        *world.write_resource::<Option<Hovered>>() = None;
     }
 }
 

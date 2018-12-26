@@ -38,7 +38,18 @@ impl AssetInformation for PngFormat {
 /// Note, that this disables automated asset dropping completely, because there will always be a valid handle to an asset, the one which is stored in this manager.
 pub struct AssetManager<T> {
     /// A map of identifiers (the Path to the asset as `String`) to the asset handles
-    assets: HashMap<String, Handle<T>>,
+    pub assets: HashMap<String, Handle<T>>,
+}
+
+/// This looks broken. But it is exactly what we want. An assetmanager is a singleton in the system, since every resource can only exist once in the world (typesafe).
+/// Whenever we compare with an other and and either is not zero, they are different, when both are zero, bot are Defaults
+impl<T> PartialEq for AssetManager<T>
+where
+    T: Asset,
+{
+    fn eq(&self, other: &Self) -> bool {
+        self.assets.len() == 0 && other.assets.len() == 0
+    }
 }
 
 impl<T> Default for AssetManager<T>

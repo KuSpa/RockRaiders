@@ -12,7 +12,7 @@ impl<'a> System<'a> for OxygenSystem {
     type SystemData = (
         Write<'a, Option<OxygenBar>>,
         Read<'a, Time>,
-        Write<'a, Oxygen>,
+        Write<'a, Option<Oxygen>>,
         ReadStorage<'a, RockRaider>,
         WriteStorage<'a, UiTransform>,
         Entities<'a>,
@@ -22,30 +22,34 @@ impl<'a> System<'a> for OxygenSystem {
         &mut self,
         (mut ui, time, mut oxygen, rock_raiders, mut ui_transforms, entities): Self::SystemData,
     ) {
-        let breathed_oxygen = amount_in(&rock_raiders) as f32 * time.delta_seconds();
-        oxygen.remaining_oxygen -= breathed_oxygen;
+        if let Some(ref mut oxygen) = *oxygen {
+            let breathed_oxygen = amount_in(&rock_raiders) as f32 * time.delta_seconds();
+            oxygen.remaining_oxygen -= breathed_oxygen;
 
-        if oxygen.remaining_oxygen <= 0. {
-            panic!("No oxygen left for Breathing. You lost");
-        }
+            if oxygen.remaining_oxygen <= 0. {
+                panic!("No oxygen left for Breathing. You lost");
+            }
 
-        if let Some(ui) = &*ui {
-            let percentage = oxygen.remaining_oxygen / oxygen.max_oxygen;
+            if let Some(ui) = &*ui {
+                let percentage = oxygen.remaining_oxygen / oxygen.max_oxygen;
 
-            let max_width = ui_transforms.get(ui.empty_bar.clone()).unwrap().width;
-            let mut transform = ui_transforms.get_mut(ui.filled_bar).unwrap();
-            transform.width = max_width * percentage;
-            transform.local_x = max_width * percentage / 2.;
-            return;
-        }
+                let max_width = ui_transforms.get(ui.empty_bar.clone()).unwrap().width;
+                let mut transform = ui_transforms.get_mut(ui.filled_bar).unwrap();
+                transform.width = max_width * percentage;
+                transform.local_x = max_width * percentage / 2.;
+                return;
+            }
 
-        let empty_bar = find_ui_by_name("empty_bar", &entities, &ui_transforms);
-        let filled_bar = find_ui_by_name("filled_bar", &entities, &ui_transforms);
-        if empty_bar.is_some() && filled_bar.is_some() {
-            *ui = Some(OxygenBar {
-                filled_bar: filled_bar.unwrap(),
-                empty_bar: empty_bar.unwrap(),
-            })
+            let empty_bar = find_ui_by_name("empty_bar", &entities, &ui_transforms);
+            let filled_bar = find_ui_by_name("filled_bar", &entities, &ui_transforms);
+            if empty_bar.is_some() && filled_bar.is_some() {
+                *ui = Some(OxygenBar {
+                    filled_bar: filled_bar.unwrap(),
+                    empty_bar: empty_bar.unwrap(),
+                })
+            }
+        } else {
+            error!("Running oxygen_system with invalid data");
         }
     }
 }
