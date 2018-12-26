@@ -12,11 +12,12 @@ use amethyst::{
         ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
         ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
     },
+    shrev::EventChannel,
     ui::*,
 };
 
 use assetmanagement::AssetManager;
-use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
 use entities::{buildings::Base, RockRaider, Tile};
 use level::LevelGrid;
 use systems::{RevealQueue, OxygenBar, Oxygen, Path};
@@ -49,7 +50,6 @@ impl DerefMut for SelectedRockRaider {
 pub struct LevelState {
     /// pretty self explanatory
     pub mouse_button_was_down: bool,
-    pub last_hovered: Option<Entity>,
 }
 
 /// This is a Map referencing from a 3x3 Tile matrix to a String.
@@ -101,7 +101,8 @@ impl LevelState {
             let mut storages = world.system_data();
             let mut hover_storage = world.system_data::<WriteStorage<HoverHandlerComponent>>();
             let mut click_storage = world.system_data::<WriteStorage<ClickHandlerComponent>>();
-            let mut hovered = world.write_resource::<Option<Hovered>>();
+            let mut hovered = world.write_resource::<Hovered>();
+            let mut hover_channel = world.write_resource::<EventChannel<HoverEvent>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -113,6 +114,7 @@ impl LevelState {
                         &tiles,
                         &mut storages,
                         &mut hovered,
+                        &mut hover_channel,
                         &mut hover_storage,
                         &mut click_storage,
                     );
@@ -212,7 +214,7 @@ impl LevelState {
     }
 }
 
-impl SimpleState for LevelState {
+impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
     fn on_start(&mut self, data: StateData<GameData>) {
         let world = data.world;
 
@@ -221,7 +223,6 @@ impl SimpleState for LevelState {
         world.register::<Base>();
         world.register::<HoverHandlerComponent>();
         world.register::<ClickHandlerComponent>();
-
         world.register::<RockRaider>();
         world.register::<Path>();
 
@@ -254,72 +255,63 @@ impl SimpleState for LevelState {
         *data.world.write_resource() = LevelState::scene();
     }
 
-    fn handle_event(&mut self, data: StateData<GameData>, event: StateEvent) -> SimpleTrans {
-        if let StateEvent::Window(event) = &event {
-            if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-                debug!("Quitting");
-                return Trans::Quit;
-            } else if is_key_down(&event, VirtualKeyCode::Tab) {
-                debug!("Leaving Level State");
-                return Trans::Pop;
-            } else if is_key_down(&event, VirtualKeyCode::Space) {
-                do_test_method(data);
-
-                return Trans::None;
-            }
-        }
-
+    fn handle_event(
+        &mut self,
+        data: StateData<GameData>,
+        event: GameEvent,
+    ) -> Trans<GameData<'a, 'b>, GameEvent> {
         let world = data.world;
+        match &event {
+            // Dispatch the incoming event
+            GameEvent::Window(event) => {
+                if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+                    debug!("Quitting");
+                    return Trans::Quit;
+                } else if is_key_down(&event, VirtualKeyCode::Tab) {
+                    debug!("Leaving Level State");
+                    return Trans::Pop;
+                } else if is_key_down(&event, VirtualKeyCode::Space) {
+                    do_test_method(world);
 
-        let hovered = world
-            .read_resource::<Option<Hovered>>()
-            .clone()
-            .map(|e| e.entity);
-        match (&hovered, &self.last_hovered) {
-            (Some(act), Some(last)) if act != last => {
-                world
-                    .write_storage::<HoverHandlerComponent>()
-                    .get_mut(*act)
-                    .map(|e| e.on_hover_start(*act, &world));
-                world
-                    .write_storage::<HoverHandlerComponent>()
-                    .get_mut(*last)
-                    .map(|e| e.on_hover_stop(*last, &world));
+                    return Trans::None;
+                }
             }
-            (None, Some(last)) => {
+            GameEvent::Hover(event) => {
+                // the following code may be a bit unintuitive:
+                // # remove handler
+                // # execute handler
+                // # add handler again
+                // This is required, because the handler itself may fetch the hoverhandler storage on execution, what would lead to a new borrow, while this method still borrows the storage to execute the handler.
+                // To bypass this, we remove the handler for the time of execution, so that no resource of the world is borrowed and there are no possible `Invalid Borrow` clashes from this side of the code.
+                let mut hover_handler = world
+                    .write_storage::<HoverHandlerComponent>()
+                    .remove(event.target)
+                    .unwrap();
+                if event.start {
+                    // hover started
+                    hover_handler.on_hover_start(event.target, world);
+                } else {
+                    // hover ended
+                    hover_handler.on_hover_stop(event.target, world);
+                }
                 world
                     .write_storage::<HoverHandlerComponent>()
-                    .get_mut(*last)
-                    .map(|e| e.on_hover_stop(*last, &world));
-            }
-            (Some(act), None) => {
-                world
-                    .write_storage::<HoverHandlerComponent>()
-                    .get_mut(*act)
-                    .map(|e| e.on_hover_start(*act, &world));
+                    .insert(event.target, hover_handler)
+                    .unwrap();
             }
             _ => (),
-        };
-
-        self.last_hovered = hovered;
+        }
 
         let mouse_button = world
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Left);
 
         if !self.mouse_button_was_down && mouse_button {
-            if let Some(hovered) = &*world.read_resource::<Option<Hovered>>() {
-                let entity = hovered.entity;
-                // the following code may be a bit unintuitive:
-                // # remove handler
-                // # execute handler
-                // # add handler again
-                // This is required, because the handler itself may fetch the clickhandler storage on execution, what would lead to a new borrow, while this method still borrows the storage to execute the handler.
-                // To bypass this, we remove the handler for the time of execution, so that no resource of the world is borrowed and there are no possible `Invalid Borrow` clashes from this side of the code.
+            if let Some(entity) = **(world.read_resource::<Hovered>()) {
+                // see hover event dispatching
                 let opt_handler = world
                     .write_storage::<ClickHandlerComponent>()
                     .remove(entity);
-
                 opt_handler.map(|handler| {
                     handler.on_click(entity, world);
                     world
@@ -337,7 +329,6 @@ impl SimpleState for LevelState {
         {
             *world.write_resource::<Option<SelectedRockRaider>>() = None;
         }
-
         Trans::None
     }
 
@@ -346,14 +337,20 @@ impl SimpleState for LevelState {
         world.delete_all();
 
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
-        *world.write_resource::<Option<Hovered>>() = None;
+            *world.write_resource::<Option<Hovered>>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;
         *world.write_resource::<Option<RevealQueue>>() = None;
         *world.write_resource::<Option<Hovered>>() = None;
+        // TODO empty eventchannel
+        // or test if entity is alive in handle event
+    }
+    fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, GameEvent> {
+        data.data.update(&data.world);
+        Trans::None
     }
 }
 
-fn do_test_method(data: StateData<GameData>) {
-    LevelState::initialize_base(data.world);
+fn do_test_method(world: &mut World) {
+    LevelState::initialize_base(world);
 }

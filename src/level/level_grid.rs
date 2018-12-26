@@ -9,11 +9,12 @@ use amethyst::{
         prelude::{Builder, Entity, World},
         storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
+    shrev::EventChannel,
 };
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverEvent, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::Path;
@@ -149,7 +150,8 @@ impl LevelGrid {
         transforms: &mut R,
         tiles: &T,
         storages: &mut AssetStorages,
-        hovered: &mut Option<Hovered>,
+        hovered: &mut Hovered,
+        hover_channel: &mut EventChannel<HoverEvent>,
         hover_storage: &mut WriteStorage<HoverHandlerComponent>,
         mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
@@ -176,19 +178,15 @@ impl LevelGrid {
             ) = storages;
 
             let handler = Tile::new_hover_handler(&loader, tex_manager, tex_storage);
-
             hover_storage.insert(entity, handler).unwrap();
-
             tile.attach_click_handler(entity, &mut click_storage);
 
-            if let Some(hov) = hovered.clone() {
-                if hov.entity == entity {
-                    // If the entity was already hovered, we remove it to call `on_hover_start` at the next `level_state.handle_event`
-                    // This is necessary, because when the Handler is switched the new one does not know, that the Tile is already hovered, so we need to reset the Resource as easy way to call `on_hover_start` for the handler
-
-                    // TODO this needs to be lasth_overed of the levelstate lul
-                    *hovered = None
-                }
+            // when the current entity is hovered, we reset the last hovered to trick the handle_event, to think the hover started, which is then dispatched by the new hoverhandler
+            if Some(entity) == **hovered {
+                hover_channel.single_write(HoverEvent {
+                    start: false,
+                    target: entity,
+                });
             }
         }
     }

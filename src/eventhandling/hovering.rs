@@ -8,6 +8,7 @@ use amethyst::{
         Write, WriteStorage,
     },
     renderer::{Material, TextureHandle},
+    shrev::EventChannel,
 };
 
 use eventhandling::MouseRay;
@@ -21,12 +22,13 @@ impl<'a> System<'a> for HoverInteractionSystem {
         Read<'a, MouseRay>,
         ReadStorage<'a, GlobalTransform>,
         WriteStorage<'a, HoverHandlerComponent>,
-        Write<'a, Option<Hovered>>,
+        Write<'a, Hovered>,
+        Write<'a, EventChannel<HoverEvent>>,
     );
 
     fn run(
         &mut self,
-        (entities, mouse_ray, transforms, mut hover_handlers, mut hovered): Self::SystemData,
+        (entities, mouse_ray, transforms, mut hover_handlers, mut hovered, mut hover_channel): Self::SystemData,
     ) {
         let mut nearest_dist = None;
         let mut nearest_entity = None;
@@ -65,13 +67,48 @@ impl<'a> System<'a> for HoverInteractionSystem {
                 }
             }
         }
-        *hovered = nearest_entity.map(|entity| Hovered { entity });
+        if nearest_entity != **hovered {
+            // something has changed
+
+            // if the hovered contains an entity, that entity is not hovered anymore
+            (**hovered).map(|e| {
+                hover_channel.single_write(HoverEvent {
+                    start: false,
+                    target: e,
+                })
+            });
+
+            // entity is hovered, that was not hovered before
+            nearest_entity.map(|e| {
+                hover_channel.single_write(HoverEvent {
+                    start: true,
+                    target: e,
+                })
+            });
+        }
+        // Update Hovered entity
+        // * for removing the write
+        // * for Deref to Option
+        **hovered = nearest_entity;
     }
 }
 
-#[derive(Clone)]
-pub struct Hovered {
-    pub entity: Entity,
+/// A wrapper to store the hovered entity as `Resource`
+#[derive(Clone, Default)]
+pub struct Hovered(Option<Entity>);
+
+impl std::ops::Deref for Hovered {
+    type Target = Option<Entity>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl std::ops::DerefMut for Hovered {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
 }
 
 pub type HoverHandlerComponent = Box<dyn Hoverable>;
@@ -95,6 +132,7 @@ impl Component for HoverHandlerComponent {
 }
 
 /// A Hoverhandler that does nothing on hover. Used to enable clicking for the Entity
+#[allow(dead_code)] //TODO
 pub struct NoEffectHoverHandler {
     /// The bounding box, that needs to collide with the `MouseRay` on order to be considered as hovered
     bounding_box: Box<dyn Shape<f32>>,
@@ -102,6 +140,7 @@ pub struct NoEffectHoverHandler {
 
 impl NoEffectHoverHandler {
     /// Creates a new Handler with a given bounding box
+    #[allow(dead_code)] //TODO
     pub fn new<T: Shape<f32>>(bounding_box: T) -> Self {
         Self {
             bounding_box: Box::new(bounding_box) as Box<dyn Shape<f32>>,
@@ -153,4 +192,13 @@ impl Hoverable for SimpleHoverHandler {
         mat.albedo = self.texture.clone();
         self.texture = texture_handle;
     }
+}
+
+/// A simple hover event.
+#[derive(Clone)]
+pub struct HoverEvent {
+    /// indicates weather the hover started or stopped
+    pub start: bool,
+    /// The entity, that's either hovered or leaved
+    pub target: Entity,
 }

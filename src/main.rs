@@ -1,5 +1,7 @@
 extern crate amethyst;
 #[macro_use]
+extern crate amethyst_derive;
+#[macro_use]
 extern crate log;
 extern crate serde;
 #[macro_use]
@@ -24,6 +26,8 @@ use amethyst::{
     ui::{DrawUi, UiBundle},
 };
 
+use eventhandling::{GameEvent, GameEventReader};
+
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
     use main_state::MainState;
@@ -47,8 +51,11 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(RenderBundle::new(pipe, Some(config)))?
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<String, String>::new())?
-        .with(eventhandling::MouseRaySystem.pausable(GameScene::Level),
-              "mouse_ray_system", &[])
+        .with(
+            eventhandling::MouseRaySystem.pausable(GameScene::Level),
+            "mouse_ray_system",
+            &[],
+        )
         .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
@@ -66,13 +73,17 @@ fn main() -> amethyst::Result<()> {
         )
         .with(
             systems::OxygenSystem.pausable(GameScene::Level),
-            "oxygen_system",&["ui_transform"],)
+            "oxygen_system",
+            &["ui_transform"],
+        )
+        .with(
+            eventhandling::HoverInteractionSystem.pausable(GameScene::Level),
+            "mouse_input_system",
+            &["mouse_ray_system"],
+        );
 
-        .with(eventhandling::HoverInteractionSystem.pausable(GameScene::Level),
-              "mouse_input_system",
-              &["mouse_ray_system"],);
-
-    let mut game = Application::new(assets_dir, MainState, game_data)?;
+    let mut game =
+        CoreApplication::<_, GameEvent, GameEventReader>::new(assets_dir, MainState, game_data)?;
     game.run();
     Ok(())
 }

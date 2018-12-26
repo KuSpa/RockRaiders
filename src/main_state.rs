@@ -3,6 +3,7 @@ use amethyst::{
     prelude::*,
     renderer::VirtualKeyCode,
 };
+use eventhandling::GameEvent;
 use GameScene;
 
 use level::LevelState;
@@ -16,7 +17,7 @@ impl MainState {
     }
 }
 
-impl SimpleState for MainState {
+impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for MainState {
     fn on_start(&mut self, data: StateData<GameData>) {
         *data.world.write_resource() = MainState::scene();
     }
@@ -25,17 +26,25 @@ impl SimpleState for MainState {
         *data.world.write_resource() = MainState::scene();
     }
 
-    fn handle_event(&mut self, _: StateData<GameData>, event: StateEvent) -> SimpleTrans {
-        if let StateEvent::Window(event) = &event {
+    fn handle_event(
+        &mut self,
+        _: StateData<GameData>,
+        event: GameEvent,
+    ) -> Trans<GameData<'a, 'b>, GameEvent> {
+        if let GameEvent::Window(event) = &event {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 return Trans::Quit;
             } else if is_key_down(&event, VirtualKeyCode::Tab) {
                 return Trans::Push(Box::new(LevelState {
                     mouse_button_was_down: false,
-                    last_hovered: None,
                 }));
             }
         }
+        Trans::None
+    }
+
+    fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, GameEvent> {
+        data.data.update(&data.world);
         Trans::None
     }
 }

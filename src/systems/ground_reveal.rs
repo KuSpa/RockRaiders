@@ -3,10 +3,11 @@ use amethyst::{
     core::{timing::Time, transform::Transform},
     ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage},
     renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
+    shrev::EventChannel,
 };
 
 use entities::Tile;
-use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
@@ -23,8 +24,9 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
-        Write<'a, Option<Hovered>>,
+        Write<'a, Hovered>,
         WriteStorage<'a, HoverHandlerComponent>,
+        Write<'a, EventChannel<HoverEvent>>,
         WriteStorage<'a, ClickHandlerComponent>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
@@ -49,6 +51,7 @@ impl<'a> System<'a> for GroundRevealSystem {
             time,
             mut hover,
             mut hovers,
+            mut hover_channel,
             mut clickers,
             dict,
             level_grid,
@@ -115,6 +118,7 @@ impl<'a> System<'a> for GroundRevealSystem {
                             &tiles,
                             &mut storages,
                             &mut hover,
+                            &mut hover_channel,
                             &mut hovers,
                             &mut clickers,
                         );
