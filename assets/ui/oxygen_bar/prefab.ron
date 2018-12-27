@@ -18,7 +18,7 @@ Container(
 				id:"filled_bar",
 				anchor: MiddleLeft,
 				x:25.,
-				z:1.,
+				z:2.,
 				height: 7.,
 				width:50.,
 				scale_mode:Pixel,
