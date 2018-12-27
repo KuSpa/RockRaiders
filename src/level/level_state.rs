@@ -17,10 +17,10 @@ use amethyst::{
 };
 
 use assetmanagement::AssetManager;
-use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
 use entities::{buildings::Base, RockRaider, Tile};
+use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::LevelGrid;
-use systems::{RevealQueue, OxygenBar, Oxygen, Path};
+use systems::{Oxygen, OxygenBar, Path, RevealQueue};
 use util::add_resource_soft;
 use GameScene;
 
@@ -235,7 +235,7 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
 
         world.add_resource(Some(RevealQueue::new()));
         world.add_resource(Some(oxygen));
-        world.add_resource::<Option<Hovered>>(None);
+        world.add_resource::<Hovered>(Hovered::default());
         world.add_resource::<Option<OxygenBar>>(None);
         world.add_resource::<Option<SelectedRockRaider>>(None);
 
@@ -334,16 +334,16 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
 
     fn on_stop(&mut self, data: StateData<GameData>) {
         let world = data.world;
-        world.delete_all();
-
+        *world.write_resource() = GameScene::default();
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
-            *world.write_resource::<Option<Hovered>>() = None;
+        **world.write_resource::<Hovered>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;
         *world.write_resource::<Option<RevealQueue>>() = None;
-        *world.write_resource::<Option<Hovered>>() = None;
-        // TODO empty eventchannel
-        // or test if entity is alive in handle event
+        *world.write_resource::<LevelGrid>() = LevelGrid::default(); //Option?
+
+        world.maintain();
+        world.delete_all();
     }
     fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, GameEvent> {
         data.data.update(&data.world);

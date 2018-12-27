@@ -181,10 +181,10 @@ impl LevelGrid {
             hover_storage.insert(entity, handler).unwrap();
             tile.attach_click_handler(entity, &mut click_storage);
 
-            // when the current entity is hovered, we reset the last hovered to trick the handle_event, to think the hover started, which is then dispatched by the new hoverhandler
+            // when the current entity is hovered, we add a new `HoverEvent` to the queue, since our old hoverhandler was overwritten
             if Some(entity) == **hovered {
                 hover_channel.single_write(HoverEvent {
-                    start: false,
+                    start: true,
                     target: entity,
                 });
             }

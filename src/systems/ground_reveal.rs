@@ -109,24 +109,24 @@ impl<'a> System<'a> for GroundRevealSystem {
                             let x = transform.translation().x as i32;
                             let y = transform.translation().z as i32;
 
-
-                        level_grid.update_tile(
-                            x,
-                            y,
-                            &dict,
-                            &mut transforms,
-                            &tiles,
-                            &mut storages,
-                            &mut hover,
-                            &mut hover_channel,
-                            &mut hovers,
-                            &mut clickers,
-                        );
+                            level_grid.update_tile(
+                                x,
+                                y,
+                                &dict,
+                                &mut transforms,
+                                &tiles,
+                                &mut storages,
+                                &mut hover,
+                                &mut hover_channel,
+                                &mut hovers,
+                                &mut clickers,
+                            );
+                        }
                     }
                 }
             }
-        }} else {
+        } else {
             error!("reveal_system is running without a valid reveal queue!");
-
+        }
     }
-}}
+}
