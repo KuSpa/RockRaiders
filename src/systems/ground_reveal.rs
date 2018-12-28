@@ -61,72 +61,69 @@ impl<'a> System<'a> for GroundRevealSystem {
             mut storages,
         ): Self::SystemData,
     ) {
-        if let Some(ref mut ground_reveal_queue) = *ground_reveal_queue {
-            while !ground_reveal_queue.is_empty()
-                && ((ground_reveal_queue.peek().unwrap().0).0 <= time.absolute_time())
-            {
-                let Reverse((_, entity)) = ground_reveal_queue.pop().unwrap();
+        let ground_reveal_queue = (*ground_reveal_queue).as_mut().unwrap();
+        while !ground_reveal_queue.is_empty()
+            && ((ground_reveal_queue.peek().unwrap().0).0 <= time.absolute_time())
+        {
+            let Reverse((_, entity)) = ground_reveal_queue.pop().unwrap();
 
-                // reveal yourself
-                if !tiles.get_mut(entity).unwrap().reveal() {
-                    break;
-                };
+            // reveal yourself
+            if !tiles.get_mut(entity).unwrap().reveal() {
+                break;
+            };
 
-                let tran = transforms.get(entity).unwrap().clone();
-                let x = tran.translation().x as i32;
-                let y = tran.translation().z as i32;
+            let tran = transforms.get(entity).unwrap().clone();
+            let x = tran.translation().x as i32;
+            let y = tran.translation().z as i32;
 
-                let mut neighbors = vec![];
-                neighbors.extend(level_grid.direct_neighbors(x, y));
+            let mut neighbors = vec![];
+            neighbors.extend(level_grid.direct_neighbors(x, y));
 
-                for neighbor in neighbors.clone().iter() {
-                    // add concealed to queue
-                    let tile = tiles.get_mut(*neighbor).unwrap();
-                    match tile {
-                        Tile::Ground { concealed: true } => {
-                            ground_reveal_queue.push(Reverse((
-                                Duration::from_millis(50) + time.absolute_time(),
-                                *neighbor,
-                            )));
+            for neighbor in neighbors.clone().iter() {
+                // add concealed to queue
+                let tile = tiles.get_mut(*neighbor).unwrap();
+                match tile {
+                    Tile::Ground { concealed: true } => {
+                        ground_reveal_queue.push(Reverse((
+                            Duration::from_millis(50) + time.absolute_time(),
+                            *neighbor,
+                        )));
 
-                            let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
-                            neighbors.remove(pos);
-                        }
-                        _ => (),
+                        let pos = neighbors.iter().position(|x| *x == *neighbor).unwrap();
+                        neighbors.remove(pos);
                     }
+                    _ => (),
                 }
+            }
 
-                neighbors.extend(level_grid.diagonal_neighbors(x, y));
-                neighbors.push(entity);
+            neighbors.extend(level_grid.diagonal_neighbors(x, y));
+            neighbors.push(entity);
 
-                for neighbor in neighbors.drain(..) {
-                    // add concealed to queue
-                    let tile = tiles.get_mut(neighbor).unwrap().clone();
-                    match tile {
-                        Tile::Ground { concealed: true } => (),
-                        _ => {
-                            let transform = transforms.get(neighbor).unwrap().clone();
-                            let x = transform.translation().x as i32;
-                            let y = transform.translation().z as i32;
+            for neighbor in neighbors.drain(..) {
+                // add concealed to queue
+                let tile = tiles.get_mut(neighbor).unwrap().clone();
+                match tile {
+                    Tile::Ground { concealed: true } => (),
+                    _ => {
+                        let transform = transforms.get(neighbor).unwrap().clone();
+                        let x = transform.translation().x as i32;
+                        let y = transform.translation().z as i32;
 
-                            level_grid.update_tile(
-                                x,
-                                y,
-                                &dict,
-                                &mut transforms,
-                                &tiles,
-                                &mut storages,
-                                &mut hover,
-                                &mut hover_channel,
-                                &mut hovers,
-                                &mut clickers,
-                            );
-                        }
+                        level_grid.update_tile(
+                            x,
+                            y,
+                            &dict,
+                            &mut transforms,
+                            &tiles,
+                            &mut storages,
+                            &mut hover,
+                            &mut hover_channel,
+                            &mut hovers,
+                            &mut clickers,
+                        );
                     }
                 }
             }
-        } else {
-            error!("reveal_system is running without a valid reveal queue!");
         }
     }
 }
