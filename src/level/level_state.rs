@@ -19,8 +19,9 @@ use amethyst::{
 use assetmanagement::AssetManager;
 use entities::{buildings::Base, RockRaider, Tile};
 use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
-use level::LevelGrid;
+use level::{LevelGrid, TileGrid};
 use systems::{Oxygen, OxygenBar, Path, RevealQueue};
+use ui::UiMap;
 use util::add_resource_soft;
 use GameScene;
 
@@ -79,8 +80,8 @@ impl LevelState {
     }
 
     /// Loads the cave's model from disk.
-    fn load_tile_grid() -> Vec<Vec<Tile>> {
-        let tile_grid = Vec::<Vec<Tile>>::load(OSPath::new(&format!(
+    fn load_tile_grid() -> TileGrid {
+        let tile_grid = TileGrid::load(OSPath::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -90,7 +91,7 @@ impl LevelState {
     }
 
     /// Converts the cave's model into a `LevelGrid` and adds it to the world.
-    fn initialize_level_grid(world: &mut World, tile_grid: Vec<Vec<Tile>>) {
+    fn initialize_level_grid(world: &mut World, tile_grid: TileGrid) {
         let level_grid = LevelGrid::from_grid(tile_grid, world);
         let max_x = level_grid.x_len();
         let max_y = level_grid.y_len();
@@ -230,6 +231,8 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         let texture_manager = AssetManager::<Texture>::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
         let oxygen = Oxygen::new(100.);
+        let tile_grid = LevelState::load_tile_grid();
+        let map = UiMap::from(tile_grid.clone(), world);
 
         world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
 
@@ -238,6 +241,7 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         world.add_resource::<Hovered>(Hovered::default());
         world.add_resource::<Option<OxygenBar>>(None);
         world.add_resource::<Option<SelectedRockRaider>>(None);
+        world.add_resource(Some(map));
 
         add_resource_soft(world, mesh_manager);
         add_resource_soft(world, texture_manager);
@@ -246,7 +250,7 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         LevelState::load_initial_assets(world);
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
-        LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
+        LevelState::initialize_level_grid(world, tile_grid);
 
         *world.write_resource() = LevelState::scene();
     }
@@ -336,7 +340,8 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         let world = data.world;
         *world.write_resource() = GameScene::default();
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
-        **world.write_resource::<Hovered>() = None;
+        *world.write_resource::<Option<Hovered>>() = None;
+        *world.write_resource::<Option<UiMap>>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;
         *world.write_resource::<Option<RevealQueue>>() = None;

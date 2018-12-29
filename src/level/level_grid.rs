@@ -20,6 +20,8 @@ use pathfinding::directed::bfs;
 use systems::Path;
 use util;
 
+pub type TileGrid = Vec<Vec<Tile>>;
+
 /// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
 pub struct LevelGrid {
     /// A two-dimensional array of the cave's geography.
@@ -30,7 +32,7 @@ impl LevelGrid {
     /// Instantiates the grid with `Entity`s that have a `Tile` component regarding to the given specification.
     ///
     /// Note, that this does not add `MeshHandles` or `Material` to the `Entity`, so the Entities won't get rendered yet.
-    pub fn from_grid(mut tile_grid: Vec<Vec<Tile>>, world: &mut World) -> LevelGrid {
+    pub fn from_grid(mut tile_grid: TileGrid, world: &mut World) -> LevelGrid {
         let level_grid: Vec<Vec<Entity>> = tile_grid
             .iter_mut()
             .map(|tile_vec| {

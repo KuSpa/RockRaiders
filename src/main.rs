@@ -16,6 +16,7 @@ mod eventhandling;
 mod level;
 mod main_state;
 mod systems;
+mod ui;
 mod util;
 
 use amethyst::{
