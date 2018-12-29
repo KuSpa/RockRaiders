@@ -58,6 +58,11 @@ fn main() -> amethyst::Result<()> {
             &[],
         )
         .with(
+            ui::MapUpdateSystem.pausable(GameScene::Level),
+            "map_update_system",
+            &["ui_transform"],
+        )
+        .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
             &["transform_system"],
