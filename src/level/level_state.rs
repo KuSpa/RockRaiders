@@ -340,7 +340,7 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         let world = data.world;
         *world.write_resource() = GameScene::default();
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
-        *world.write_resource::<Option<Hovered>>() = None;
+        *world.write_resource::<Hovered>() = Hovered::default();
         *world.write_resource::<Option<UiMap>>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;

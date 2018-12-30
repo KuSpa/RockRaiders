@@ -1,18 +1,73 @@
 use amethyst::{
     assets::{AssetStorage, Loader},
-    core::transform::Parent,
-    ecs::{Entity, Read, ReadExpect, ReadStorage, System, World, Write, WriteStorage},
+    core::transform::{Parent, Transform},
+    ecs::{Entities,Entity, Read, ReadExpect, ReadStorage, System, World, Write, WriteStorage, Join},
     prelude::Builder,
     renderer::{Texture, TextureData},
     ui::{Anchor, UiImage, UiTransform},
 };
 
-use entities::Tile;
+use entities::{Tile, RockRaider};
+use util::find_ui_by_name;
 use level::{LevelGrid, TileGrid};
 
-pub struct MapUpdateSystem;
+/// Green for Ground
+const GROUND_COLOR: [f32; 4] = [0., 1., 0., 1.];
+const WALL_COLOR: [f32; 4] = [0.5, 0.4, 0., 1.0];
+const RR_COLOR:[f32; 4] = [0.8, 0., 0., 1.0];
 
-impl<'a> System<'a> for MapUpdateSystem {
+pub struct UiRockRaiderSystem;
+
+impl<'a> System<'a> for UiRockRaiderSystem {
+    type SystemData = (
+        Entities<'a>,
+        ReadExpect<'a, Loader>,
+        Write<'a, Option<UiMap>>,
+        WriteStorage<'a, UiImage>,
+        WriteStorage<'a, UiTransform>,
+        ReadStorage<'a, Transform>,
+        Read<'a, AssetStorage<Texture>>,
+        ReadStorage<'a, RockRaider>,
+        WriteStorage<'a, Parent>
+    );
+
+    fn run(&mut self,
+    (entities, loader, mut map, mut ui_image_storage, mut ui_transform_storage, transform_storage, tex_storage, rock_raider_storage, mut parent_storage): Self::SystemData,
+    ) {
+        let map  = (*map).as_mut().unwrap();
+        // delete all ui_rr
+        for entity in map.rr.drain(..) {
+            entities.delete(entity).unwrap();
+        }
+        // add all ui_rr
+        for (_, transform) in (&rock_raider_storage, &transform_storage).join() {
+            // create a little quad in the map
+            let image = UiImage {
+                texture: loader.load_from_data(
+                    TextureData::color(RR_COLOR),
+                    (),
+                    &tex_storage,
+                ),
+            };
+            let position = UiTransform::new(
+                "UiMapRR".to_string(),
+                Anchor::TopLeft,
+                transform.translation().x * 20.,
+                -transform.translation().z * 20. + 6.,
+                3.,
+                12.,
+                12.,
+                0,
+            );
+            let parent = find_ui_by_name("UiMap", &entities, &ui_transform_storage).unwrap();
+            map.rr.push(entities.build_entity().with(Parent{entity:parent}, &mut parent_storage).with(position, &mut ui_transform_storage).with(image, &mut ui_image_storage).build());
+        }
+    }
+}
+
+pub struct UiMapUpdateSystem;
+
+impl<'a> System<'a> for UiMapUpdateSystem {
     type SystemData = (
         Read<'a, LevelGrid>,
         ReadExpect<'a, Loader>,
@@ -44,10 +99,6 @@ impl<'a> System<'a> for MapUpdateSystem {
     }
 }
 
-/// Green for Ground
-const GROUND_COLOR: [f32; 4] = [0., 1., 0., 1.];
-const WALL_COLOR: [f32; 4] = [0.5, 0.4, 0., 1.0];
-
 /// Holds all entities of the UiMap. Those are either small images to represent the tiles or other small quads, that represent the RockRaider.
 #[derive(Default)]
 pub struct UiMap {
@@ -66,11 +117,11 @@ impl UiMap {
         let position = UiTransform::new(
             "UiMap".to_string(),
             Anchor::TopLeft,
-            100.,
-            -100.,
+            200.,
+            -200.,
             1.,
-            max_x * 10.,
-            max_y * 10.,
+            max_x * 20.,
+            max_y * 20.,
             0,
         );
         let parent = world.create_entity().with(position).build();
@@ -99,11 +150,11 @@ impl UiMap {
                         let position = UiTransform::new(
                             "MapTile".to_string(),
                             Anchor::TopLeft,
-                            x as f32 * 10.,
-                            max_y - y as f32 * 10.,
+                            x as f32 * 20.,
+                            max_y - y as f32 * 20.,
                             2.,
-                            8.,
-                            8.,
+                            18.,
+                            18.,
                             0,
                         );
                         world
