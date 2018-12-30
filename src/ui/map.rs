@@ -132,7 +132,7 @@ impl UiMap {
         ui_image_storage: &mut WriteStorage<UiImage>,
         tex_storage: &mut Write<AssetStorage<Texture>>,
     ) {
-        // TODO remove runtime warnings because of unnecessary loading
+        // TODO #23 remove runtime warnings because of unnecessary loading
         let image = UiImage {
             texture: loader.load_from_data(
                 TextureData::color(Self::tile_color(tile)),
