@@ -12,13 +12,12 @@ use amethyst::{
         ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
         ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
     },
-    shrev::EventChannel,
     ui::*,
 };
 
 use assetmanagement::AssetManager;
 use entities::{buildings::Base, RockRaider, Tile};
-use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, GameEvent, HoverHandlerComponent, Hovered};
 use level::LevelGrid;
 use systems::{Oxygen, OxygenBar, Path, RevealQueue};
 use util::add_resource_soft;
@@ -102,7 +101,6 @@ impl LevelState {
             let mut hover_storage = world.system_data::<WriteStorage<HoverHandlerComponent>>();
             let mut click_storage = world.system_data::<WriteStorage<ClickHandlerComponent>>();
             let mut hovered = world.write_resource::<Hovered>();
-            let mut hover_channel = world.write_resource::<EventChannel<HoverEvent>>();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -114,7 +112,6 @@ impl LevelState {
                         &tiles,
                         &mut storages,
                         &mut hovered,
-                        &mut hover_channel,
                         &mut hover_storage,
                         &mut click_storage,
                     );

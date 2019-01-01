@@ -71,20 +71,20 @@ impl<'a> System<'a> for HoverInteractionSystem {
             // something has changed
 
             // if the hovered contains an entity, that entity is not hovered anymore
-            (**hovered).map(|e| {
+            if let Some(e) = **hovered {
                 hover_channel.single_write(HoverEvent {
                     start: false,
                     target: e,
                 })
-            });
+            };
 
             // entity is hovered, that was not hovered before
-            nearest_entity.map(|e| {
+            if let Some(e) = nearest_entity {
                 hover_channel.single_write(HoverEvent {
                     start: true,
                     target: e,
                 })
-            });
+            };
         }
         // Update Hovered entity
         // * for removing the write
@@ -95,7 +95,7 @@ impl<'a> System<'a> for HoverInteractionSystem {
 
 /// A wrapper to store the hovered entity as `Resource`
 #[derive(Clone, Default)]
-pub struct Hovered(Option<Entity>);
+pub struct Hovered(pub Option<Entity>);
 
 impl std::ops::Deref for Hovered {
     type Target = Option<Entity>;

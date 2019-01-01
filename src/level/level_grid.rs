@@ -9,12 +9,11 @@ use amethyst::{
         prelude::{Builder, Entity, World},
         storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
-    shrev::EventChannel,
 };
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::{ClickHandlerComponent, Clickable, HoverEvent, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::Path;
@@ -151,7 +150,6 @@ impl LevelGrid {
         tiles: &T,
         storages: &mut AssetStorages,
         hovered: &mut Hovered,
-        hover_channel: &mut EventChannel<HoverEvent>,
         hover_storage: &mut WriteStorage<HoverHandlerComponent>,
         mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
@@ -181,12 +179,8 @@ impl LevelGrid {
             hover_storage.insert(entity, handler).unwrap();
             tile.attach_click_handler(entity, &mut click_storage);
 
-            // when the current entity is hovered, we add a new `HoverEvent` to the queue, since our old hoverhandler was overwritten
             if Some(entity) == **hovered {
-                hover_channel.single_write(HoverEvent {
-                    start: true,
-                    target: entity,
-                });
+                *hovered = Hovered(None)
             }
         }
     }
