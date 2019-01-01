@@ -35,7 +35,6 @@ pub fn find_ui_by_name<'a, T: Join<Type = &'a UiTransform>>(
 }
 
 /// Updates a resource if the resource is Default or doesn't exist.
-// TODO remove with merge of https://github.com/slide-rs/specs/pull/522
 pub fn add_resource_soft<T: Resource + Default + PartialEq>(world: &mut World, res: T) {
     if !world.res.has_value::<T>() {
         if (*world.read_resource::<T>()) == T::default() {

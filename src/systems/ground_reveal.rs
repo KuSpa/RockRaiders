@@ -3,9 +3,11 @@ use amethyst::{
     core::{timing::Time, transform::Transform},
     ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage},
     renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
+    shrev::EventChannel,
 };
 
 use entities::Tile;
+use eventhandling::{ClickHandlerComponent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
 use assetmanagement::AssetManager;
@@ -22,6 +24,10 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        Write<'a, Hovered>,
+        WriteStorage<'a, HoverHandlerComponent>,
+        Write<'a, EventChannel<HoverEvent>>,
+        WriteStorage<'a, ClickHandlerComponent>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, Option<RevealQueue>>,
@@ -41,7 +47,19 @@ impl<'a> System<'a> for GroundRevealSystem {
 
     fn run(
         &mut self,
-        (time, dict, level_grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (
+            time,
+            mut hover,
+            mut hovers,
+            mut hover_channel,
+            mut clickers,
+            dict,
+            level_grid,
+            mut ground_reveal_queue,
+            mut transforms,
+            mut tiles,
+            mut storages,
+        ): Self::SystemData,
     ) {
         if let Some(ref mut ground_reveal_queue) = *ground_reveal_queue {
             while !ground_reveal_queue.is_empty()
@@ -98,6 +116,10 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 &mut transforms,
                                 &tiles,
                                 &mut storages,
+                                &mut hover,
+                                &mut hover_channel,
+                                &mut hovers,
+                                &mut clickers,
                             );
                         }
                     }
