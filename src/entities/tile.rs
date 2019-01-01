@@ -91,25 +91,25 @@ impl Component for Tile {
 
 impl Clickable for Tile {
     fn on_click(&self, entity: Entity, world: &World) {
-        let rock_raider = **(*world.write_resource::<Option<SelectedRockRaider>>())
-            .as_mut()
-            .unwrap();
-        // Destination is the clicked entity
-        let level_grid = world.read_resource::<LevelGrid>();
-        let tiles = world.read_storage::<Tile>();
-        let transforms = world.read_storage::<Transform>();
+        if let Some(SelectedRockRaider(rock_raider)) =
+            *world.write_resource::<Option<SelectedRockRaider>>()
+        {
+            // Destination is the clicked entity
+            let level_grid = world.read_resource::<LevelGrid>();
+            let tiles = world.read_storage::<Tile>();
+            let transforms = world.read_storage::<Transform>();
 
-        let transform = transforms.get(rock_raider).unwrap().translation();
-        let x = (transform.x + 0.5) as i32;
-        let y = (transform.z + 0.5) as i32;
+            let transform = transforms.get(rock_raider).unwrap().translation();
+            let x = (transform.x + 0.5) as i32;
+            let y = (transform.z + 0.5) as i32;
 
-        let start = level_grid.get(x, y).unwrap();
-        let path = level_grid.find_path(start, entity, &tiles, &transforms);
+            let start = level_grid.get(x, y).unwrap();
+            let path = level_grid.find_path(start, entity, &tiles, &transforms);
 
-        if let Some(path) = path {
-            world.write_storage().insert(rock_raider, path).unwrap();
-        }
-
+            if let Some(path) = path {
+                world.write_storage().insert(rock_raider, path).unwrap();
+            }
+        };
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
     }
 

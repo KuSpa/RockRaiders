@@ -132,7 +132,7 @@ pub mod util {
         let (
             ref loader,
             ref mut mesh_manager,
-            ref mut mesh_handles,
+            ref mut mesh_handle_storage,
             ref mut mesh_storage,
             ref mut tex_manager,
             ref mut mat_storage,
@@ -166,6 +166,6 @@ pub mod util {
         };
 
         mat_storage.insert(entity, material).unwrap();
-        mesh_handles.insert(entity, mesh).unwrap();
+        mesh_handle_storage.insert(entity, mesh).unwrap();
     }
 }
