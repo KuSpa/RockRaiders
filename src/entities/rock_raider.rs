@@ -65,9 +65,15 @@ impl RockRaider {
         let handler = Self::new_hover_handler(&loader, &mut tex_manager, &mut tex_storage);
         hover_storage.insert(entity, handler).unwrap();
 
-        RockRaider.attach_click_handler(entity, &mut click_storage);
+        click_storage
+            .insert(entity, RockRaider::new_click_handler())
+            .unwrap();
 
         entity
+    }
+
+    fn asset_name() -> &'static str {
+        "/rock_raider/default"
     }
 
     pub fn new_hover_handler(
@@ -87,8 +93,8 @@ impl RockRaider {
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
 
-    fn asset_name() -> &'static str {
-        "/rock_raider/default"
+    pub fn new_click_handler() -> ClickHandlerComponent {
+        Box::new(RockRaider) as ClickHandlerComponent
     }
 }
 
@@ -99,9 +105,5 @@ impl Component for RockRaider {
 impl Clickable for RockRaider {
     fn on_click(&self, entity: Entity, world: &World) {
         *world.write_resource::<Option<SelectedRockRaider>>() = Some(SelectedRockRaider(entity));
-    }
-
-    fn new_click_handler(&self) -> ClickHandlerComponent {
-        Box::new(RockRaider) as ClickHandlerComponent
     }
 }

@@ -117,7 +117,9 @@ impl Base {
         }
 
         let mut click_storage = world.write_storage::<ClickHandlerComponent>();
-        Base.attach_click_handler(result, &mut click_storage);
+        click_storage
+            .insert(result, Self::new_click_handler())
+            .unwrap();
     }
 
     fn asset_name() -> &'static str {
@@ -140,6 +142,10 @@ impl Base {
         let bounding_box = Cuboid::new(Vector3::new(0.33, 0.33, 0.39));
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
+
+    pub fn new_click_handler() -> ClickHandlerComponent {
+        Box::new(Base) as ClickHandlerComponent
+    }
 }
 
 impl Component for Base {
@@ -155,9 +161,5 @@ impl Default for Base {
 impl Clickable for Base {
     fn on_click(&self, entity: Entity, world: &World) {
         self.spawn_rock_raider(entity, world);
-    }
-
-    fn new_click_handler(&self) -> ClickHandlerComponent {
-        Box::new(Base) as ClickHandlerComponent
     }
 }

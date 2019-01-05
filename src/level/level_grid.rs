@@ -13,7 +13,7 @@ use amethyst::{
 
 use assetmanagement::util::*;
 use entities::Tile;
-use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, Hovered};
+use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
 use pathfinding::directed::bfs;
 use systems::Path;
@@ -151,7 +151,7 @@ impl LevelGrid {
         storages: &mut AssetStorages,
         hovered: &mut Hovered,
         hover_storage: &mut WriteStorage<HoverHandlerComponent>,
-        mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
+        click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
@@ -163,7 +163,7 @@ impl LevelGrid {
         transforms.insert(entity, transform).unwrap();
 
         //Add hover handler for the Tile
-        if let Some(tile) = self.get_tile(x, y, tiles) {
+        if let Some(_) = self.get_tile(x, y, tiles) {
             let (
                 ref loader,
                 ref _mesh_manager,
@@ -177,7 +177,9 @@ impl LevelGrid {
 
             let handler = Tile::new_hover_handler(&loader, tex_manager, tex_storage);
             hover_storage.insert(entity, handler).unwrap();
-            tile.attach_click_handler(entity, &mut click_storage);
+            click_storage
+                .insert(entity, Tile::new_click_handler())
+                .unwrap();
 
             if Some(entity) == **hovered {
                 *hovered = Hovered(None)

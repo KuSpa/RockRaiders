@@ -74,6 +74,14 @@ impl Tile {
         let bounding_box = Cuboid::new(Vector3::new(0.5, 0.01, 0.5));
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
+
+    pub fn new_click_handler() -> ClickHandlerComponent {
+        // TODO Refactor
+        // This is working, because there are currently no different clickhandler for different Tiles.
+        // A rr does not move to a Wall, because there will be no Path to the Wall(the destination is not `walkable()`)
+        // is updated as soon as different ClickHandler are required
+        Box::new(Tile::Any) as Box<dyn Clickable>
+    }
 }
 
 impl Default for Tile {
@@ -111,13 +119,5 @@ impl Clickable for Tile {
             }
         };
         *world.write_resource::<Option<SelectedRockRaider>>() = None;
-    }
-
-    fn new_click_handler(&self) -> ClickHandlerComponent {
-        // TODO Refactor
-        // This is working, because there are currently no different clickhandler for different Tiles.
-        // A rr does not move to a Wall, because there will be no Path to the Wall(the destination is not `walkable()`)
-        // is updated as soon as different ClickHandler are required
-        Box::new(Tile::Any) as Box<dyn Clickable>
     }
 }
