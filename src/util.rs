@@ -35,12 +35,19 @@ pub fn find_ui_by_name<'a, T: Join<Type = &'a UiTransform>>(
 }
 
 /// Updates a resource if the resource is Default or doesn't exist.
-pub fn add_resource_soft<T: Resource + Default + PartialEq>(world: &mut World, res: T) {
+/// Returns true, if the resource was added to the Resources
+pub fn add_resource_without_override<T: Resource + Default + PartialEq>(
+    world: &mut World,
+    res: T,
+) -> bool {
     if !world.res.has_value::<T>() {
         if (*world.read_resource::<T>()) == T::default() {
-            *world.write_resource() = res
+            *world.write_resource() = res;
+            return true;
         }
     } else {
-        world.add_resource::<T>(res)
+        world.add_resource::<T>(res);
+        return true;
     }
+    false
 }

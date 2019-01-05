@@ -9,20 +9,20 @@ use amethyst::{
     input::{is_close_requested, is_key_down, InputHandler},
     prelude::*,
     renderer::{
-        ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
-        ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
+        ActiveCamera, Camera, Light, MaterialDefaults, Mesh, MouseButton, ObjFormat, PngFormat,
+        PointLight, Rgba, ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
     },
     shrev::EventChannel,
     ui::*,
 };
 
-use assetmanagement::AssetManager;
+use assetmanagement::{MeshManager, TextureManager};
 use entities::{buildings::Base, RockRaider, Tile};
 use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TileGrid};
 use systems::{Oxygen, OxygenBar, Path, RevealQueue};
 use ui::UiMap;
-use util::add_resource_soft;
+use util::add_resource_without_override;
 use GameScene;
 
 use std::{
@@ -219,13 +219,22 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         world.register::<RockRaider>();
         world.register::<Path>();
 
-        let mesh_manager = AssetManager::<Mesh>::default();
-        let texture_manager = AssetManager::<Texture>::default();
+        let mesh_manager = MeshManager::default();
+        let texture_manager = TextureManager::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
         let oxygen = Oxygen::new(100.);
         let tile_grid = LevelState::load_tile_grid();
-        let map = UiMap::from(tile_grid.clone(), world);
 
+        add_resource_without_override(world, tile_pattern_config);
+        add_resource_without_override(world, mesh_manager);
+
+        if add_resource_without_override(world, texture_manager) {
+            warn!("initialized Texture handler");
+            let mut texture_manager = world.write_resource::<TextureManager>();
+            texture_manager.initialize_with(world.read_resource::<MaterialDefaults>().0.clone());
+        }
+
+        let map = UiMap::from(tile_grid.clone(), world);
         world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
 
         world.add_resource(Some(RevealQueue::new()));
@@ -234,10 +243,6 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         world.add_resource::<Option<OxygenBar>>(None);
         world.add_resource::<Option<SelectedRockRaider>>(None);
         world.add_resource(Some(map));
-
-        add_resource_soft(world, mesh_manager);
-        add_resource_soft(world, texture_manager);
-        add_resource_soft(world, tile_pattern_config);
 
         LevelState::load_initial_assets(world);
         let cam = LevelState::initialize_camera(world);
