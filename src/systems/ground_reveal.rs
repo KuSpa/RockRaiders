@@ -1,14 +1,15 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::Loader,
     core::{timing::Time, transform::Transform},
     ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage},
-    renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
+    shrev::EventChannel,
 };
 
 use entities::Tile;
+use eventhandling::{ClickHandlerComponent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
-use assetmanagement::AssetManager;
+use assetmanagement::util::{MeshStorages, TextureStorages};
 use std::{cmp::Reverse, collections::BinaryHeap, time::Duration};
 
 ///
@@ -22,26 +23,37 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        ReadExpect<'a, Loader>,
+        Write<'a, Hovered>,
+        WriteStorage<'a, HoverHandlerComponent>,
+        Write<'a, EventChannel<HoverEvent>>,
+        WriteStorage<'a, ClickHandlerComponent>,
         Read<'a, TilePatternMap>,
         Read<'a, LevelGrid>,
         Write<'a, Option<RevealQueue>>,
         WriteStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
-        (
-            ReadExpect<'a, Loader>,
-            Write<'a, AssetManager<Mesh>>,
-            WriteStorage<'a, MeshHandle>,
-            Write<'a, AssetStorage<Mesh>>,
-            Write<'a, AssetManager<Texture>>,
-            WriteStorage<'a, Material>,
-            Write<'a, AssetStorage<Texture>>,
-            ReadExpect<'a, MaterialDefaults>,
-        ),
+        MeshStorages<'a>,
+        TextureStorages<'a>,
     );
 
     fn run(
         &mut self,
-        (time, dict, level_grid, mut ground_reveal_queue, mut transforms, mut tiles, mut storages): Self::SystemData,
+        (
+            time,
+            loader,
+            mut hover,
+            mut hovers,
+            mut hover_channel,
+            mut clickers,
+            dict,
+            level_grid,
+            mut ground_reveal_queue,
+            mut transforms,
+            mut tiles,
+            mut mesh_storages,
+            mut texture_storages,
+        ): Self::SystemData,
     ) {
         if let Some(ref mut ground_reveal_queue) = *ground_reveal_queue {
             while !ground_reveal_queue.is_empty()
@@ -97,7 +109,13 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 &dict,
                                 &mut transforms,
                                 &tiles,
-                                &mut storages,
+                                &mut texture_storages,
+                                &mut mesh_storages,
+                                &mut hover,
+                                &loader,
+                                &mut hover_channel,
+                                &mut hovers,
+                                &mut clickers,
                             );
                         }
                     }

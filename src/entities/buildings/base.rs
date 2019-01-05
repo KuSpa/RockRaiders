@@ -1,19 +1,22 @@
 use amethyst::{
+    assets::{AssetStorage, Loader},
     core::{
         nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
     },
     ecs::prelude::{Builder, Component, Entity, NullStorage, World},
+    renderer::Texture,
 };
 
 use rand::prelude::*;
 
-use assetmanagement::util::{add_hover_handler, insert_into_asset_storages};
+use assetmanagement::{util::attach_assets, TextureManager};
 use entities::{RockRaider, Tile};
+use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::LevelGrid;
 use util::amount_in;
 
-use ncollide3d::shape::{Cuboid, Shape};
+use ncollide3d::shape::Cuboid;
 
 const MAX_RAIDERS: usize = 10;
 
@@ -58,9 +61,23 @@ impl Base {
             Point2::new(spawn_tile_position.x, spawn_tile_position.z)
         };
 
-        let mut storages = world.system_data();
+        let mut rr_storages = world.system_data();
+        let mut texture_storages = world.system_data();
+        let mut mesh_storages = world.system_data();
+        let hover_storage = world.system_data();
+        let click_storage = world.system_data();
         let entities = world.entities();
-        RockRaider::instantiate(&entities, spawn_position, &mut storages)
+        let loader = world.read_resource();
+        RockRaider::instantiate(
+            &entities,
+            spawn_position,
+            &mut rr_storages,
+            &mut texture_storages,
+            &mut mesh_storages,
+            &loader,
+            hover_storage,
+            click_storage,
+        )
     }
 
     /// Create a new Base. The given entity has to have a `Tile::Ground` Component, which then is used as Parent to determine the Position
@@ -92,37 +109,46 @@ impl Base {
             .build();
 
         {
-            let mut storages = world.system_data();
-            add_hover_handler(
+            let mut tex_storages = world.system_data();
+            let mut mesh_storages = world.system_data();
+            let loader = world.read_resource();
+            attach_assets(
                 result,
                 Base::asset_name(),
-                Base::bounding_box(),
-                &mut storages,
+                &loader,
+                &mut tex_storages,
+                &mut mesh_storages,
             );
         }
 
         {
-            let mut storages = world.system_data();
-            insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+            // add a HoverHandler to the Entity
+            let loader = world.read_resource::<Loader>();
+            let mut tex_manager = world.write_resource();
+            let mut tex_storage = world.write_resource();
+            let handler = Base::new_hover_handler(&mut tex_manager, &loader, &mut tex_storage);
+            world.write_storage().insert(result, handler).unwrap();
         }
 
-        //Build Click Handler
-        {
-            use eventhandling::*;
-            let tmp: Box<dyn Clickable> = Box::new(Base);
-            world
-                .write_storage::<Box<dyn Clickable>>()
-                .insert(result, tmp)
-                .unwrap();
-        }
+        let mut click_storage = world.write_storage::<ClickHandlerComponent>();
+        Base.attach_click_handler(result, &mut click_storage);
     }
 
+    #[inline(always)]
     fn asset_name() -> &'static str {
         "buildings/base"
     }
 
-    fn bounding_box() -> Box<dyn Shape<f32>> {
-        Box::new(Cuboid::new(Vector3::new(0.33, 0.33, 0.38)))
+    pub fn new_hover_handler(
+        tex_manager: &mut TextureManager,
+        loader: &Loader,
+        mut tex_storage: &mut AssetStorage<Texture>,
+    ) -> HoverHandlerComponent {
+        let hover_mat =
+            tex_manager.get_handle_or_load("buildings/base_hover", &loader, &mut tex_storage);
+
+        let bounding_box = Cuboid::new(Vector3::new(0.33, 0.33, 0.39));
+        Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))
     }
 }
 
@@ -133,5 +159,15 @@ impl Component for Base {
 impl Default for Base {
     fn default() -> Self {
         Base
+    }
+}
+
+impl Clickable for Base {
+    fn on_click(&self, entity: Entity, world: &World) {
+        self.spawn_rock_raider(entity, world);
+    }
+
+    fn new_click_handler(&self) -> ClickHandlerComponent {
+        Box::new(Base) as ClickHandlerComponent
     }
 }

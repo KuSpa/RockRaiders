@@ -1,32 +1,51 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::AssetStorage,
     core::{
         nalgebra::Vector3,
         timing::Time,
         transform::{GlobalTransform, Parent, Transform},
     },
-    ecs::Entity,
+    ecs::{Entity, WriteStorage},
     input::{is_close_requested, is_key_down, InputHandler},
     prelude::*,
     renderer::{
-        ActiveCamera, Camera, Light, Mesh, MouseButton, ObjFormat, PngFormat, PointLight, Rgba,
-        ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
+        ActiveCamera, Camera, Light, MaterialDefaults, Mesh, MouseButton, PointLight, Rgba,
+        ScreenDimensions, Texture, VirtualKeyCode,
     },
+    shrev::EventChannel,
     ui::*,
 };
 
-use systems::OxygenBar;
-
-use assetmanagement::AssetManager;
+use assetmanagement::{MeshManager, TextureManager};
 use entities::{buildings::Base, RockRaider, Tile};
-use eventhandling::Clickable;
-use level::LevelGrid;
-use systems::RevealQueue;
-use systems::{HoverHandler, Hovered, Oxygen, Path};
-use util::add_resource_soft;
+use eventhandling::{ClickHandlerComponent, GameEvent, HoverEvent, HoverHandlerComponent, Hovered};
+use level::{LevelGrid, TileGrid};
+use systems::{Oxygen, OxygenBar, Path, RevealQueue};
+use ui::UiMap;
+use util::add_resource_without_override;
 use GameScene;
 
-use std::{cmp::Reverse, path::Path as OSPath};
+use std::{
+    cmp::Reverse,
+    ops::{Deref, DerefMut},
+    path::Path as OSPath,
+};
+
+pub struct SelectedRockRaider(pub Entity);
+
+impl Deref for SelectedRockRaider {
+    type Target = Entity;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for SelectedRockRaider {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
 
 /// The `State` that is active, when a level runs
 pub struct LevelState {
@@ -61,8 +80,8 @@ impl LevelState {
     }
 
     /// Loads the cave's model from disk.
-    fn load_tile_grid() -> Vec<Vec<Tile>> {
-        let tile_grid = Vec::<Vec<Tile>>::load(OSPath::new(&format!(
+    fn load_tile_grid() -> TileGrid {
+        let tile_grid = TileGrid::load(OSPath::new(&format!(
             "{}/assets/levels/1.ron",
             env!("CARGO_MANIFEST_DIR")
         )));
@@ -72,7 +91,7 @@ impl LevelState {
     }
 
     /// Converts the cave's model into a `LevelGrid` and adds it to the world.
-    fn initialize_level_grid(world: &mut World, tile_grid: Vec<Vec<Tile>>) {
+    fn initialize_level_grid(world: &mut World, tile_grid: TileGrid) {
         let level_grid = LevelGrid::from_grid(tile_grid, world);
         let max_x = level_grid.x_len();
         let max_y = level_grid.y_len();
@@ -80,7 +99,13 @@ impl LevelState {
             let tiles = world.read_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
             let dict = world.read_resource::<TilePatternMap>();
-            let mut storages = world.system_data();
+            let mut tex_storages = world.system_data();
+            let mut mesh_storages = world.system_data();
+            let mut hover_storage = world.system_data::<WriteStorage<HoverHandlerComponent>>();
+            let mut click_storage = world.system_data::<WriteStorage<ClickHandlerComponent>>();
+            let mut hovered = world.write_resource::<Hovered>();
+            let mut hover_channel = world.write_resource::<EventChannel<HoverEvent>>();
+            let loader = world.read_resource();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -90,7 +115,13 @@ impl LevelState {
                         &dict,
                         &mut transforms,
                         &tiles,
-                        &mut storages,
+                        &mut tex_storages,
+                        &mut mesh_storages,
+                        &mut hovered,
+                        &loader,
+                        &mut hover_channel,
+                        &mut hover_storage,
+                        &mut click_storage,
                     );
                 }
             }
@@ -100,28 +131,16 @@ impl LevelState {
 
     /// Loads all assets that will presumably be used in the level into memory and `AssetManager`.
     fn load_initial_assets(world: &World) {
-        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
+        let mut mesh_manager = world.write_resource::<MeshManager>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-        let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
+        let mut texture_manager = world.write_resource::<TextureManager>();
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
-        let loader = world.read_resource::<Loader>();
+        let loader = world.read_resource();
 
         for (_, asset) in world.read_resource::<TilePatternMap>().iter() {
             debug!("loading asset: {}", asset);
-            mesh_manager.get_asset_handle_or_load(
-                asset,
-                ObjFormat,
-                Default::default(),
-                &mut mesh_storage,
-                &loader,
-            );
-            texture_manager.get_asset_handle_or_load(
-                asset,
-                PngFormat,
-                TextureMetadata::srgb(),
-                &mut texture_storage,
-                &loader,
-            );
+            mesh_manager.get_handle_or_load(asset, &loader, &mut mesh_storage);
+            texture_manager.get_handle_or_load(asset, &loader, &mut texture_storage);
         }
     }
 
@@ -188,40 +207,46 @@ impl LevelState {
     }
 }
 
-impl SimpleState for LevelState {
+impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
     fn on_start(&mut self, data: StateData<GameData>) {
         let world = data.world;
 
         world.register::<Tile>();
         world.register::<Light>();
         world.register::<Base>();
-        world.register::<HoverHandler>();
-        world.register::<Box<dyn Clickable>>();
+        world.register::<HoverHandlerComponent>();
+        world.register::<ClickHandlerComponent>();
         world.register::<RockRaider>();
         world.register::<Path>();
 
-        let mesh_manager = AssetManager::<Mesh>::default();
-        let texture_manager = AssetManager::<Texture>::default();
+        let mesh_manager = MeshManager::default();
+        let texture_manager = TextureManager::default();
         let tile_pattern_config = LevelState::load_tile_pattern_config();
         let oxygen = Oxygen::new(100.);
+        let tile_grid = LevelState::load_tile_grid();
 
+        add_resource_without_override(world, tile_pattern_config);
+        add_resource_without_override(world, mesh_manager);
+
+        if add_resource_without_override(world, texture_manager) {
+            let mut texture_manager = world.write_resource::<TextureManager>();
+            texture_manager.initialize_with(world.read_resource::<MaterialDefaults>().0.clone());
+        }
+
+        let map = UiMap::from(tile_grid.clone(), world);
         world.exec(|mut creator: UiCreator| creator.create("ui/oxygen_bar/prefab.ron", ()));
 
-        /* more resources, that are initialized as default:
-        Option<Hovered>     with:   None
-        Option<OxygenBar>   with:   None
-        */
         world.add_resource(Some(RevealQueue::new()));
         world.add_resource(Some(oxygen));
-
-        add_resource_soft(world, mesh_manager);
-        add_resource_soft(world, texture_manager);
-        add_resource_soft(world, tile_pattern_config);
+        world.add_resource::<Hovered>(Hovered::default());
+        world.add_resource::<Option<OxygenBar>>(None);
+        world.add_resource::<Option<SelectedRockRaider>>(None);
+        world.add_resource(Some(map));
 
         LevelState::load_initial_assets(world);
         let cam = LevelState::initialize_camera(world);
         LevelState::initialize_light(world, cam);
-        LevelState::initialize_level_grid(world, LevelState::load_tile_grid());
+        LevelState::initialize_level_grid(world, tile_grid);
 
         *world.write_resource() = LevelState::scene();
     }
@@ -230,53 +255,103 @@ impl SimpleState for LevelState {
         *data.world.write_resource() = LevelState::scene();
     }
 
-    fn handle_event(&mut self, data: StateData<GameData>, event: StateEvent) -> SimpleTrans {
-        if let StateEvent::Window(event) = &event {
-            if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
-                debug!("Quitting");
-                return Trans::Quit;
-            } else if is_key_down(&event, VirtualKeyCode::Tab) {
-                debug!("Leaving Level State");
-                return Trans::Pop;
-            } else if is_key_down(&event, VirtualKeyCode::Space) {
-                do_test_method(data);
+    fn handle_event(
+        &mut self,
+        data: StateData<GameData>,
+        event: GameEvent,
+    ) -> Trans<GameData<'a, 'b>, GameEvent> {
+        let world = data.world;
+        match &event {
+            // Dispatch the incoming event
+            GameEvent::Window(event) => {
+                if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
+                    debug!("Quitting");
+                    return Trans::Quit;
+                } else if is_key_down(&event, VirtualKeyCode::Tab) {
+                    debug!("Leaving Level State");
+                    return Trans::Pop;
+                } else if is_key_down(&event, VirtualKeyCode::Space) {
+                    do_test_method(world);
 
-                return Trans::None;
+                    return Trans::None;
+                }
             }
+            GameEvent::Hover(event) => {
+                // the following code may be a bit unintuitive:
+                // # remove handler
+                // # execute handler
+                // # add handler again
+                // This is required, because the handler itself may fetch the hoverhandler storage on execution, what would lead to a new borrow, while this method still borrows the storage to execute the handler.
+                // To bypass this, we remove the handler for the time of execution, so that no resource of the world is borrowed and there are no possible `Invalid Borrow` clashes from this side of the code.
+                let mut hover_handler = world
+                    .write_storage::<HoverHandlerComponent>()
+                    .remove(event.target)
+                    .unwrap();
+                if event.start {
+                    // hover started
+                    hover_handler.on_hover_start(event.target, world);
+                } else {
+                    // hover ended
+                    hover_handler.on_hover_stop(event.target, world);
+                }
+                world
+                    .write_storage::<HoverHandlerComponent>()
+                    .insert(event.target, hover_handler)
+                    .unwrap();
+            }
+            _ => (),
         }
 
-        let mouse_button = data
-            .world
+        let mouse_button = world
             .read_resource::<InputHandler<String, String>>()
             .mouse_button_is_down(MouseButton::Left);
 
-        if !self.mouse_button_was_down & &mouse_button {
-            if let Some(hovered) = &*data.world.read_resource::<Option<Hovered>>() {
-                let entity = hovered.entity;
-                data.world
-                    .read_storage::<Box<dyn Clickable>>()
-                    .get(entity)
-                    .map(|handler| handler.on_click(&entity, data.world));
+        if !self.mouse_button_was_down && mouse_button {
+            if let Some(entity) = **(world.read_resource::<Hovered>()) {
+                // see hover event dispatching
+                let opt_handler = world
+                    .write_storage::<ClickHandlerComponent>()
+                    .remove(entity);
+                opt_handler.map(|handler| {
+                    handler.on_click(entity, world);
+                    world
+                        .write_storage::<ClickHandlerComponent>()
+                        .insert(entity, handler)
+                });
             }
         }
-
         self.mouse_button_was_down = mouse_button;
 
+        // reset selection on right click
+        if world
+            .read_resource::<InputHandler<String, String>>()
+            .mouse_button_is_down(MouseButton::Right)
+        {
+            *world.write_resource::<Option<SelectedRockRaider>>() = None;
+        }
         Trans::None
     }
 
     fn on_stop(&mut self, data: StateData<GameData>) {
         let world = data.world;
-        world.delete_all();
-
+        *world.write_resource() = GameScene::default();
+        *world.write_resource::<Option<SelectedRockRaider>>() = None;
+        *world.write_resource::<Hovered>() = Hovered::default();
+        *world.write_resource::<Option<UiMap>>() = None;
         *world.write_resource::<Option<OxygenBar>>() = None;
         *world.write_resource::<Option<Oxygen>>() = None;
         *world.write_resource::<Option<RevealQueue>>() = None;
-        *world.write_resource::<Option<Hovered>>() = None;
+        *world.write_resource::<LevelGrid>() = LevelGrid::default(); //Option?
+
+        world.maintain();
+        world.delete_all();
+    }
+    fn update(&mut self, data: StateData<GameData>) -> Trans<GameData<'a, 'b>, GameEvent> {
+        data.data.update(&data.world);
+        Trans::None
     }
 }
 
-fn do_test_method(data: StateData<GameData>) {
-    let world = data.world;
+fn do_test_method(world: &mut World) {
     LevelState::initialize_base(world);
 }

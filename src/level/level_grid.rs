@@ -1,23 +1,27 @@
 const CONCEALED: &str = "concealed";
 
 use amethyst::{
+    assets::Loader,
     core::{
         nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Transform},
     },
     ecs::{
         prelude::{Builder, Entity, World},
-        storage::{GenericReadStorage, GenericWriteStorage},
+        storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
+    shrev::EventChannel,
 };
-
-use pathfinding::directed::bfs;
 
 use assetmanagement::util::*;
 use entities::Tile;
+use eventhandling::{ClickHandlerComponent, Clickable, HoverEvent, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
+use pathfinding::directed::bfs;
 use systems::Path;
 use util;
+
+pub type TileGrid = Vec<Vec<Tile>>;
 
 /// A `Resource`, that holds every `Entity` that has a `Tile` Component and thus represents a part of the cave's layout
 pub struct LevelGrid {
@@ -29,7 +33,7 @@ impl LevelGrid {
     /// Instantiates the grid with `Entity`s that have a `Tile` component regarding to the given specification.
     ///
     /// Note, that this does not add `MeshHandles` or `Material` to the `Entity`, so the Entities won't get rendered yet.
-    pub fn from_grid(mut tile_grid: Vec<Vec<Tile>>, world: &mut World) -> LevelGrid {
+    pub fn from_grid(mut tile_grid: TileGrid, world: &mut World) -> LevelGrid {
         let level_grid: Vec<Vec<Entity>> = tile_grid
             .iter_mut()
             .map(|tile_vec| {
@@ -148,16 +152,40 @@ impl LevelGrid {
         dict: &TilePatternMap,
         transforms: &mut R,
         tiles: &T,
-        storages: &mut AssetStorages,
+        texture_storags: &mut TextureStorages,
+        mesh_storages: &mut MeshStorages,
+        hovered: &mut Hovered,
+        loader: &Loader,
+        hover_channel: &mut EventChannel<HoverEvent>,
+        hover_storage: &mut WriteStorage<HoverHandlerComponent>,
+        mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
-        insert_into_asset_storages(entity, classifier, storages);
+        attach_assets(entity, classifier, &loader, texture_storags, mesh_storages);
 
         let mut transform = Transform::default();
         transform.set_position(Vector3::new(x as f32, 0.0, y as f32));
         transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
+
+        //Add hover handler for the Tile
+        if let Some(tile) = self.get_tile(x, y, tiles) {
+            let (ref mut texture_manager, ref mut texture_storage, ref mut _material_storage) =
+                texture_storags;
+
+            let handler = Tile::new_hover_handler(texture_manager, &loader, texture_storage);
+            hover_storage.insert(entity, handler).unwrap();
+            tile.attach_click_handler(entity, &mut click_storage);
+
+            // when the current entity is hovered, we add a new `HoverEvent` to the queue, since our old hoverhandler was overwritten
+            if Some(entity) == **hovered {
+                hover_channel.single_write(HoverEvent {
+                    start: true,
+                    target: entity,
+                });
+            }
+        }
     }
 
     pub fn get_tile<'a, T: GenericReadStorage<Component = Tile>>(
@@ -250,12 +278,12 @@ impl LevelGrid {
         storage: &T,
     ) -> (i32, i32) {
         if let Some(transform) = storage.get(*entity) {
-            return (
-                transform.translation().x as i32,
-                transform.translation().z as i32,
-            );
+            let x = transform.translation().x as i32;
+            let y = transform.translation().z as i32;
+            // Test if the entity is part of the Grid at all. `unwrap()` is okay, because if it not part of the grid, we panic anyway
+            assert_eq!(*entity, self.get(x, y).unwrap());
+            return (x, y);
         };
-        // TODO check for correctness
         panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }
