@@ -15,9 +15,9 @@ use level::{LevelGrid, TileGrid};
 use util::find_ui_by_name;
 
 /// Green for Ground
-const GROUND_COLOR: [f32; 4] = [0., 1., 0., 1.];
-const WALL_COLOR: [f32; 4] = [0.5, 0.4, 0., 1.0];
-const RR_COLOR:[f32; 4] = [0.8, 0., 0., 1.0];
+const GROUND_COLOR: &'static str = "GREEN";
+const WALL_COLOR: &'static str = "BEIGE";
+const RR_COLOR: &'static str = "RED";
 
 pub struct UiRockRaiderSystem;
 
@@ -215,22 +215,22 @@ impl UiMap {
         y: i32,
         tile: &Tile,
         loader: &Loader,
+        texture_manager: &mut Write<TextureManager>,
         ui_image_storage: &mut WriteStorage<UiImage>,
         tex_storage: &mut Write<AssetStorage<Texture>>,
     ) {
-        // TODO #23 remove runtime warnings because of unnecessary loading
         let image = UiImage {
-            texture: loader.load_from_data(
-                TextureData::color(Self::tile_color(tile)),
-                (),
-                tex_storage,
+            texture: texture_manager.get_handle_or_load(
+                Self::tile_color(tile),
+                &loader,
+                &tex_storage,
             ),
         };
         let entity = self.grid[x as usize][y as usize];
         ui_image_storage.insert(entity, image).unwrap();
     }
 
-    fn tile_color(tile: &Tile) -> [f32; 4] {
+    fn tile_color(tile: &Tile) -> &'static str {
         match tile {
             Tile::Ground { concealed: false } => GROUND_COLOR,
             _ => WALL_COLOR,
