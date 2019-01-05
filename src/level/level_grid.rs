@@ -1,6 +1,7 @@
 const CONCEALED: &str = "concealed";
 
 use amethyst::{
+    assets::Loader,
     core::{
         nalgebra::{Point2, Vector3},
         transform::{GlobalTransform, Transform},
@@ -151,15 +152,17 @@ impl LevelGrid {
         dict: &TilePatternMap,
         transforms: &mut R,
         tiles: &T,
-        storages: &mut AssetStorages,
+        texture_storags: &mut TextureStorages,
+        mesh_storages: &mut MeshStorages,
         hovered: &mut Hovered,
+        loader: &Loader,
         hover_channel: &mut EventChannel<HoverEvent>,
         hover_storage: &mut WriteStorage<HoverHandlerComponent>,
         mut click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
-        insert_into_asset_storages(entity, classifier, storages);
+        attach_assets(entity, classifier, &loader, texture_storags, mesh_storages);
 
         let mut transform = Transform::default();
         transform.set_position(Vector3::new(x as f32, 0.0, y as f32));
@@ -168,18 +171,10 @@ impl LevelGrid {
 
         //Add hover handler for the Tile
         if let Some(tile) = self.get_tile(x, y, tiles) {
-            let (
-                ref loader,
-                ref _mesh_manager,
-                ref _mesh_handles,
-                ref _mesh_storage,
-                ref mut tex_manager,
-                ref _mat_storage,
-                ref mut tex_storage,
-                ref _default_mat,
-            ) = storages;
+            let (ref mut texture_manager, ref mut texture_storage, ref mut _material_storage) =
+                texture_storags;
 
-            let handler = Tile::new_hover_handler(&loader, tex_manager, tex_storage);
+            let handler = Tile::new_hover_handler(texture_manager, &loader, texture_storage);
             hover_storage.insert(entity, handler).unwrap();
             tile.attach_click_handler(entity, &mut click_storage);
 

@@ -7,7 +7,8 @@ use amethyst::{
     ecs::prelude::{Component, Entities, Entity, NullStorage, World, WriteStorage},
     renderer::{PngFormat, Texture, TextureMetadata},
 };
-use assetmanagement::{util::*, AssetManager};
+use assetmanagement::util::*;
+use assetmanagement::{util::attach_assets, MeshManager, TextureManager};
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::SelectedRockRaider;
 use ncollide3d::shape::Cuboid;
@@ -17,52 +18,42 @@ use ncollide3d::shape::Cuboid;
 #[derive(Default)]
 pub struct RockRaider;
 
-pub type RockRaiderStorages<'a> = (
-    (
-        WriteStorage<'a, RockRaider>,
-        WriteStorage<'a, Transform>,
-        WriteStorage<'a, GlobalTransform>,
-    ),
-    AssetStorages<'a>,
-);
-
 impl RockRaider {
     pub fn instantiate(
         entities: &Entities, //note: this is a type alias for Read<'a, EntityRes>
         position: Point2<f32>,
-        rr_storages: RockRaiderStorages,
+        (ref mut rock_raider_storage,ref  mut transform_storage,ref  mut global_transform_storage): &mut (
+            WriteStorage<RockRaider>,
+            WriteStorage<Transform>,
+            WriteStorage<GlobalTransform>,
+        ),
+        texture_storages: &mut TextureStorages,
+        mesh_storages: &mut MeshStorages,
+        loader: &Loader,
         mut hover_storage: WriteStorage<HoverHandlerComponent>,
         mut click_storage: WriteStorage<ClickHandlerComponent>,
     ) -> Entity {
-        let (
-            (mut rock_raider_storage, mut transform_storage, mut global_transform_storage),
-            mut asset_storages,
-        ) = rr_storages;
-
         let mut transform = Transform::default();
         transform.set_position(Vector3::new(position.x, 0.0, position.y));
 
         let entity = entities
             .build_entity()
-            .with(RockRaider, &mut rock_raider_storage)
-            .with(transform, &mut transform_storage)
-            .with(GlobalTransform::default(), &mut global_transform_storage)
+            .with(RockRaider, rock_raider_storage)
+            .with(transform, transform_storage)
+            .with(GlobalTransform::default(), global_transform_storage)
             .build();
 
-        insert_into_asset_storages(entity, RockRaider::asset_name(), &mut asset_storages);
+        attach_assets(
+            entity,
+            RockRaider::asset_name(),
+            &loader,
+            texture_storages,
+            mesh_storages,
+        );
 
-        let (
-            loader,
-            _mesh_manager,
-            _mesh_handles,
-            _mesh_storage,
-            mut tex_manager,
-            _mat_storage,
-            mut tex_storage,
-            _default_mat,
-        ) = asset_storages;
+        let (ref mut tex_manager, ref mut tex_storage, ref _mat_storage) = texture_storages;
 
-        let handler = Self::new_hover_handler(&loader, &mut tex_manager, &mut tex_storage);
+        let handler = Self::new_hover_handler(tex_manager, &loader, tex_storage);
         hover_storage.insert(entity, handler).unwrap();
 
         RockRaider.attach_click_handler(entity, &mut click_storage);
@@ -71,17 +62,12 @@ impl RockRaider {
     }
 
     pub fn new_hover_handler(
+        tex_manager: &mut TextureManager,
         loader: &Loader,
-        tex_manager: &mut AssetManager<Texture>,
         mut tex_storage: &mut AssetStorage<Texture>,
     ) -> HoverHandlerComponent {
-        let hover_mat = tex_manager.get_asset_handle_or_load(
-            "/rock_raider/default_hover",
-            PngFormat,
-            TextureMetadata::srgb(),
-            &mut tex_storage,
-            &loader,
-        );
+        let hover_mat =
+            tex_manager.get_handle_or_load("/rock_raider/default_hover", &loader, &mut tex_storage);
 
         let bounding_box = Cuboid::new(Vector3::new(0.21, 0.18, 0.1));
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))

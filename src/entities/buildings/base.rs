@@ -10,7 +10,7 @@ use amethyst::{
 
 use rand::prelude::*;
 
-use assetmanagement::{util::insert_into_asset_storages, AssetManager};
+use assetmanagement::{util::attach_assets, MeshManager, TextureManager};
 use entities::{RockRaider, Tile};
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::LevelGrid;
@@ -61,14 +61,20 @@ impl Base {
             Point2::new(spawn_tile_position.x, spawn_tile_position.z)
         };
 
-        let storages = world.system_data();
+        let mut rr_storages = world.system_data();
+        let mut texture_storages = world.system_data();
+        let mut mesh_storages = world.system_data();
         let hover_storage = world.system_data();
         let click_storage = world.system_data();
         let entities = world.entities();
+        let loader = world.read_resource();
         RockRaider::instantiate(
             &entities,
             spawn_position,
-            storages,
+            &mut rr_storages,
+            &mut texture_storages,
+            &mut mesh_storages,
+            &loader,
             hover_storage,
             click_storage,
         )
@@ -103,17 +109,25 @@ impl Base {
             .build();
 
         {
-            // add a HoverHandler to the Entity
+            let mut tex_storages = world.system_data();
+            let mut mesh_storages = world.system_data();
             let loader = world.read_resource();
-            let mut tex_manager = world.write_resource();
-            let mut tex_storage = world.write_resource();
-            let handler = Base::new_hover_handler(&loader, &mut tex_manager, &mut tex_storage);
-            world.write_storage().insert(result, handler).unwrap();
+            attach_assets(
+                result,
+                Base::asset_name(),
+                &loader,
+                &mut tex_storages,
+                &mut mesh_storages,
+            );
         }
 
         {
-            let mut storages = world.system_data();
-            insert_into_asset_storages(result, Base::asset_name(), &mut storages);
+            // add a HoverHandler to the Entity
+            let loader = world.read_resource::<Loader>();
+            let mut tex_manager = world.write_resource();
+            let mut tex_storage = world.write_resource();
+            let handler = Base::new_hover_handler(&mut tex_manager, &loader, &mut tex_storage);
+            world.write_storage().insert(result, handler).unwrap();
         }
 
         let mut click_storage = world.write_storage::<ClickHandlerComponent>();
@@ -125,16 +139,14 @@ impl Base {
     }
 
     pub fn new_hover_handler(
+        tex_manager: &mut TextureManager,
         loader: &Loader,
-        tex_manager: &mut AssetManager<Texture>,
         mut tex_storage: &mut AssetStorage<Texture>,
     ) -> HoverHandlerComponent {
-        let hover_mat = tex_manager.get_asset_handle_or_load(
-            "buildings/base_hover",
-            PngFormat,
-            TextureMetadata::srgb(),
-            &mut tex_storage,
+        let hover_mat = tex_manager.get_handle_or_load(
+            format!(Self::asset_name(), "_hover").as_str(),
             &loader,
+            &mut tex_storage,
         );
 
         let bounding_box = Cuboid::new(Vector3::new(0.33, 0.33, 0.39));

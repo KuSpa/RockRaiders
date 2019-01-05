@@ -1,15 +1,18 @@
 use amethyst::{
     assets::{AssetStorage, Loader},
     core::transform::{Parent, Transform},
-    ecs::{Entities,Entity, Read, ReadExpect, ReadStorage, System, World, Write, WriteStorage, Join},
+    ecs::{
+        Entities, Entity, Join, Read, ReadExpect, ReadStorage, System, World, Write, WriteStorage,
+    },
     prelude::Builder,
     renderer::{Texture, TextureData},
     ui::{Anchor, UiImage, UiTransform},
 };
 
-use entities::{Tile, RockRaider};
-use util::find_ui_by_name;
+use assetmanagement::TextureManager;
+use entities::{RockRaider, Tile};
 use level::{LevelGrid, TileGrid};
+use util::find_ui_by_name;
 
 /// Green for Ground
 const GROUND_COLOR: [f32; 4] = [0., 1., 0., 1.];
@@ -22,19 +25,32 @@ impl<'a> System<'a> for UiRockRaiderSystem {
     type SystemData = (
         Entities<'a>,
         ReadExpect<'a, Loader>,
+        Write<'a, TextureManager>,
         Write<'a, Option<UiMap>>,
         WriteStorage<'a, UiImage>,
         WriteStorage<'a, UiTransform>,
         ReadStorage<'a, Transform>,
-        Read<'a, AssetStorage<Texture>>,
+        Write<'a, AssetStorage<Texture>>,
         ReadStorage<'a, RockRaider>,
-        WriteStorage<'a, Parent>
+        WriteStorage<'a, Parent>,
     );
 
-    fn run(&mut self,
-    (entities, loader, mut map, mut ui_image_storage, mut ui_transform_storage, transform_storage, tex_storage, rock_raider_storage, mut parent_storage): Self::SystemData,
+    fn run(
+        &mut self,
+        (
+            entities,
+            loader,
+            mut texture_manager,
+            mut map,
+            mut ui_image_storage,
+            mut ui_transform_storage,
+            transform_storage,
+            mut tex_storage,
+            rock_raider_storage,
+            mut parent_storage,
+        ): Self::SystemData,
     ) {
-        let map  = (*map).as_mut().unwrap();
+        let map = (*map).as_mut().unwrap();
         // delete all ui_rr
         for entity in map.rr.drain(..) {
             entities.delete(entity).unwrap();
@@ -43,11 +59,7 @@ impl<'a> System<'a> for UiRockRaiderSystem {
         for (_, transform) in (&rock_raider_storage, &transform_storage).join() {
             // create a little quad in the map
             let image = UiImage {
-                texture: loader.load_from_data(
-                    TextureData::color(RR_COLOR),
-                    (),
-                    &tex_storage,
-                ),
+                texture: texture_manager.get_handle_or_load(RR_COLOR, &loader, &mut tex_storage),
             };
             let position = UiTransform::new(
                 "UiMapRR".to_string(),
@@ -60,7 +72,14 @@ impl<'a> System<'a> for UiRockRaiderSystem {
                 0,
             );
             let parent = find_ui_by_name("UiMap", &entities, &ui_transform_storage).unwrap();
-            map.rr.push(entities.build_entity().with(Parent{entity:parent}, &mut parent_storage).with(position, &mut ui_transform_storage).with(image, &mut ui_image_storage).build());
+            map.rr.push(
+                entities
+                    .build_entity()
+                    .with(Parent { entity: parent }, &mut parent_storage)
+                    .with(position, &mut ui_transform_storage)
+                    .with(image, &mut ui_image_storage)
+                    .build(),
+            );
         }
     }
 }
@@ -71,6 +90,7 @@ impl<'a> System<'a> for UiMapUpdateSystem {
     type SystemData = (
         Read<'a, LevelGrid>,
         ReadExpect<'a, Loader>,
+        Write<'a, TextureManager>,
         Read<'a, Option<UiMap>>,
         ReadStorage<'a, Tile>,
         WriteStorage<'a, UiImage>,
@@ -79,7 +99,15 @@ impl<'a> System<'a> for UiMapUpdateSystem {
 
     fn run(
         &mut self,
-        (level_grid,loader, map, tile_storage, mut ui_image_storage, mut tex_storage): Self::SystemData,
+        (
+            level_grid,
+            loader,
+            mut texture_manager,
+            map,
+            tile_storage,
+            mut ui_image_storage,
+            mut tex_storage,
+        ): Self::SystemData,
     ) {
         let map = (*map).as_ref().unwrap();
         for x in 0..level_grid.x_len() {
@@ -91,6 +119,7 @@ impl<'a> System<'a> for UiMapUpdateSystem {
                     y,
                     &tile,
                     &loader,
+                    &mut texture_manager,
                     &mut ui_image_storage,
                     &mut tex_storage,
                 );
@@ -134,15 +163,17 @@ impl UiMap {
                     .iter_mut()
                     .enumerate()
                     .map(|(y, tile)| {
-                        // TODO take this out of loop with `systemdata`...
                         let texture = {
+                            // We COULD move this out of the loop. but we don't want to. see the comment above `create_entity`
                             let loader = world.read_resource::<Loader>();
-                            let mut storage = world.write_resource::<AssetStorage<Texture>>();
+                            let mut texture_storage =
+                                world.write_resource::<AssetStorage<Texture>>();
+                            let mut texture_manager = world.write_resource::<TextureManager>();
                             UiImage {
-                                texture: loader.load_from_data(
-                                    TextureData::color(Self::tile_color(tile)),
-                                    (),
-                                    &storage,
+                                texture: texture_manager.get_handle_or_load(
+                                    Self::tile_color(tile),
+                                    &loader,
+                                    &mut texture_storage,
                                 ),
                             }
                         };
@@ -157,6 +188,10 @@ impl UiMap {
                             18.,
                             0,
                         );
+
+                        // This method requires mutability over the world and thus prevents any other references to the world.
+                        // It's a convenience method to not have active storage access from elsewhere( see above for examples^^), while creating an entity and inserting into the borrowed storages.
+                        // We may change that aas soon as we have performance issues.
                         world
                             .create_entity()
                             .with(position)

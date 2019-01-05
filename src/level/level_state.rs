@@ -99,11 +99,13 @@ impl LevelState {
             let tiles = world.read_storage::<Tile>();
             let mut transforms = world.write_storage::<Transform>();
             let dict = world.read_resource::<TilePatternMap>();
-            let mut storages = world.system_data();
+            let mut tex_storages = world.system_data();
+            let mut mesh_storages = world.system_data();
             let mut hover_storage = world.system_data::<WriteStorage<HoverHandlerComponent>>();
             let mut click_storage = world.system_data::<WriteStorage<ClickHandlerComponent>>();
             let mut hovered = world.write_resource::<Hovered>();
             let mut hover_channel = world.write_resource::<EventChannel<HoverEvent>>();
+            let loader = world.read_resource();
 
             for x in 0..max_x {
                 for y in 0..max_y {
@@ -113,8 +115,10 @@ impl LevelState {
                         &dict,
                         &mut transforms,
                         &tiles,
-                        &mut storages,
+                        &mut tex_storages,
+                        &mut mesh_storages,
                         &mut hovered,
+                        &loader,
                         &mut hover_channel,
                         &mut hover_storage,
                         &mut click_storage,
@@ -127,28 +131,16 @@ impl LevelState {
 
     /// Loads all assets that will presumably be used in the level into memory and `AssetManager`.
     fn load_initial_assets(world: &World) {
-        let mut mesh_manager = world.write_resource::<AssetManager<Mesh>>();
+        let mut mesh_manager = world.write_resource::<MeshManager>();
         let mut mesh_storage = world.write_resource::<AssetStorage<Mesh>>();
-        let mut texture_manager = world.write_resource::<AssetManager<Texture>>();
+        let mut texture_manager = world.write_resource::<TextureManager>();
         let mut texture_storage = world.write_resource::<AssetStorage<Texture>>();
-        let loader = world.read_resource::<Loader>();
+        let loader = world.read_resource();
 
         for (_, asset) in world.read_resource::<TilePatternMap>().iter() {
             debug!("loading asset: {}", asset);
-            mesh_manager.get_asset_handle_or_load(
-                asset,
-                ObjFormat,
-                Default::default(),
-                &mut mesh_storage,
-                &loader,
-            );
-            texture_manager.get_asset_handle_or_load(
-                asset,
-                PngFormat,
-                TextureMetadata::srgb(),
-                &mut texture_storage,
-                &loader,
-            );
+            mesh_manager.get_handle_or_load(asset, &loader, &mut mesh_storage);
+            texture_manager.get_handle_or_load(asset, &loader, &mut texture_storage);
         }
     }
 

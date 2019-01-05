@@ -10,7 +10,8 @@ use entities::Tile;
 use eventhandling::{ClickHandlerComponent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
-use assetmanagement::AssetManager;
+use assetmanagement::{util::*, MeshManager, TextureManager};
+use std::marker::PhantomData;
 use std::{cmp::Reverse, collections::BinaryHeap, time::Duration};
 
 ///
@@ -24,6 +25,7 @@ pub type RevealQueue = BinaryHeap<Reverse<(Duration, Entity)>>;
 impl<'a> System<'a> for GroundRevealSystem {
     type SystemData = (
         Read<'a, Time>,
+        ReadExpect<'a, Loader>,
         Write<'a, Hovered>,
         WriteStorage<'a, HoverHandlerComponent>,
         Write<'a, EventChannel<HoverEvent>>,
@@ -33,22 +35,15 @@ impl<'a> System<'a> for GroundRevealSystem {
         Write<'a, Option<RevealQueue>>,
         WriteStorage<'a, Transform>,
         WriteStorage<'a, Tile>,
-        (
-            ReadExpect<'a, Loader>,
-            Write<'a, AssetManager<Mesh>>,
-            WriteStorage<'a, MeshHandle>,
-            Write<'a, AssetStorage<Mesh>>,
-            Write<'a, AssetManager<Texture>>,
-            WriteStorage<'a, Material>,
-            Write<'a, AssetStorage<Texture>>,
-            ReadExpect<'a, MaterialDefaults>,
-        ),
+        MeshStorages<'a>,
+        TextureStorages<'a>,
     );
 
     fn run(
         &mut self,
         (
             time,
+            loader,
             mut hover,
             mut hovers,
             mut hover_channel,
@@ -58,7 +53,8 @@ impl<'a> System<'a> for GroundRevealSystem {
             mut ground_reveal_queue,
             mut transforms,
             mut tiles,
-            mut storages,
+            mut mesh_storages,
+            mut texture_storages,
         ): Self::SystemData,
     ) {
         if let Some(ref mut ground_reveal_queue) = *ground_reveal_queue {
@@ -115,8 +111,10 @@ impl<'a> System<'a> for GroundRevealSystem {
                                 &dict,
                                 &mut transforms,
                                 &tiles,
-                                &mut storages,
+                                &mut texture_storages,
+                                &mut mesh_storages,
                                 &mut hover,
+                                &loader,
                                 &mut hover_channel,
                                 &mut hovers,
                                 &mut clickers,

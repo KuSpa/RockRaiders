@@ -5,7 +5,7 @@ use amethyst::{
     renderer::{PngFormat, Texture, TextureMetadata},
 };
 
-use assetmanagement::AssetManager;
+use assetmanagement::{MeshManager, TextureManager};
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::{LevelGrid, SelectedRockRaider};
 use ncollide3d::shape::Cuboid;
@@ -59,17 +59,11 @@ impl Tile {
     }
 
     pub fn new_hover_handler(
+        tex_manager: &mut TextureManager,
         loader: &Loader,
-        tex_manager: &mut AssetManager<Texture>,
         mut tex_storage: &mut AssetStorage<Texture>,
     ) -> HoverHandlerComponent {
-        let hover_mat = tex_manager.get_asset_handle_or_load(
-            "ground_hover",
-            PngFormat,
-            TextureMetadata::srgb(),
-            &mut tex_storage,
-            &loader,
-        );
+        let hover_mat = tex_manager.get_handle_or_load("ground_hover", &loader, &mut tex_storage);
 
         let bounding_box = Cuboid::new(Vector3::new(0.5, 0.01, 0.5));
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))

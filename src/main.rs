@@ -63,10 +63,10 @@ fn main() -> amethyst::Result<()> {
             &["ui_transform"],
         )
         .with(
-        ui::UiRockRaiderSystem.pausable(GameScene::Level),
-        "ui_rr_update_system",
-        &["ui_transform", "ui_map_update_system"],
-    )
+            ui::UiRockRaiderSystem.pausable(GameScene::Level),
+            "ui_rr_update_system",
+            &["ui_transform", "ui_map_update_system"],
+        )
         .with(
             systems::MovementSystem.pausable(GameScene::Level),
             "movement_system",
