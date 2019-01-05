@@ -5,10 +5,10 @@ use amethyst::{
         transform::{GlobalTransform, Transform},
     },
     ecs::prelude::{Component, Entities, Entity, NullStorage, World, WriteStorage},
-    renderer::{PngFormat, Texture, TextureMetadata},
+    renderer::Texture,
 };
 use assetmanagement::util::*;
-use assetmanagement::{util::attach_assets, MeshManager, TextureManager};
+use assetmanagement::{util::attach_assets, TextureManager};
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::SelectedRockRaider;
 use ncollide3d::shape::Cuboid;

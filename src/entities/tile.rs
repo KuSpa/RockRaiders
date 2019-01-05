@@ -2,10 +2,10 @@ use amethyst::{
     assets::{AssetStorage, Loader},
     core::{nalgebra::Vector3, transform::Transform},
     ecs::prelude::{Component, DenseVecStorage, Entity, World},
-    renderer::{PngFormat, Texture, TextureMetadata},
+    renderer::Texture,
 };
 
-use assetmanagement::{MeshManager, TextureManager};
+use assetmanagement::TextureManager;
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::{LevelGrid, SelectedRockRaider};
 use ncollide3d::shape::Cuboid;

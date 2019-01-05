@@ -1,5 +1,5 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::AssetStorage,
     core::{
         nalgebra::Vector3,
         timing::Time,
@@ -9,8 +9,8 @@ use amethyst::{
     input::{is_close_requested, is_key_down, InputHandler},
     prelude::*,
     renderer::{
-        ActiveCamera, Camera, Light, MaterialDefaults, Mesh, MouseButton, ObjFormat, PngFormat,
-        PointLight, Rgba, ScreenDimensions, Texture, TextureMetadata, VirtualKeyCode,
+        ActiveCamera, Camera, Light, MaterialDefaults, Mesh, MouseButton, PointLight, Rgba,
+        ScreenDimensions, Texture, VirtualKeyCode,
     },
     shrev::EventChannel,
     ui::*,
@@ -229,7 +229,6 @@ impl<'a, 'b> State<GameData<'a, 'b>, GameEvent> for LevelState {
         add_resource_without_override(world, mesh_manager);
 
         if add_resource_without_override(world, texture_manager) {
-            warn!("initialized Texture handler");
             let mut texture_manager = world.write_resource::<TextureManager>();
             texture_manager.initialize_with(world.read_resource::<MaterialDefaults>().0.clone());
         }

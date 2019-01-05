@@ -1,8 +1,7 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::Loader,
     core::{timing::Time, transform::Transform},
     ecs::prelude::{Entity, Read, ReadExpect, System, Write, WriteStorage},
-    renderer::{Material, MaterialDefaults, Mesh, MeshHandle, Texture},
     shrev::EventChannel,
 };
 
@@ -10,8 +9,7 @@ use entities::Tile;
 use eventhandling::{ClickHandlerComponent, HoverEvent, HoverHandlerComponent, Hovered};
 use level::{LevelGrid, TilePatternMap};
 
-use assetmanagement::{util::*, MeshManager, TextureManager};
-use std::marker::PhantomData;
+use assetmanagement::util::{MeshStorages, TextureStorages};
 use std::{cmp::Reverse, collections::BinaryHeap, time::Duration};
 
 ///

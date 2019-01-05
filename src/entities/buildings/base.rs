@@ -5,12 +5,12 @@ use amethyst::{
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
     },
     ecs::prelude::{Builder, Component, Entity, NullStorage, World},
-    renderer::{PngFormat, Texture, TextureMetadata},
+    renderer::Texture,
 };
 
 use rand::prelude::*;
 
-use assetmanagement::{util::attach_assets, MeshManager, TextureManager};
+use assetmanagement::{util::attach_assets, TextureManager};
 use entities::{RockRaider, Tile};
 use eventhandling::{ClickHandlerComponent, Clickable, HoverHandlerComponent, SimpleHoverHandler};
 use level::LevelGrid;
@@ -134,6 +134,7 @@ impl Base {
         Base.attach_click_handler(result, &mut click_storage);
     }
 
+    #[inline(always)]
     fn asset_name() -> &'static str {
         "buildings/base"
     }
@@ -143,11 +144,8 @@ impl Base {
         loader: &Loader,
         mut tex_storage: &mut AssetStorage<Texture>,
     ) -> HoverHandlerComponent {
-        let hover_mat = tex_manager.get_handle_or_load(
-            format!(Self::asset_name(), "_hover").as_str(),
-            &loader,
-            &mut tex_storage,
-        );
+        let hover_mat =
+            tex_manager.get_handle_or_load("buildings/base_hover", &loader, &mut tex_storage);
 
         let bounding_box = Cuboid::new(Vector3::new(0.33, 0.33, 0.39));
         Box::new(SimpleHoverHandler::new(bounding_box, hover_mat))

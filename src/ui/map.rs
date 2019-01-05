@@ -5,7 +5,7 @@ use amethyst::{
         Entities, Entity, Join, Read, ReadExpect, ReadStorage, System, World, Write, WriteStorage,
     },
     prelude::Builder,
-    renderer::{Texture, TextureData},
+    renderer::Texture,
     ui::{Anchor, UiImage, UiTransform},
 };
 
