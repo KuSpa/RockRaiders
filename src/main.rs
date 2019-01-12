@@ -1,5 +1,7 @@
 extern crate amethyst;
 #[macro_use]
+extern crate amethyst_derive;
+#[macro_use]
 extern crate log;
 extern crate serde;
 #[macro_use]
@@ -12,7 +14,7 @@ mod assetmanagement;
 mod entities;
 mod eventhandling;
 mod level;
-mod rockraiders;
+mod main_state;
 mod systems;
 mod util;
 
@@ -24,9 +26,11 @@ use amethyst::{
     ui::{DrawUi, UiBundle},
 };
 
+use eventhandling::{GameEvent, GameEventReader};
+
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
-    use rockraiders::MainState;
+    use main_state::MainState;
 
     let path = format!("{}/resources/display.ron", env!("CARGO_MANIFEST_DIR"));
 
@@ -48,7 +52,7 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(UiBundle::<String, String>::new())?
         .with(
-            systems::MouseRaySystem.pausable(GameScene::Level),
+            eventhandling::MouseRaySystem.pausable(GameScene::Level),
             "mouse_ray_system",
             &[],
         )
@@ -58,7 +62,7 @@ fn main() -> amethyst::Result<()> {
             &["transform_system"],
         )
         .with(
-            systems::CameraMovementSystem.pausable(GameScene::Level),
+            eventhandling::CameraMovementSystem.pausable(GameScene::Level),
             "camera_movement_system",
             &[],
         )
@@ -73,11 +77,13 @@ fn main() -> amethyst::Result<()> {
             &["ui_transform"],
         )
         .with(
-            systems::HoverInteractionSystem.pausable(GameScene::Level),
+            eventhandling::HoverInteractionSystem.pausable(GameScene::Level),
             "mouse_input_system",
             &["mouse_ray_system"],
         );
-    let mut game = Application::new(assets_dir, MainState, game_data)?;
+
+    let mut game =
+        CoreApplication::<_, GameEvent, GameEventReader>::new(assets_dir, MainState, game_data)?;
     game.run();
     Ok(())
 }

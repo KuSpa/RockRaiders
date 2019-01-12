@@ -7,15 +7,15 @@ use amethyst::{
     },
     ecs::{
         prelude::{Builder, Entity, World},
-        storage::{GenericReadStorage, GenericWriteStorage},
+        storage::{GenericReadStorage, GenericWriteStorage, WriteStorage},
     },
 };
 
-use pathfinding::directed::bfs;
-
 use assetmanagement::util::*;
 use entities::Tile;
+use eventhandling::{ClickHandlerComponent, HoverHandlerComponent, Hovered};
 use level::TilePatternMap;
+use pathfinding::directed::bfs;
 use systems::Path;
 use util;
 
@@ -149,6 +149,9 @@ impl LevelGrid {
         transforms: &mut R,
         tiles: &T,
         storages: &mut AssetStorages,
+        hovered: &mut Hovered,
+        hover_storage: &mut WriteStorage<HoverHandlerComponent>,
+        click_storage: &mut WriteStorage<ClickHandlerComponent>,
     ) {
         let entity = self.get(x, y).unwrap();
         let (classifier, rotation) = self.determine_sprite_for(x, y, &dict, tiles);
@@ -158,6 +161,30 @@ impl LevelGrid {
         transform.set_position(Vector3::new(x as f32, 0.0, y as f32));
         transform.rotate_local(Vector3::<f32>::y_axis(), -rotation);
         transforms.insert(entity, transform).unwrap();
+
+        //Add hover handler for the Tile
+        if let Some(_) = self.get_tile(x, y, tiles) {
+            let (
+                ref loader,
+                ref _mesh_manager,
+                ref _mesh_handles,
+                ref _mesh_storage,
+                ref mut tex_manager,
+                ref _mat_storage,
+                ref mut tex_storage,
+                ref _default_mat,
+            ) = storages;
+
+            let handler = Tile::new_hover_handler(&loader, tex_manager, tex_storage);
+            hover_storage.insert(entity, handler).unwrap();
+            click_storage
+                .insert(entity, Tile::new_click_handler())
+                .unwrap();
+
+            if Some(entity) == **hovered {
+                *hovered = Hovered(None)
+            }
+        }
     }
 
     pub fn get_tile<'a, T: GenericReadStorage<Component = Tile>>(
@@ -250,12 +277,12 @@ impl LevelGrid {
         storage: &T,
     ) -> (i32, i32) {
         if let Some(transform) = storage.get(*entity) {
-            return (
-                transform.translation().x as i32,
-                transform.translation().z as i32,
-            );
+            let x = transform.translation().x as i32;
+            let y = transform.translation().z as i32;
+            // Test if the entity is part of the Grid at all. `unwrap()` is okay, because if it not part of the grid, we panic anyway
+            assert_eq!(*entity, self.get(x, y).unwrap());
+            return (x, y);
         };
-        // TODO check for correctness
         panic!("Entity is not part of the grid, but its grid position was asked");
     }
 }
