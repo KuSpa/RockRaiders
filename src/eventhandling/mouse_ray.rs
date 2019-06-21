@@ -10,7 +10,7 @@ pub struct MouseRaySystem;
 
 impl<'s> System<'s> for MouseRaySystem {
     type SystemData = (
-        Read<'s, InputHandler<String, String>>,
+        Read<'s, InputHandler<String>>,
         Option<ReadExpect<'s, ActiveCamera>>,
         ReadExpect<'s, ScreenDimensions>,
         ReadStorage<'s, Camera>,

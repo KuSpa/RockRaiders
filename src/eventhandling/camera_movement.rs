@@ -16,7 +16,7 @@ impl<'a> System<'a> for CameraMovementSystem {
     type SystemData = (
         Read<'a, Time>,
         WriteStorage<'a, Transform>,
-        Read<'a, InputHandler<String, String>>,
+        Read<'a, InputHandler<String>>,
         Option<ReadExpect<'a, ActiveCamera>>,
         ReadExpect<'a, ScreenDimensions>,
     );
