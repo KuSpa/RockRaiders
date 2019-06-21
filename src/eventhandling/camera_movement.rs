@@ -1,12 +1,13 @@
 use amethyst::{
     core::{
-        nalgebra::{Unit, Vector3, Vector4},
-        specs::prelude::{Read, ReadExpect, System, WriteStorage},
+        math::{Unit, Vector3, Vector4},
+        ecs::prelude::{Read, ReadExpect, System, WriteStorage},
         timing::Time,
         transform::Transform,
     },
     input::InputHandler,
-    renderer::{ActiveCamera, ScreenDimensions},
+    renderer::ActiveCamera,
+    window::ScreenDimensions
 };
 
 pub struct CameraMovementSystem;

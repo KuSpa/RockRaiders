@@ -1,5 +1,5 @@
 use amethyst::{
-    core::specs::{storage::GenericReadStorage, Entities, Entity, Join, World},
+    core::ecs::{storage::GenericReadStorage, Entities, Entity, Join, World},
     shred::Resource,
     ui::UiTransform,
 };

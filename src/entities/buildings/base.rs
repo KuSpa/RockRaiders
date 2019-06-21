@@ -1,7 +1,7 @@
 use amethyst::{
     assets::{AssetStorage, Loader},
     core::{
-        nalgebra::{Point2, Vector3},
+        math::{Point2, Vector3},
         transform::{GlobalTransform, Parent, ParentHierarchy, Transform},
     },
     ecs::prelude::{Builder, Component, Entity, NullStorage, World},

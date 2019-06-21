@@ -1,7 +1,6 @@
 use amethyst::{
-    input::{is_close_requested, is_key_down},
+    input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
-    renderer::VirtualKeyCode,
 };
 use eventhandling::GameEvent;
 use GameScene;

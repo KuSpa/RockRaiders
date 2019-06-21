@@ -1,6 +1,6 @@
 use amethyst::{
     core::{
-        nalgebra::{try_convert, Isometry, Isometry3, Translation3},
+        math::{try_convert, Isometry, Isometry3, Translation3},
         GlobalTransform,
     },
     ecs::prelude::{

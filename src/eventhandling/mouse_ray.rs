@@ -1,5 +1,5 @@
-use amethyst::core::nalgebra::{Matrix4, Point3, Vector3, Vector4};
-use amethyst::core::specs::prelude::*;
+use amethyst::core::math::{Matrix4, Point3, Vector3, Vector4};
+use amethyst::core::ecs::prelude::*;
 use amethyst::core::transform::Transform;
 use amethyst::input::InputHandler;
 use amethyst::renderer::ActiveCamera;

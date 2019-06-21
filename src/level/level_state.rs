@@ -1,7 +1,7 @@
 use amethyst::{
     assets::{AssetStorage, Loader},
     core::{
-        nalgebra::Vector3,
+        math::Vector3,
         timing::Time,
         transform::{GlobalTransform, Parent, Transform},
     },

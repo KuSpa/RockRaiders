@@ -4,11 +4,14 @@ version = "0.1.0"
 authors = []
 
 [dependencies]
-amethyst = "0.10.0"#{version = "0.10.0" , features = ["nightly"] }
+amethyst = "0.11.0"#{version = "0.10.0" , features = ["nightly"] }
 amethyst_derive = "0.3.0"
 log = "0.4.6"
-serde = "1.0.82"
-serde_derive = "1.0.82"
-ncollide3d = "0.17.0"
-pathfinding = "1.1.4"
-rand = "0.6.1"
+serde = "1.0"
+serde_derive = "1.0"
+ncollide3d = "0.19"
+pathfinding = "1.1"
+rand = "0.6"
+
+[features]
+vulkan = ["amethyst/vulkan"]

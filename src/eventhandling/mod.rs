@@ -11,7 +11,7 @@ pub use self::mouse_ray::*;
 use amethyst::{
     core::{
         shrev::{EventChannel, ReaderId},
-        specs::{Read, Resources, SystemData},
+        ecs::{Read, Resources, SystemData},
         EventReader,
     },
     ui::UiEvent,

@@ -1,6 +1,6 @@
 use amethyst::{
     assets::*,
-    renderer::{ObjFormat, PngFormat},
+    renderer::formats::mesh::ObjFormat
 };
 use std::collections::HashMap;
 

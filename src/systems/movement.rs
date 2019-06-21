@@ -1,6 +1,6 @@
 use amethyst::{
     core::{
-        nalgebra::{Point2, Real, UnitQuaternion, Vector3},
+        math::{Point2, Real, UnitQuaternion, Vector3},
         timing::Time,
         transform::Transform,
     },

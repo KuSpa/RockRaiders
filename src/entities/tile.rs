@@ -1,6 +1,6 @@
 use amethyst::{
     assets::{AssetStorage, Loader},
-    core::{nalgebra::Vector3, transform::Transform},
+    core::{math::Vector3, transform::Transform},
     ecs::prelude::{Component, DenseVecStorage, Entity, World},
     renderer::{PngFormat, Texture, TextureMetadata},
 };
